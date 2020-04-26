@@ -1,0 +1,32 @@
+{
+  "name": "placebo-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Backend for Twitter placebo study",
+  "main": "main.js",
+  "license": "ISC",
+  "dependencies": {
+    "@hapi/boom": "^9.1.0",
+    "@hapi/hapi": "^19.1.1",
+    "@hapi/inert": "^6.0.1",
+    "dotenv": "^8.2.0",
+    "mongodb": "^3.5.5",
+    "twitter-lite": "^0.10.1-0"
+  },
+  "engines": {
+    "node": ">=12.x"
+  },
+  "scripts": {
+    "start": "NODE_ENV=production node ./dist/main.js",
+    "start-dev": "./node_modules/nodemon/bin/nodemon.js -e ts --exec \"npm run compile\"",
+    "compile": "tsc && NODE_ENV=development node ./dist/main.js"
+  },
+  "devDependencies": {
+    "@types/hapi__hapi": "^19.0.2",
+    "@types/hapi__inert": "^5.2.0",
+    "@types/mongodb": "^3.5.10",
+    "@types/node": "^13.13.2",
+    "nodemon": "^2.0.3",
+    "typescript": "^3.8.3"
+  }
+}
