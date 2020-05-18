@@ -1,9 +1,7 @@
-"use strict";
-
-import process = require("process");
-import path = require("path");
-import dotenv = require('dotenv');
-import  { MongoClient } from "mongodb";
+import process from "process";
+import path from "path";
+import dotenv from "dotenv";
+import { MongoClient } from "mongodb";
 import { setUpServer } from "./server";
 const ExitCode = {
     UNKNOWN_ARGUMENT: 1,
