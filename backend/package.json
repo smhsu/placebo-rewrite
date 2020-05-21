@@ -17,9 +17,9 @@
     "node": ">=12.x"
   },
   "scripts": {
-    "start": "NODE_ENV=production node ./dist/main.js",
-    "start-dev": "./node_modules/nodemon/bin/nodemon.js -e ts --exec \"npm run compile\"",
-    "compile": "tsc && NODE_ENV=development node ./dist/main.js"
+    "start": "NODE_ENV=production node ./dist/backend/src/main.js",
+    "start-dev": "npx nodemon -e ts --exec \"npm run compile-and-run\"",
+    "compile-and-run": "npx tsc && NODE_ENV=development node ./dist/backend/src/main.js"
   },
   "devDependencies": {
     "@types/hapi__hapi": "^19.0.2",

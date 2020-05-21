@@ -1,15 +1,16 @@
-"use strict";
-
 import process = require("process");
 import path = require("path");
 import dotenv = require('dotenv');
 import  { MongoClient } from "mongodb";
-import { setUpServer } from "./server";
-const ExitCode = {
+import { setUpServer } from "./serverSetUp";
+import {guardEnv} from "./utils/env";
+import {getClient} from "./database/initialization";
+
+const ExitCode = Object.freeze({
     UNKNOWN_ARGUMENT: 1,
     MONGO_ERROR: 2,
     SERVER_SETUP_ERROR: 3
-};
+});
 
 function readEnvironmentVars() {
     if (process.env.NODE_ENV === "production") { // NODE_ENV should be set from the command line (see package.json)
@@ -35,12 +36,9 @@ async function main(argv: string[]) {
     // Connect to MongoDB
     let mongoClient;
     try {
-        const dbUrl = process.env.MONGODB_URI;
-        console.log(`🛠 Attempting to establish MongoDB connection at <${dbUrl}>...`);
-        mongoClient = await MongoClient.connect(dbUrl, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        });
+        guardEnv.databaseSetup();
+        console.log(`🛠 Attempting to establish MongoDB connection at <${process.env.MONGODB_URI}>...`);
+        mongoClient = await getClient();
         console.log("✅ Database connection successful.");
     } catch (error) {
         console.error(error.toString());

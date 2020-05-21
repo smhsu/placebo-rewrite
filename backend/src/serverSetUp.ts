@@ -1,9 +1,7 @@
-"use strict";
-
 import { Server, ServerOptions } from "@hapi/hapi";
 import * as Inert from "@hapi/inert";
 import { MongoClient } from "mongodb";
-import { registerRoutes } from "./twitterAuth";
+import { registerTwitterRoutes } from "./routes/twitterAuth";
 
 /**
  * Sets up a Hapi server, all configured and ready to go.  The only thing left to do is to start it.  For Hapi config
@@ -17,7 +15,7 @@ export async function setUpServer(mongoClient: MongoClient, options: ServerOptio
     const server = new Server(options);
     server.app["mongoClient"] = mongoClient;
     await server.register(Inert);
-    registerRoutes(server);
+    registerTwitterRoutes(server);
 
     server.events.on("request", (request, event, tags) => {
         if (tags.error) {

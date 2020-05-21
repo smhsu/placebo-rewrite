@@ -1,14 +1,14 @@
 import { Server } from "@hapi/hapi";
 import * as Boom from "@hapi/boom";
 import Twitter = require("twitter-lite");
-import * as RequestTokenApi from "./common/requestTokenApi";
-import * as HandleAccessTokenApi from "./common/handleAccessTokenApi";
+import * as RequestTokenApi from "../../../common/requestTokenApi";
+import * as HandleAccessTokenApi from "../../../common/handleAccessTokenApi";
 
 /**
  * 
  * @param {Hapi.Server} server 
  */
-export function registerRoutes(server: Server) {
+export function registerTwitterRoutes(server: Server) {
     if (!process.env.CONSUMER_KEY || !process.env.CONSUMER_SECRET || !process.env.CALLBACK_URL) {
         throw new Error("Needed Twitter app keys unset in environment variables!");
     }
