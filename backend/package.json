@@ -18,8 +18,8 @@
     "node": ">=12.x"
   },
   "scripts": {
-    "start": "NODE_ENV=production node ./dist/main.js",
-    "start-dev": "./node_modules/nodemon/bin/nodemon.js -e ts --exec \"npm run compile\"",
+    "start-prod": "NODE_ENV=production node ./dist/main.js",
+    "start": "npx nodemon -e ts --exec \"npm run compile\"",
     "compile": "tsc && NODE_ENV=development node ./dist/main.js"
   },
   "devDependencies": {
