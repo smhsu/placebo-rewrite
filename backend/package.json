@@ -28,6 +28,7 @@
     "@types/mongodb": "^3.5.10",
     "@types/node": "^13.13.2",
     "nodemon": "^2.0.3",
+    "twitter-d": "^0.4.0",
     "typescript": "^3.8.3"
   }
 }

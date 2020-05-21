@@ -40,10 +40,6 @@ the backend server upon any file changes.
 1. Run `mongod` to start MongoDB.
 2. In the `backend` folder: run `npm run start-dev`.
 3. In the `frontend` folder: run `npm start`.
-4. Browse to the same URL as the callback URL configured in your Twitter development account.  The login flow won't work
-otherwise.
-    * Note that "localhost:3000" and "127.0.0.1:3000" are considered to be different locations.
-
 
 ## Deploying
 
