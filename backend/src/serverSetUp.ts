@@ -1,7 +1,8 @@
 import { Server, ServerOptions } from "@hapi/hapi";
-import * as Inert from "@hapi/inert";
+import Inert from "@hapi/inert";
+import Boom from "@hapi/boom";
 import { MongoClient } from "mongodb";
-import { registerTwitterRoutes } from "./routes/twitterAuth";
+import { registerRoutes } from "./twitterApi";
 
 /**
  * Sets up a Hapi server, all configured and ready to go.  The only thing left to do is to start it.  For Hapi config
@@ -15,14 +16,24 @@ export async function setUpServer(mongoClient: MongoClient, options: ServerOptio
     const server = new Server(options);
     server.app["mongoClient"] = mongoClient;
     await server.register(Inert);
-    registerTwitterRoutes(server);
+    registerRoutes(server);
 
+    // Runs every time somebody calls request.log() or Boom is used to return a status code >= 400.
     server.events.on("request", (request, event, tags) => {
         if (tags.error) {
-            const message = event.error instanceof Error ? event.error.message : "unknown";
-            console.error(`[ERROR] In ${request.path}: ${message}`);
+            if (event.error && (event.error as any).isBoom) {
+                const theError = event.error as Boom.Boom<any>;
+                if (theError.output.statusCode >= 500) {
+                    const reason = typeof theError.data.toString === "function" ?
+                        theError.data.toString() : "(unknown)";
+                    console.error(`HTTP ${theError.output.statusCode} from ${request.path} caused by ${reason}`);
+                }
+            } else {
+                console.error(`Error from ${request.path}`);
+                console.error(event.error);
+            }
         }
     });
-    
+
     return server;
 }
