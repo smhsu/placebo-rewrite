@@ -1,7 +1,6 @@
 import process = require("process");
 import path = require("path");
 import dotenv = require('dotenv');
-import  { MongoClient } from "mongodb";
 import { setUpServer } from "./serverSetUp";
 import {guardEnv} from "./utils/env";
 import {getClient} from "./database/initialization";

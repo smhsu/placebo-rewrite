@@ -2,7 +2,7 @@ import crypto from "crypto";
 import OAuth from "oauth-1.0a";
 import axios, { AxiosError } from "axios";
 import querystring from "querystring";
-import { Tweet } from "./common/getTweetsApi";
+import { Tweet } from "../../../common/getTweetsApi";
 
 const AUTH_BASE_URL = "https://api.twitter.com/oauth";
 const API_BASE_URL = "https://api.twitter.com/1.1";
