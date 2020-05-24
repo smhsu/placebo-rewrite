@@ -34,7 +34,7 @@ export function LoginPane(props: Props): JSX.Element {
         </p>;
     }
 
-    return <div className="vertical-center">
+    return <div className="container vertical-center">
         {instructions}
         <div><TwitterLoginButton onError={props.onError} /></div>
     </div>;
