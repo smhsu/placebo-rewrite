@@ -1,4 +1,4 @@
-import {MongoClient} from "mongodb";
+import { MongoClient } from "mongodb";
 
 export async function getClient() {
     return await MongoClient.connect(process.env.MONGODB_URI, {

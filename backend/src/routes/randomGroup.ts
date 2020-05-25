@@ -1,11 +1,9 @@
-import {Server} from "@hapi/hapi";
-import {MongoClient} from "mongodb";
+import { Server } from "@hapi/hapi";
+import { MongoClient } from "mongodb";
 import * as RandomAssignment from "../common/requestRandomAssignmentApi";
-import {GroupAssigment} from "../common/requestRandomAssignmentApi";
-import {guardEnv} from "../utils/env";
-import {userConnection} from "../database/user";
-
-
+import { GroupAssigment } from "../common/requestRandomAssignmentApi";
+import { guardEnv } from "../utils/env";
+import { userConnection } from "../database/user";
 
 function getControl() {
     return {
@@ -31,6 +29,7 @@ export function registerRandomAssignment(server: Server) {
     const client = server.app['mongoClient'] as MongoClient;
     const controlPercentage = parseFloat(process.env.CONTROL_GROUP_PERCENTAGE);
     const userCollection = userConnection.getCollection(client);
+
     server.route({
         method: RandomAssignment.METHOD,
         path: RandomAssignment.PATH,
@@ -52,5 +51,4 @@ export function registerRandomAssignment(server: Server) {
             }
         }
     })
-
 }

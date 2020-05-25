@@ -2,8 +2,8 @@ import process = require("process");
 import path = require("path");
 import dotenv = require('dotenv');
 import { setUpServer } from "./serverSetUp";
-import {guardEnv} from "./utils/env";
-import {getClient} from "./database/initialization";
+import { guardEnv } from "./utils/env";
+import { getClient } from "./database/initialization";
 
 const ExitCode = Object.freeze({
     UNKNOWN_ARGUMENT: 1,

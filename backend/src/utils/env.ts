@@ -4,11 +4,13 @@ export const guardEnv = {
             throw new Error('Mongodb URI must be specified')
         }
     },
+
     databaseConnection() {
         if (!(process.env.USER_COLLECTION_NAME && process.env.DATABASE_NAME)) {
             throw new Error('USER_COLLECTION_NAME and DATABASE_NAME must be specified in the env');
         }
     },
+
     groupPercentage() {
         const rawControlPercentage = process.env.CONTROL_GROUP_PERCENTAGE;
         if (rawControlPercentage != null) {
@@ -21,5 +23,4 @@ export const guardEnv = {
             }
         }
     }
-
 };
