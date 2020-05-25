@@ -2,7 +2,7 @@ import crypto from "crypto";
 import OAuth from "oauth-1.0a";
 import axios, { AxiosError } from "axios";
 import querystring from "querystring";
-import { Tweet } from "../../../common/getTweetsApi";
+import { Status } from "twitter-d";
 
 const AUTH_BASE_URL = "https://api.twitter.com/oauth";
 const API_BASE_URL = "https://api.twitter.com/1.1";
@@ -37,6 +37,15 @@ interface AccessToken {
     oauth_token_secret: string;
     user_id: string;
     screen_name: string;
+}
+
+/**
+ * Parameters for Twitter's home_timeline API as described in
+ * https://developer.twitter.com/en/docs/tweets/timelines/api-reference/get-statuses-home_timeline 
+ */
+interface GetTweetsOptions {
+    /** Number of Tweets to get. */
+    count: number;
 }
 
 /**
@@ -111,7 +120,7 @@ export class TwitterClient {
                 reason = typeof data.toString === "function" ? data.toString() : "unknown";
             }
 
-            throw new TwitterError(messagePrefix + reason);
+            throw new TwitterError(messagePrefix + reason, error.response.status);
         } else if (error.request) { // Request sent but no response from server
             throw new TwitterError("No response from Twitter endpoint.");
         } else { // Something else triggered an error
@@ -181,15 +190,18 @@ export class TwitterClient {
      * @param options - parameters to pass to Twitter's API
      * @return promise for a list of Tweets on the authenticated user's home timeline.
      */
-    async getTweets(options: {count: number}): Promise<Tweet[]> {
+    async getTweets(options: GetTweetsOptions): Promise<Status[]> {
         if (!this.hasAccessToken) {
             throw new Error("No access token configured -- cannot use this API without one.")
         }
 
-        const url = `${API_BASE_URL}/statuses/home_timeline.json?${querystring.stringify(options)}`;
+        // Always get extended tweets.  It makes "full_text" instead of "text" show up in Tweet data.  For more, see
+        // https://developer.twitter.com/en/docs/tweets/tweet-updates
+        const extendedOptions = {...options, tweet_mode: "extended"};
+        const url = `${API_BASE_URL}/statuses/home_timeline.json?${querystring.stringify(extendedOptions)}`;
         let response;
         try {
-            response = await axios.get<Tweet[]>(url, {
+            response = await axios.get<Status[]>(url, {
                 headers: this._makeOAuthHeaders(url, "GET"),
                 responseType: "json"
             });
@@ -204,8 +216,12 @@ export class TwitterClient {
  * An error during an API call to Twitter.
  */
 export class TwitterError extends Error {
-    constructor(message: string) {
+    /** HTTP status returned from Twitter's API.  If negative, Twitter didn't respond at all. */
+    statusFromTwitter: number;
+
+    constructor(message: string, statusFromTwitter=-1) {
         super(message);
         this.name = TwitterError.name;
+        this.statusFromTwitter = statusFromTwitter;
     }
 }
