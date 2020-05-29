@@ -4,12 +4,12 @@ import querystring from "querystring";
 import { Status } from "twitter-d";
 
 import { LoginPane } from "./LoginPane";
+import { TweetView } from "./TweetView";
 import * as GetTweetsApi from "../common/getTweetsApi";
 import { ApiErrorHandler } from "../ApiErrorHandler";
 
 import spinner from "../loading-small.gif";
 import "./App.css";
-import { TweetView } from "./TweetView";
 
 enum TweetFetchStatus {
     NOT_LOGGED_IN,
@@ -108,7 +108,7 @@ export class App extends React.Component<{}, State> {
 
         return <div>
             <nav className="navbar sticky-top">
-                <span className="navbar-brand">Twitter Study</span>
+                <span className="navbar-brand">Custom Twitter Feed Viewer</span>
             </nav>
             {pane}
         </div>;
