@@ -2,7 +2,8 @@ import { Server, ServerOptions } from "@hapi/hapi";
 import Inert from "@hapi/inert";
 import Boom from "@hapi/boom";
 import { MongoClient } from "mongodb";
-import { registerRoutes } from "./twitterApi";
+import { registerRoutes as registerTwitterRoutes } from "./twitterApi";
+import { registerRoutes as registerPublicRoutes } from "./publicRoute";
 
 /**
  * Sets up a Hapi server, all configured and ready to go.  The only thing left to do is to start it.  For Hapi config
@@ -16,7 +17,8 @@ export async function setUpServer(mongoClient: MongoClient, options: ServerOptio
     const server = new Server(options);
     server.app["mongoClient"] = mongoClient;
     await server.register(Inert);
-    registerRoutes(server);
+    registerPublicRoutes(server);
+    registerTwitterRoutes(server);
 
     // Runs every time somebody calls request.log() or Boom is used to return a status code >= 400.
     server.events.on("request", (request, event, tags) => {
