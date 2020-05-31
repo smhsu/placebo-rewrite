@@ -8,6 +8,7 @@ import { TwitterClient, TwitterError } from "../auth/TwitterClient";
  * Registers APIs that relate to authenticating and fetching data from Twitter.
  * 
  * @param server - Hapi server to register routes with
+ * @author Silas Hsu
  */
 export function registerTwitterRoutes(server: Server) {
     if (!process.env.CONSUMER_KEY || !process.env.CONSUMER_SECRET || !process.env.CALLBACK_URL) {
@@ -62,7 +63,8 @@ export function registerTwitterRoutes(server: Server) {
                     access_token_secret: response.oauth_token_secret
                 });
 
-                return authedTwitterClient.getTweets({count: 200});
+                const tweets = await authedTwitterClient.getTweets({count: 200});
+                return { tweets };
             } catch (error) {
                 return handleTwitterError(error);
             }
@@ -71,24 +73,36 @@ export function registerTwitterRoutes(server: Server) {
 }
 
 /**
- * Returns the proper 500-level error if there is a problem with the Twitter API.
+ * When there is a problem with the Twitter API, returns the proper 500-level error and user-facing message in a Boom
+ * object.  Note that when returning a Boom error, an error logging event will be emitted, so this method does not and
+ * should not log anything.
  * 
  * @param error - error thrown while calling the Twitter API
  * @return appropriate Boom error to return to caller of the API
  */
 function handleTwitterError(error: unknown) {
+    let statusCode: number;
+    let messageToUser: string;
     if (error instanceof TwitterError) {
-        return new Boom.Boom(
-            "There was a problem with Twitter's API, or how the sever was configured to communicate with Twitter.",
-            {
-                statusCode: 502,
-                data: error
-            }
-        );
+        if (error.statusFromTwitter >= 500 || error.statusFromTwitter < 0) {
+            statusCode = 502;
+            messageToUser = "Twitter is either down, overloaded, or otherwise having issues -- try again later.";
+        } else if (error.statusFromTwitter === 420 || error.statusFromTwitter === 429) {
+            statusCode = 502;
+            messageToUser = "Twitter request limit exceeded -- try again later.";
+        } else {
+            // Probably a problem with the way our server is sending requests to Twitter.
+            // In any case, the user probably can't do anything about it, so just send a generic message.
+            statusCode = 500;
+            messageToUser = "Internal server error";
+        }
     } else {
-        return new Boom.Boom("Internal server error", {
-            statusCode: 500,
-            data: error
-        });
+        statusCode = 500;
+        messageToUser = "Internal server error";
     }
+
+    return new Boom.Boom(messageToUser, {
+        statusCode: statusCode,
+        data: error // The logger should probably take advantage of this
+    });
 }
