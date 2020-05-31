@@ -5,7 +5,7 @@ import {GroupAssigment} from "../common/requestRandomAssignmentApi";
 import {guardEnv} from "../utils/env";
 import {userConnection} from "../database/user";
 
-
+// TODO: add a eslint config file
 
 function getControl() {
     return {
@@ -18,6 +18,7 @@ function getExperimental() {
     } as RandomAssignment.ResponsePayload;
 }
 
+// TODO: Use jsdoc
 /**
  * Assumptions:
  *  * The database doesn't have count for all user records
@@ -36,6 +37,7 @@ export function registerRandomAssignment(server: Server) {
         path: RandomAssignment.PATH,
         handler: async () => {
             const {total: totalCount, controlGroup: controlGroupCount} = await userConnection.getCounts(userCollection);
+            // FIXME: use let; remove getControl/getExperimental
             if (totalCount === 0) {
                 if (Math.random() <= controlPercentage) {
                     return getControl();
@@ -51,6 +53,7 @@ export function registerRandomAssignment(server: Server) {
                 return getExperimental();
             }
         }
-    })
-
+    });
 }
+
+// TODO: server stores counts into a new collection; when users request increments the count;

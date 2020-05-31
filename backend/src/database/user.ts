@@ -1,5 +1,5 @@
 import {Collection, MongoClient} from "mongodb";
-import * as RandomAssignment from "../../../common/requestRandomAssignmentApi";
+import * as RandomAssignment from "../common/requestRandomAssignmentApi";
 
 export const userConnection = {
     getCollection(client: MongoClient) {

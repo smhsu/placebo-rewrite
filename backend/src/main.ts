@@ -5,6 +5,7 @@ import { setUpServer } from "./serverSetUp";
 import {guardEnv} from "./utils/env";
 import {getClient} from "./database/initialization";
 
+// TODO: Use Enum
 const ExitCode = Object.freeze({
     UNKNOWN_ARGUMENT: 1,
     MONGO_ERROR: 2,
