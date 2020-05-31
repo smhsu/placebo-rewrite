@@ -2,59 +2,55 @@ import {Server} from "@hapi/hapi";
 import {MongoClient} from "mongodb";
 import * as RandomAssignment from "../common/src/requestRandomAssignmentApi";
 import {GroupAssigment} from "../common/src/requestRandomAssignmentApi";
-import {guardEnv} from "../utils/env";
-import {userConnection} from "../database/user";
+import {countCollection} from "../database/collections";
 
-// TODO: add a eslint config file
-
-function getControl() {
-    return {
-        assignment: GroupAssigment.CONTROL
-    } as RandomAssignment.ResponsePayload;
-}
-function getExperimental() {
-    return {
-        assignment: GroupAssigment.EXPERIMENTAL
-    } as RandomAssignment.ResponsePayload;
-}
-
-// TODO: Use jsdoc
 /**
- * Assumptions:
- *  * The database doesn't have count for all user records
- *  * In each document there is a field called GROUP_FIELD_NAME
- *  * The timeout operation is handled by other methods, i.e. TTL indexes
+ * Registers APIs that relate to generating random group assignments.
  * @param server
+ * @author hhhenrysss
  */
-export function registerRandomAssignment(server: Server) {
-    guardEnv.databaseConnection();
-    guardEnv.groupPercentage();
+export function registerRandomAssignment(server: Server): void {
+    if (!(process.env.COUNT_COLLECTION_NAME && process.env.DATABASE_NAME)) {
+        throw new Error("COUNT_COLLECTION_NAME and DATABASE_NAME must be specified in the environment variable");
+    }
+    const rawControlPercentage = process.env.CONTROL_GROUP_PERCENTAGE;
+    let controlPercentage;
+    if (rawControlPercentage != null) {
+        const result = parseFloat(rawControlPercentage);
+        if (Number.isNaN(result)) {
+            throw new Error("Must input valid numeric number for CONTROL_GROUP_PERCENTAGE in the environment variable");
+        }
+        if (result < 0 || result > 1) {
+            throw new Error("CONTROL_GROUP_PERCENTAGE must within the range [0, 1] in the environment variable");
+        }
+        controlPercentage = result;
+    }
     const client = server.app["mongoClient"] as MongoClient;
-    const controlPercentage = parseFloat(process.env.CONTROL_GROUP_PERCENTAGE);
-    const userCollection = userConnection.getCollection(client);
+    const collection = countCollection.getCollection(client);
 
     server.route({
         method: RandomAssignment.METHOD,
         path: RandomAssignment.PATH,
         handler: async () => {
-            const {total: totalCount, controlGroup: controlGroupCount} = await userConnection.getCounts(userCollection);
-            // FIXME: use let; remove getControl/getExperimental
+            const payload: RandomAssignment.ResponsePayload = {
+                assignment: GroupAssigment.EXPERIMENTAL
+            };
+            const [totalCount, controlGroupCount] = await countCollection.getCounts(collection);
             if (totalCount === 0) {
                 if (Math.random() <= controlPercentage) {
-                    return getControl();
-                } else {
-                    return getExperimental();
+                    payload.assignment = GroupAssigment.CONTROL;
+                }
+            } else {
+                const storedControlPercentage = controlGroupCount / totalCount;
+                // round robin-like assignment
+                if (storedControlPercentage < controlPercentage) {
+                    payload.assignment = GroupAssigment.CONTROL;
                 }
             }
-            const storedControlPercentage = controlGroupCount/totalCount;
-            // round robin-like assignment
-            if (storedControlPercentage < controlPercentage) {
-                return getControl();
-            } else {
-                return getExperimental();
-            }
+            const incrementedTotal = totalCount + 1;
+            const incrementedControl = payload.assignment === GroupAssigment.CONTROL ? controlGroupCount + 1 : controlGroupCount;
+            await countCollection.storeCount(collection, [incrementedTotal, incrementedControl]);
+            return payload;
         }
     });
 }
-
-// TODO: server stores counts into a new collection; when users request increments the count;

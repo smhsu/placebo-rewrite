@@ -6,5 +6,5 @@ export enum GroupAssigment {
 }
 
 export interface ResponsePayload {
-    readonly assignment: GroupAssigment,
+    assignment: GroupAssigment,
 }

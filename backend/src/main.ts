@@ -1,16 +1,14 @@
 import process = require("process");
 import path = require("path");
 import dotenv = require("dotenv");
-import { setUpServer } from "./serverSetUp";
-import { guardEnv } from "./utils/env";
-import { getClient } from "./database/initialization";
+import {setUpServer} from "./setUpServer";
+import {getClient} from "./database/initialization";
 
-// TODO: Use Enum
-const ExitCode = Object.freeze({
-    UNKNOWN_ARGUMENT: 1,
-    MONGO_ERROR: 2,
-    SERVER_SETUP_ERROR: 3
-});
+const enum ExitCode {
+    UNKNOWN_ARGUMENT = 1,
+    MONGO_ERROR = 2,
+    SERVER_SETUP_ERROR = 3
+}
 
 function readEnvironmentVars() {
     if (process.env.NODE_ENV === "production") { // NODE_ENV should be set from the command line (see package.json)
@@ -27,16 +25,19 @@ function readEnvironmentVars() {
 
 /**
  * Main entry point.  Starts the server.
- * 
+ *
  * @param argv - command line arguments.  Unused for now.
  */
 async function main(argv: string[]) {
     readEnvironmentVars();
 
+    if (!process.env.MONGODB_URI) {
+        throw new Error("Mongodb URI must be specified in the environment variable");
+    }
+
     // Connect to MongoDB
     let mongoClient;
     try {
-        guardEnv.databaseSetup();
         console.log(`🛠 Attempting to establish MongoDB connection at <${process.env.MONGODB_URI}>...`);
         mongoClient = await getClient();
         console.log("✅ Database connection successful.");
@@ -65,7 +66,7 @@ async function main(argv: string[]) {
     }
 
     // Set up callbacks after server has started
-    process.on("SIGINT", async function() {
+    process.on("SIGINT", async function () {
         console.log("Stopping server...");
         await server.stop();
         process.exit(0);
