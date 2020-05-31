@@ -1,9 +1,9 @@
 import process = require("process");
 import path = require("path");
-import dotenv = require('dotenv');
+import dotenv = require("dotenv");
 import { setUpServer } from "./serverSetUp";
-import {guardEnv} from "./utils/env";
-import {getClient} from "./database/initialization";
+import { guardEnv } from "./utils/env";
+import { getClient } from "./database/initialization";
 
 // TODO: Use Enum
 const ExitCode = Object.freeze({
@@ -74,5 +74,5 @@ async function main(argv: string[]) {
 }
 
 if (require.main === module) { // Called directly
-    main(process.argv)
+    main(process.argv);
 } // else required as a module

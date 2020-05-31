@@ -78,7 +78,7 @@ export class TwitterClient {
         });
 
         return client;
-    };
+    }
 
     /**
      * Makes HTTP headers that contain a OAuth signature.
@@ -192,7 +192,7 @@ export class TwitterClient {
      */
     async getTweets(options: GetTweetsOptions): Promise<Status[]> {
         if (!this.hasAccessToken) {
-            throw new Error("No access token configured -- cannot use this API without one.")
+            throw new Error("No access token configured -- cannot use this API without one.");
         }
 
         // Always get extended tweets.  It makes "full_text" instead of "text" show up in Tweet data.  For more, see

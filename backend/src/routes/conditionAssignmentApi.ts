@@ -1,7 +1,7 @@
 import {Server} from "@hapi/hapi";
 import {MongoClient} from "mongodb";
-import * as RandomAssignment from "../../../common/src/requestRandomAssignmentApi";
-import {GroupAssigment} from "../../../common/src/requestRandomAssignmentApi";
+import * as RandomAssignment from "../common/src/requestRandomAssignmentApi";
+import {GroupAssigment} from "../common/src/requestRandomAssignmentApi";
 import {guardEnv} from "../utils/env";
 import {userConnection} from "../database/user";
 
@@ -29,9 +29,10 @@ function getExperimental() {
 export function registerRandomAssignment(server: Server) {
     guardEnv.databaseConnection();
     guardEnv.groupPercentage();
-    const client = server.app['mongoClient'] as MongoClient;
+    const client = server.app["mongoClient"] as MongoClient;
     const controlPercentage = parseFloat(process.env.CONTROL_GROUP_PERCENTAGE);
     const userCollection = userConnection.getCollection(client);
+
     server.route({
         method: RandomAssignment.METHOD,
         path: RandomAssignment.PATH,
