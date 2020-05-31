@@ -2,7 +2,7 @@ import React from "react";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faTwitter } from "@fortawesome/free-brands-svg-icons"
-import * as RequestTokenApi from "../common/requestTokenApi";
+import * as RequestTokenApi from "../../../common/src/requestTokenApi";
 
 const TWITTER_AUTH_URL = "https://api.twitter.com/oauth/authenticate";
 

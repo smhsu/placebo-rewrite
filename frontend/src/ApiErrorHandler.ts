@@ -1,5 +1,5 @@
 import { AxiosError } from "axios";
-import { ApiErrorPayload } from "./common/apiErrorPayload";
+import { ApiErrorPayload } from "../../common/src/apiErrorPayload";
 
 /**
  * Helper for parsing and handling errors from our API.

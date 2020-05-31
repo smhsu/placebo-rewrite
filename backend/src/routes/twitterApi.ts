@@ -1,7 +1,7 @@
 import { Server } from "@hapi/hapi";
 import Boom from "@hapi/boom";
-import * as RequestTokenApi from "../../../common/requestTokenApi";
-import * as GetTweetsApi from "../../../common/getTweetsApi";
+import * as RequestTokenApi from "../../../common/src/requestTokenApi";
+import * as GetTweetsApi from "../../../common/src/getTweetsApi";
 import { TwitterClient, TwitterError } from "../auth/TwitterClient";
 
 /**
