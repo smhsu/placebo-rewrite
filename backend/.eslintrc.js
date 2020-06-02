@@ -40,6 +40,9 @@ module.exports = {
         "max-len": [
             "warn",
             120
+        ],
+        "eol-last": [
+            "error"
         ]
     }
 };

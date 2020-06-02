@@ -10,7 +10,7 @@ import { TwitterClient, TwitterError } from "../auth/TwitterClient";
  * @param server - Hapi server to register routes with
  * @author Silas Hsu
  */
-export function registerTwitterRoutes(server: Server): void {
+export function registerRoutes(server: Server): void {
     if (!process.env.CONSUMER_KEY || !process.env.CONSUMER_SECRET || !process.env.CALLBACK_URL) {
         throw new Error("Needed Twitter app keys unset in environment variables!");
     }

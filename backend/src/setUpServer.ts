@@ -2,9 +2,7 @@ import { Server, ServerOptions } from "@hapi/hapi";
 import Inert from "@hapi/inert";
 import Boom from "@hapi/boom";
 import { MongoClient } from "mongodb";
-import { registerTwitterRoutes } from "./routes/twitterApi";
-import { registerExperimentalConditionRoutes } from "./routes/experimentalConditionApi";
-import { registerSubmission } from "./routes/submissionApi";
+import { registerAllRoutes } from "./routes/registerAllRoutes";
 
 // todo: add jsdoc for functions, classes and interfaces
 
@@ -20,9 +18,7 @@ export async function setUpServer(mongoClient: MongoClient, options: ServerOptio
     const server = new Server(options);
     server.app["mongoClient"] = mongoClient;
     await server.register(Inert);
-    registerTwitterRoutes(server);
-    registerExperimentalConditionRoutes(server);
-    registerSubmission(server);
+    registerAllRoutes(server);
 
     // Runs every time somebody calls request.log() or Boom is used to return a status code >= 400.
     server.events.on("request", (request, event, tags) => {
