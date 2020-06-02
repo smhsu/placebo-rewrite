@@ -1,10 +1,10 @@
-import {Server, ServerOptions} from "@hapi/hapi";
+import { Server, ServerOptions } from "@hapi/hapi";
 import Inert from "@hapi/inert";
 import Boom from "@hapi/boom";
-import {MongoClient} from "mongodb";
-import {registerTwitterRoutes} from "./routes/twitterApi";
-import {registerRandomAssignment} from "./routes/conditionAssignmentApi";
-import {registerSubmission} from "./routes/submissionApi";
+import { MongoClient } from "mongodb";
+import { registerTwitterRoutes } from "./routes/twitterApi";
+import { registerExperimentalConditionRoutes } from "./routes/experimentalConditionApi";
+import { registerSubmission } from "./routes/submissionApi";
 
 /**
  * Sets up a Hapi server, all configured and ready to go.  The only thing left to do is to start it.  For Hapi config
@@ -19,7 +19,7 @@ export async function setUpServer(mongoClient: MongoClient, options: ServerOptio
     server.app["mongoClient"] = mongoClient;
     await server.register(Inert);
     registerTwitterRoutes(server);
-    registerRandomAssignment(server);
+    registerExperimentalConditionRoutes(server);
     registerSubmission(server);
 
     // Runs every time somebody calls request.log() or Boom is used to return a status code >= 400.
