@@ -4,6 +4,8 @@ import dotenv = require("dotenv");
 import {setUpServer} from "./setUpServer";
 import {getClient} from "./database/initialization";
 
+// todo: test backend using curl
+
 const enum ExitCode {
     UNKNOWN_ARGUMENT = 1,
     MONGO_ERROR = 2,

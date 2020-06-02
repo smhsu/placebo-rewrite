@@ -12,6 +12,7 @@ interface CountSchema extends Partial<DatabaseCounts> {
     identifier: string;
 }
 
+// remove dbKeyForCondition and use enum directly
 const dbKeyForCondition: Record<ExperimentalCondition, keyof DatabaseCounts> = {
     [ExperimentalCondition.CONTROL]: "controlGroupCount",
     [ExperimentalCondition.EXPERIMENTAL]: "experimentalGroupCount"

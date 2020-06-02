@@ -1,5 +1,7 @@
 import { Collection, MongoClient } from "mongodb";
 
+// todo: refactor to use class
+
 /**
  * Convenience methods related to manipulating the data collection
  */

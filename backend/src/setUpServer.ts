@@ -6,6 +6,8 @@ import { registerTwitterRoutes } from "./routes/twitterApi";
 import { registerExperimentalConditionRoutes } from "./routes/experimentalConditionApi";
 import { registerSubmission } from "./routes/submissionApi";
 
+// todo: add jsdoc for functions, classes and interfaces
+
 /**
  * Sets up a Hapi server, all configured and ready to go.  The only thing left to do is to start it.  For Hapi config
  * options, see https://hapijs.com/api#server.options

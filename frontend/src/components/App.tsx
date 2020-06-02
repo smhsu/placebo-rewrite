@@ -115,3 +115,6 @@ export class App extends React.Component<{}, State> {
         </div>;
     }
 }
+
+// todo: add a banner at top of the screen when there are variable-amount of seconds; once banner run out everything below nav bar will go white; then display a message just text on the white area
+// todo: create a new hang-frontend branch from master
