@@ -1,4 +1,4 @@
-import {Status} from "twitter-d";
+import { Status } from "twitter-d";
 
 export const METHOD = "POST";
 export const PATH = "/api/tweets";

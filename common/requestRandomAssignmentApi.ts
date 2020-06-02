@@ -1,5 +1,5 @@
-export const METHOD = 'GET'
-export const PATH = '/api/request_assignment'
+export const METHOD = "GET"
+export const PATH = "/api/request_assignment"
 
 export enum GroupAssigment {
     CONTROL, EXPERIMENTAL

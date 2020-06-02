@@ -1,5 +1,5 @@
 import { Collection, MongoClient } from "mongodb";
-import { GroupAssigment } from "../common/src/requestRandomAssignmentApi";
+import { GroupAssigment } from "../common/requestRandomAssignmentApi";
 
 /**
  * Convenience methods related to manipulating the data collection

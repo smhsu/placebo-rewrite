@@ -4,7 +4,7 @@ import querystring from "querystring";
 import { Status } from "twitter-d";
 
 import { LoginPane } from "./LoginPane";
-import * as GetTweetsApi from "../../../common/src/getTweetsApi";
+import * as GetTweetsApi from "../common/getTweetsApi";
 import { ApiErrorHandler } from "../ApiErrorHandler";
 
 import spinner from "../loading-small.gif";

@@ -1,5 +1,5 @@
 import { Server } from "@hapi/hapi";
-import * as Submission from "../common/src/storeSubmissionApi";
+import * as Submission from "../common/storeSubmissionApi";
 import Boom from "@hapi/boom";
 import { MongoClient } from "mongodb";
 import { dataCollection } from "../database/collections";
