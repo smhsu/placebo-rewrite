@@ -1,7 +1,8 @@
 import { Server } from "@hapi/hapi";
-import * as Submission from "../common/storeSubmissionApi";
 import Boom from "@hapi/boom";
 import { MongoClient } from "mongodb";
+
+import * as StoreParticipantLogsApi from "../common/logParticipantApi";
 import { dataCollection } from "../database/collections";
 
 /**
@@ -9,7 +10,7 @@ import { dataCollection } from "../database/collections";
  * @param payload
  * @author hhhenrysss
  */
-function isSubmissionRequest(payload: unknown): payload is Submission.RequestPayload {
+function isSubmissionRequest(payload: unknown): payload is StoreParticipantLogsApi.RequestPayload {
     if (!payload) {
         return false;
     }
@@ -19,7 +20,6 @@ function isSubmissionRequest(payload: unknown): payload is Submission.RequestPay
     }
     const keys = Object.keys(payload);
     return keys.length === 1 && keys[0] === "data";
-
 }
 
 /**
@@ -27,22 +27,22 @@ function isSubmissionRequest(payload: unknown): payload is Submission.RequestPay
  * @param server
  * @author hhhenrysss
  */
-export function registerSubmission(server: Server): void {
+export function registerRoutes(server: Server): void {
     if (!(process.env.DATA_COLLECTION_NAME && process.env.DATABASE_NAME)) {
         throw new Error("DATA_COLLECTION_NAME and DATABASE_NAME must be specified in the environment");
     }
     const client = server.app["mongoClient"] as MongoClient;
     const collection = dataCollection.getCollection(client);
     server.route({
-        method: Submission.METHOD,
-        path: Submission.PATH,
+        method: StoreParticipantLogsApi.METHOD,
+        path: StoreParticipantLogsApi.PATH,
         handler: async (req) => {
             if (!isSubmissionRequest(req.payload)) {
                 return Boom.badRequest("payload object can only have \"data\" as the only key");
             }
             const requestPayload = req.payload;
             const id = await dataCollection.storeData(collection, requestPayload.data);
-            const result: Submission.ResponsePayload = {
+            const result: StoreParticipantLogsApi.ResponsePayload = {
                 mongoDBId: id
             };
             return result;

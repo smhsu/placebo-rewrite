@@ -6,10 +6,11 @@ import { ConditionCountsProvider } from "../database/ConditionCountsProvider";
 
 /**
  * Registers APIs that relate to generating random group assignments.
+ * 
  * @param server
  * @author hhhenrysss
  */
-export function registerExperimentalConditionRoutes(server: Server): void {
+export function registerRoutes(server: Server): void {
     if (!process.env.COUNT_COLLECTION_NAME || !process.env.DATABASE_NAME || !process.env.CONTROL_GROUP_PERCENTAGE) {
         throw new Error(
             "COUNT_COLLECTION_NAME, DATABASE_NAME, and CONTROL_GROUP_PERCENTAGE must be specified in the " + 
