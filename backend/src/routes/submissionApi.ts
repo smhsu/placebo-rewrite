@@ -1,8 +1,8 @@
-import {Server} from "@hapi/hapi";
+import { Server } from "@hapi/hapi";
 import * as Submission from "../common/src/storeSubmissionApi";
 import Boom from "@hapi/boom";
-import {MongoClient} from "mongodb";
-import {dataCollection} from "../database/collections";
+import { MongoClient } from "mongodb";
+import { dataCollection } from "../database/collections";
 
 /**
  * Checks whether payload has the correct shape during runtime.

@@ -2,7 +2,7 @@ import {Server} from "@hapi/hapi";
 import Boom from "@hapi/boom";
 import * as RequestTokenApi from "../common/src/requestTokenApi";
 import * as GetTweetsApi from "../common/src/getTweetsApi";
-import {TwitterClient, TwitterError} from "../auth/TwitterClient";
+import { TwitterClient, TwitterError } from "../auth/TwitterClient";
 
 /**
  * Registers APIs that relate to authenticating and fetching data from Twitter.
@@ -10,7 +10,7 @@ import {TwitterClient, TwitterError} from "../auth/TwitterClient";
  * @param server - Hapi server to register routes with
  * @author Silas Hsu
  */
-export function registerTwitterRoutes(server: Server) {
+export function registerTwitterRoutes(server: Server): void {
     if (!process.env.CONSUMER_KEY || !process.env.CONSUMER_SECRET || !process.env.CALLBACK_URL) {
         throw new Error("Needed Twitter app keys unset in environment variables!");
     }

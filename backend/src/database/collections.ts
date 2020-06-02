@@ -1,4 +1,5 @@
-import {Collection, MongoClient} from "mongodb";
+import { Collection, MongoClient } from "mongodb";
+import { GroupAssigment } from "../common/src/requestRandomAssignmentApi";
 
 /**
  * Convenience methods related to manipulating the data collection
@@ -7,10 +8,11 @@ export const dataCollection = {
     getCollection(client: MongoClient): Collection<unknown> {
         return client.db(process.env.DATABASE_NAME).collection(process.env.DATA_COLLECTION_NAME);
     },
+
     async storeData(collection: Collection<unknown>, data: unknown): Promise<string> {
         const result = await collection.insertOne(data);
         if (!result.insertedId) {
-            throw new Error("Fail to insert document");
+            throw new Error("Failed to insert document");
         }
         const insertedId = `${result.insertedId}`;
         return insertedId;
@@ -32,6 +34,7 @@ export const countCollection = {
     getCollection(client: MongoClient): Collection<CountSchema> {
         return client.db(process.env.DATABASE_NAME).collection(process.env.COUNT_COLLECTION_NAME);
     },
+
     async getCounts(collection: Collection<CountSchema>): Promise<[number, number]> {
         const doc = await collection.findOne({identifier: COUNT_DOC_ID});
         if (!doc) {
@@ -39,7 +42,22 @@ export const countCollection = {
         }
         return [doc.totalCount, doc.controlGroupCount];
     },
-    async storeCount(collection: Collection<CountSchema>, [totalCount, controlGroupCount]: [number, number]): Promise<void> {
+
+    async incrementCount(collection: Collection<CountSchema>, group: GroupAssigment): Promise<void> {
+        const incrementAmounts: {[key: string]: number} = {
+            totalCount: 1,
+        };
+        if (group === GroupAssigment.CONTROL) {
+            incrementAmounts.controlGroupCount = 1;
+        }
+
+        collection.updateOne({identifier: COUNT_DOC_ID}, {$inc: incrementAmounts}, {upsert: true});
+    },
+
+    async storeCount(
+        collection: Collection<CountSchema>,
+        [totalCount, controlGroupCount]: [number, number]
+    ): Promise<void> {
         const newDoc: CountSchema = {
             totalCount, controlGroupCount, identifier: COUNT_DOC_ID
         };

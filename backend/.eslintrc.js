@@ -37,5 +37,9 @@ module.exports = {
             "error",
             "always"
         ],
+        "max-len": [
+            "warn",
+            120
+        ]
     }
 };
