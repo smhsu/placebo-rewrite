@@ -21,8 +21,8 @@ export async function setUpServer(mongoClient: MongoClient, options: ServerOptio
     // Runs every time somebody calls request.log() or Boom is used to return a status code >= 400.
     server.events.on("request", (request, event, tags) => {
         if (tags.error) {
-            if (event.error && (event.error as any).isBoom) {
-                const theError = event.error as Boom.Boom<any>;
+            const theError = event.error as Error;
+            if (Boom.isBoom(theError)) {
                 if (theError.output.statusCode >= 500) {
                     const reason = typeof theError.data.toString === "function" ?
                         theError.data.toString() : "(unknown)";

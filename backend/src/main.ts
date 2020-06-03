@@ -1,8 +1,8 @@
 import process = require("process");
 import path = require("path");
 import dotenv = require("dotenv");
-import {setUpServer} from "./setUpServer";
-import {getClient} from "./database/initialization";
+import { setUpServer } from "./setUpServer";
+import { getClient } from "./database/initialization";
 
 const enum ExitCode {
     UNKNOWN_ARGUMENT = 1,
@@ -28,7 +28,7 @@ function readEnvironmentVars() {
  *
  * @param argv - command line arguments.  Unused for now.
  */
-async function main(argv: string[]) {
+async function main(argv: string[]) { // eslint-disable-line @typescript-eslint/no-unused-vars
     readEnvironmentVars();
 
     if (!process.env.MONGODB_URI) {
