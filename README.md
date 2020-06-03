@@ -21,9 +21,8 @@ When choosing a callback URL, <http://127.0.0.1:3000> is recommended for develop
 
 ### 2. Configure environment variables
 
-Once you have your API keys, go into the `backend` folder and create `.env.development.local` and
-`.env.production.local` using `.env.example.local` as a template.  You may also set environment variables as needed or
-desired in the other .env files.
+Once you have your API keys, go into the `backend` folder and create `.env.development.local` using `.env.example.local`
+as a template.  You may also set environment variables as needed or desired in the other .env files.
 
 ### 3. Install required software
 
@@ -39,6 +38,28 @@ desired in the other .env files.
 2. In the `backend` folder: run `npm start`.
 3. In the `frontend` folder: run `npm start`.
 
-## Deploying
+## Building and running a production version
 
-TODO
+To build a production version, run `build_and_deploy.sh build-only`.  When it finishes, the server in the `backend`
+folder will be able to serve the frontend files and backend APIs, assuming all the environment variables are set up
+correctly.  To start the server, run `npm run start-prod` inside the `backend` folder.
+
+## Deploying a production version to Heroku
+
+This project was made with deployment to Heroku in mind.  For detailed deployment documentation, visit
+<https://devcenter.heroku.com/articles/preparing-a-codebase-for-heroku-deployment>.
+
+1. Make an account and new app at <https://www.heroku.com>.
+2. Set up a production MongoDB database.  A quick way is via Heroku's dashboard, by adding MongoDB as an add-on --
+a tiny instance is available for free.
+3. Install the Heroku CLI on your computer.  <https://devcenter.heroku.com/articles/heroku-cli>
+4. We need the variables described in `.env.example.local`, but we won't be creating a new .env file.  Instead,
+configure those environment variables through Heroku, either through Heroku CLI or dashboard.  To read how, visit
+<https://devcenter.heroku.com/articles/config-vars>.
+    * You probably will need to add the Heroku app's URL as a valid callback URL in your Twitter Developers
+    configuration.
+5. Configure the Heroku app name by modifiying the appropriate variable in `build_and_deploy.sh`.
+6. Last step -- run the `build_and_deploy.sh` script!
+    * If you want to just run the build process without pushing to Heroku, you can `build_and_deploy.sh build-only`.
+
+Once you have everything set up, you only need to repeat the last step for future deployments.
