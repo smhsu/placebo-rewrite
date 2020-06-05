@@ -12,8 +12,28 @@
 .Tweet-profile {
     margin-top: 5px;
     margin-right: 15px;
+    width: 50px;
+    flex-shrink: 0;
+}
+
+.Tweet-profile img {
+    border: 1px solid gainsboro;
 }
 
 .Tweet-content {
     vertical-align: text-top;
+}
+
+.Tweet-heading-main {
+    font-weight: bold;
+}
+
+.Tweet-heading-other {
+    color: grey;
+}
+
+.Tweet-statistic {
+    display: inline-block;
+    color: grey;
+    margin-right: 20px;
 }

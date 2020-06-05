@@ -1,5 +1,15 @@
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Displaying Tweets statically
+You might want to work on the frontend without the backend Twitter infrastructure, for example if you don't have a
+Twitter account or if you don't want to exceed your Twitter Developers account's rate limits.  You can skip the login
+flow and directly render a predefined set of tweets (the ones in `sampleTweets.json`) by setting the appropriate
+constant in `App.tsx` to be `true`.
+
+If you're interested in what data is available to you when rendering Tweets, feel free to plug the Tweets JSON file into
+a [online JSON viewer](https://jsoneditoronline.org/).  Our type definitions also have a pretty good read of the data's
+structure, although it is not perfect.
+
 ## Available Scripts
 
 In the project directory, you can run:
@@ -15,7 +25,8 @@ You will also see any lint errors in the console.
 ### `npm test`
 
 Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more
+information.
 
 ### `npm run build`
 
