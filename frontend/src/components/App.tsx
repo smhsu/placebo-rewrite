@@ -12,7 +12,7 @@ import sampleTweets from "../sampleTweets.json";
 import spinner from "../loading-small.gif";
 import "./App.css";
 
-const IS_USING_STATIC_TWEETS = true;
+const IS_USING_STATIC_TWEETS = false;
 
 enum TweetFetchStatus {
     NOT_LOGGED_IN,
@@ -24,7 +24,7 @@ enum TweetFetchStatus {
 
 interface State {
     tweetFetchStatus: TweetFetchStatus;
-    tweets: Status[];
+    tweets: Readonly<Status>[];
     fetchErrorReason: string;
 }
 
@@ -36,13 +36,14 @@ export class App extends React.Component<{}, State> {
             tweets: [],
             fetchErrorReason: ""
         };
+        this.setTweets = this.setTweets.bind(this);
         this.fetchTweets = this.fetchTweets.bind(this);
-        this.handleLoginError = this.handleLoginError.bind(this);
+        this.handleError = this.handleError.bind(this);
     }
 
     componentDidMount() {
         if (IS_USING_STATIC_TWEETS) {
-            this.loadStaticTweets();
+            this.setTweets(sampleTweets);
         } else {
             // Use the URL query string to check if we can immediately fetch the user's tweets.
             // substring(1) cuts off the "?" in the URL query string
@@ -57,35 +58,30 @@ export class App extends React.Component<{}, State> {
     }
 
     async fetchTweets(params: GetTweetsApi.RequestQueryParams): Promise<void> {
+        this.setState({ tweetFetchStatus: TweetFetchStatus.LOADING });
         try {
             const response = await axios.request<GetTweetsApi.ResponsePayload>({
                 method: GetTweetsApi.METHOD,
                 baseURL: GetTweetsApi.PATH,
                 params: params
             });
-            this.setState({
-                tweets: response.data.tweets,
-                tweetFetchStatus: TweetFetchStatus.DONE
-            });
+            this.setTweets(response.data.tweets);
         } catch (error) {
-            this.setState({
-                tweetFetchStatus: TweetFetchStatus.FETCH_ERROR,
-                fetchErrorReason: new ApiErrorHandler().getTwitterApiErrorReason(error)
-            });
+            this.handleError(error, TweetFetchStatus.FETCH_ERROR);
         }
     }
 
-    handleLoginError(error: any) {
+    setTweets(tweets: Status[]) {
         this.setState({
-            tweetFetchStatus: TweetFetchStatus.LOGIN_ERROR,
-            fetchErrorReason: new ApiErrorHandler().getTwitterApiErrorReason(error)
+            tweets,
+            tweetFetchStatus: TweetFetchStatus.DONE
         });
     }
 
-    loadStaticTweets() {
+    handleError(error: any, nextFetchStatus: TweetFetchStatus) {
         this.setState({
-            tweets: sampleTweets,
-            tweetFetchStatus: TweetFetchStatus.DONE
+            tweetFetchStatus: nextFetchStatus,
+            fetchErrorReason: new ApiErrorHandler().getTwitterApiErrorReason(error)
         });
     }
 
@@ -112,7 +108,7 @@ export class App extends React.Component<{}, State> {
                 }
 
                 pane = <LoginPane
-                    onError={this.handleLoginError}
+                    onError={error => this.handleError(error, TweetFetchStatus.LOGIN_ERROR)}
                     mainErrorMessage={errorMessage}
                     errorReason={this.state.fetchErrorReason}
                 />;

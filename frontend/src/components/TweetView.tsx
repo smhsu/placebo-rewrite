@@ -1,23 +1,40 @@
 import React from "react";
-import { Settings } from "./Settings";
 import { Status } from "twitter-d";
 import { Tweet } from "./Tweet";
+import { useTweetFilter, TweetFilterType } from "./tweetFilters/useTweetFilter";
+
+import "./TweetView.css";
 
 interface Props {
     tweets: Status[];
 }
 
-export class TweetView extends React.Component<Props> {
-    render() {
-        return <div className="container-fluid">
-            <div className="row justify-content-center">
-                <div className="col" style={{maxWidth: 600, padding: 0}}>
-                    {this.props.tweets.map(tweet => <Tweet key={tweet.id} tweet={tweet} />)}
-                </div>
-                <div className="col col-sm-5 col-md-4 col-xl-3">
-                    <Settings />
+export function TweetView(props: Props) {
+    const { renderedSetting, filteredTweets } = useTweetFilter(props.tweets, getFilterType());
+
+    return <div className="container-fluid">
+        <div className="row justify-content-center">
+
+            <div className="col" style={{maxWidth: 600, padding: 0}}>
+                {filteredTweets.map(tweet => <Tweet key={tweet.id} tweet={tweet} />)}
+            </div>
+
+            <div className="col col-sm-5 col-md-4 col-xl-3">
+                <div className="TweetView-settings">
+                    <h4>Settings</h4>
+                    {renderedSetting}
                 </div>
             </div>
-        </div>;
+
+        </div>
+    </div>;
+}
+
+function getFilterType(): TweetFilterType {
+    for (const filterType of Object.values(TweetFilterType)) {
+        if (window.location.search.includes(filterType)) {
+            return filterType;
+        }
     }
+    return TweetFilterType.RANGE;
 }

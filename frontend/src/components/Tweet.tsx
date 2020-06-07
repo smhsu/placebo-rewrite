@@ -1,9 +1,9 @@
 import React from "react";
-import { Status, User, FullUser } from "twitter-d";
 import Moment from "react-moment";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faRetweet, faHeart } from "@fortawesome/free-solid-svg-icons";
 import he from "he";
+import { Status, User, FullUser } from "twitter-d";
 
 import "./Tweet.css";
 
@@ -20,13 +20,13 @@ interface Props {
     tweet: Status;
 }
 
-export class Tweet extends React.Component<Props> {
+export class Tweet extends React.PureComponent<Props> {
     getTweetAuthor() {
         const user = this.props.tweet.user;
         return isFullUser(user) ? user : UNKNOWN_USER;
     }
 
-    renderTweetText(): JSX.Element {
+    renderTweetText(): React.ReactElement {
         const tweet = this.props.tweet;
         const tweetText = tweet.full_text;
         const displayTextRange = tweet.display_text_range || [0, undefined];
@@ -71,7 +71,7 @@ export class Tweet extends React.Component<Props> {
     }
 
     renderTweetStatistics() {
-        const tweet = this.props.tweet;
+        const tweet = this.props.tweet.retweeted_status || this.props.tweet;
         return <div>
             <div className="Tweet-statistic">
                 <FontAwesomeIcon icon={faRetweet} /> {toReadableNumber(tweet.retweet_count)}
@@ -116,9 +116,12 @@ function toReadableNumber(num: number): string {
         return "0";
     }
 
-    if (Math.abs(num) < 1000) {
+    const absValue = Math.abs(num);
+    if (absValue > 1000000) {
+        return (num / 1000000).toFixed(1) + "M";
+    } else if (absValue > 1000) {
+        return (num / 1000).toFixed(1) + "K";
+    } else {
         return num.toString();
     }
-
-    return (num / 1000).toFixed(1) + "K";
 }

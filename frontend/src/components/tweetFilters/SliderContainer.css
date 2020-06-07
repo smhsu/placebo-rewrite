@@ -1,0 +1,17 @@
+.SliderContainer-labeled-track {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.SliderContainer-low-label {
+    text-align: start;
+    margin-inline-end: 5px;
+    font-size: x-small;
+}
+
+.SliderContainer-high-label {
+    text-align: end;
+    margin-inline-start: 5px;
+    font-size: x-small;
+}
