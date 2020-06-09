@@ -8,8 +8,11 @@ import { TweetView } from "./TweetView";
 import * as GetTweetsApi from "../common/getTweetsApi";
 import { ApiErrorHandler } from "../ApiErrorHandler";
 
+import sampleTweets from "../sampleTweets.json";
 import spinner from "../loading-small.gif";
 import "./App.css";
+
+const IS_USING_STATIC_TWEETS = true;
 
 enum TweetFetchStatus {
     NOT_LOGGED_IN,
@@ -28,26 +31,29 @@ interface State {
 export class App extends React.Component<{}, State> {
     constructor(props: {}) {
         super(props);
-        let tweetFetchStatus = TweetFetchStatus.DONE; // TEMP
-
-        // Use the URL query string to check if we can immediately fetch the user's tweets.
-        // substring(1) cuts off the "?" in the URL query string
-        const queryParams = querystring.parse(window.location.search.substring(1));
-        if (GetTweetsApi.checkQueryParams(queryParams)) {
-            tweetFetchStatus = TweetFetchStatus.LOADING;
-            this.fetchTweets({
-                oauth_token: queryParams.oauth_token,
-                oauth_verifier: queryParams.oauth_verifier
-            });
-        }
-
         this.state = {
-            tweetFetchStatus,
+            tweetFetchStatus: TweetFetchStatus.NOT_LOGGED_IN,
             tweets: [],
             fetchErrorReason: ""
         };
         this.fetchTweets = this.fetchTweets.bind(this);
         this.handleLoginError = this.handleLoginError.bind(this);
+    }
+
+    componentDidMount() {
+        if (IS_USING_STATIC_TWEETS) {
+            this.loadStaticTweets();
+        } else {
+            // Use the URL query string to check if we can immediately fetch the user's tweets.
+            // substring(1) cuts off the "?" in the URL query string
+            const queryParams = querystring.parse(window.location.search.substring(1));
+            if (GetTweetsApi.checkQueryParams(queryParams)) {
+                this.fetchTweets({
+                    oauth_token: queryParams.oauth_token,
+                    oauth_verifier: queryParams.oauth_verifier
+                });
+            }
+        }
     }
 
     async fetchTweets(params: GetTweetsApi.RequestQueryParams): Promise<void> {
@@ -76,6 +82,13 @@ export class App extends React.Component<{}, State> {
         });
     }
 
+    loadStaticTweets() {
+        this.setState({
+            tweets: sampleTweets,
+            tweetFetchStatus: TweetFetchStatus.DONE
+        });
+    }
+
     render() {
         let pane = null;
         switch (this.state.tweetFetchStatus) {
@@ -85,7 +98,7 @@ export class App extends React.Component<{}, State> {
                 </div>;
                 break;
             case TweetFetchStatus.DONE:
-                pane = <TweetView />;
+                pane = <TweetView tweets={this.state.tweets} />;
                 break;
             case TweetFetchStatus.LOGIN_ERROR:
             case TweetFetchStatus.FETCH_ERROR:
@@ -108,7 +121,7 @@ export class App extends React.Component<{}, State> {
 
         return <div>
             <nav className="navbar sticky-top">
-                <span className="navbar-brand">Custom Twitter Feed Viewer</span>
+                <span className="navbar-brand">Custom Twitter Viewer</span>
             </nav>
             {pane}
         </div>;
