@@ -1,0 +1,19 @@
+.Tweet {
+    min-height: 150px;
+    border: 1px solid lightgrey;
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-top: 10px;
+    padding-bottom: 40px;
+
+    display: flex;
+}
+
+.Tweet-profile {
+    margin-top: 5px;
+    margin-right: 15px;
+}
+
+.Tweet-content {
+    vertical-align: text-top;
+}

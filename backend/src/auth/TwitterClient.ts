@@ -1,8 +1,8 @@
 import crypto from "crypto";
 import OAuth from "oauth-1.0a";
-import axios, {AxiosError} from "axios";
+import axios, { AxiosError } from "axios";
 import querystring from "querystring";
-import {Status} from "twitter-d";
+import { Status } from "twitter-d";
 
 const AUTH_BASE_URL = "https://api.twitter.com/oauth";
 const API_BASE_URL = "https://api.twitter.com/1.1";

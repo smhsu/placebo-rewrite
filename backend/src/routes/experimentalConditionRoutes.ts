@@ -33,18 +33,18 @@ export function registerRoutes(server: Server): void {
         method: ExperimentalConditionApi.METHOD,
         path: ExperimentalConditionApi.PATH,
         handler: async (request) => {
-            let assignments: Record<ExperimentalCondition, number>;
+            let counts: Record<ExperimentalCondition, number>;
             try {
-                assignments = await conditionCountsProvider.getCounts();
+                counts = await conditionCountsProvider.getCounts();
             } catch (error) {
-                assignments = ConditionCountsProvider.makeZeroedCountDictionary();
+                counts = ConditionCountsProvider.makeZeroedCountDictionary();
                 request.log("error", "Problem getting count of experimental condition assignments from database.  " +
                     "Participant will get a random assignment.");
                 request.log("error", error);
             }
 
             let totalAssignments = 0;
-            for (const count of Object.values(assignments)) {
+            for (const count of Object.values(counts)) {
                 totalAssignments += count;
             }
 
@@ -56,7 +56,7 @@ export function registerRoutes(server: Server): void {
                     assignment = ExperimentalCondition.EXPERIMENTAL;
                 }
             } else {
-                const currentControlPercentage = assignments[ExperimentalCondition.CONTROL] / totalAssignments;
+                const currentControlPercentage = counts[ExperimentalCondition.CONTROL] / totalAssignments;
                 // Round-robin-like assignment
                 if (currentControlPercentage < desiredControlPercentage) {
                     assignment = ExperimentalCondition.CONTROL;

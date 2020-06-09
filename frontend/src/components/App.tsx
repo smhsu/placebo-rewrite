@@ -4,6 +4,7 @@ import querystring from "querystring";
 import { Status } from "twitter-d";
 
 import { LoginPane } from "./LoginPane";
+import { TweetView } from "./TweetView";
 import * as GetTweetsApi from "../common/getTweetsApi";
 import { ApiErrorHandler } from "../ApiErrorHandler";
 
@@ -27,7 +28,7 @@ interface State {
 export class App extends React.Component<{}, State> {
     constructor(props: {}) {
         super(props);
-        let tweetFetchStatus = TweetFetchStatus.NOT_LOGGED_IN;
+        let tweetFetchStatus = TweetFetchStatus.DONE; // TEMP
 
         // Use the URL query string to check if we can immediately fetch the user's tweets.
         // substring(1) cuts off the "?" in the URL query string
@@ -84,7 +85,7 @@ export class App extends React.Component<{}, State> {
                 </div>;
                 break;
             case TweetFetchStatus.DONE:
-                pane = "Done!  Insert Tweets here."
+                pane = <TweetView />;
                 break;
             case TweetFetchStatus.LOGIN_ERROR:
             case TweetFetchStatus.FETCH_ERROR:
@@ -106,12 +107,10 @@ export class App extends React.Component<{}, State> {
         }
 
         return <div>
-            <nav className="navbar">
-                <span className="navbar-brand">Twitter Study</span>
+            <nav className="navbar sticky-top">
+                <span className="navbar-brand">Custom Twitter Feed Viewer</span>
             </nav>
-            <div className="container">
-                {pane}
-            </div>
+            {pane}
         </div>;
     }
 }

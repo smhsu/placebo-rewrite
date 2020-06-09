@@ -1,15 +1,17 @@
 import { Server } from "@hapi/hapi";
-import { registerRoutes as route0 } from "./twitterApiRoutes";
-import { registerRoutes as route1 } from "./experimentalConditionRoutes";
-import { registerRoutes as route2 } from "./logParticipantApiRoutes";
+import { registerRoutes as register0 } from "./twitterApiRoutes";
+import { registerRoutes as register1 } from "./experimentalConditionRoutes";
+import { registerRoutes as register2 } from "./logParticipantApiRoutes";
+import { registerRoutes as register3 } from "./publicRoute";
 
 type RouteRegistrationFunction = (server: Server) => void
 
 export function registerAllRoutes(server: Server): void {
     const registerFunctions: RouteRegistrationFunction[] = [
-        route0,
-        route1,
-        route2
+        register0,
+        register1,
+        register2,
+        register3
     ];
 
     for (const register of registerFunctions) {
