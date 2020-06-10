@@ -58,7 +58,7 @@ export class App extends React.Component<{}, State> {
                 this.fetchTweets({
                     oauth_token: queryParams.oauth_token,
                     oauth_verifier: queryParams.oauth_verifier
-                });
+                }).catch(console.error);
             }
         }
     }
@@ -123,7 +123,7 @@ export class App extends React.Component<{}, State> {
     }
 
     render() {
-        let pane = null;
+        let pane;
         switch (this.state.tweetFetchStatus) {
             case TweetFetchStatus.LOADING:
                 pane = <div className="vertical-and-horiz-center">
