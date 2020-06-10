@@ -3,7 +3,7 @@ import Boom from "@hapi/boom";
 import { MongoClient } from "mongodb";
 
 import * as StoreParticipantLogsApi from "../common/logParticipantApi";
-import { dataCollection } from "../database/collections";
+import { TwitterLogProvider } from "../database/TwitterLogProvider";
 
 /**
  * Checks whether payload has the correct shape during runtime.
@@ -32,7 +32,7 @@ export function registerRoutes(server: Server): void {
         throw new Error("DATA_COLLECTION_NAME and DATABASE_NAME must be specified in the environment");
     }
     const client = server.app["mongoClient"] as MongoClient;
-    const collection = dataCollection.getCollection(client);
+    const logProvider = new TwitterLogProvider(client, process.env.DATA_COLLECTION_NAME, process.env.DATABASE_NAME);
     server.route({
         method: StoreParticipantLogsApi.METHOD,
         path: StoreParticipantLogsApi.PATH,
@@ -41,7 +41,7 @@ export function registerRoutes(server: Server): void {
                 return Boom.badRequest("payload object can only have \"data\" as the only key");
             }
             const requestPayload = req.payload;
-            const id = await dataCollection.storeData(collection, requestPayload.data);
+            const id = await logProvider.storeLog(requestPayload.data);
             const result: StoreParticipantLogsApi.ResponsePayload = {
                 mongoDBId: id
             };
