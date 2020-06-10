@@ -20,3 +20,37 @@
 .navbar-brand {
     color: white;
 }
+
+
+.animated-show {
+    height: auto;
+    margin: auto;
+    padding: auto;
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+    transition: visibility 0s, opacity 0.2s ease-in;
+}
+
+.animated-close {
+    height: 0;
+    margin: 0 !important;
+    padding: 0 !important;
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s, opacity 0.1s ease-in;
+    pointer-events: none;
+}
+
+.termination-overlay {
+    position: fixed;
+    height: 100vh;
+    width: 100vw;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+}
