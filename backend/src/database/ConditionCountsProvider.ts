@@ -12,12 +12,6 @@ interface CountSchema extends Partial<DatabaseCounts> {
     identifier: string;
 }
 
-// remove dbKeyForCondition and use enum directly
-const dbKeyForCondition: Record<ExperimentalCondition, keyof DatabaseCounts> = {
-    [ExperimentalCondition.CONTROL]: "controlGroupCount",
-    [ExperimentalCondition.EXPERIMENTAL]: "experimentalGroupCount"
-};
-
 type ConditionCounts = Record<ExperimentalCondition, number>;
 
 export class ConditionCountsProvider {
@@ -42,7 +36,7 @@ export class ConditionCountsProvider {
             return result;
         }
 
-        for (const [condition, dbKey] of Object.entries(dbKeyForCondition)) {
+        for (const [condition, dbKey] of Object.entries(ExperimentalCondition)) {
             result[condition] = document[dbKey]; // Merge in values from database to the zeroed counts. 
         }
         return result;
@@ -50,7 +44,7 @@ export class ConditionCountsProvider {
 
     async incrementCount(condition: ExperimentalCondition): Promise<void> {
         const incrementAmount: Partial<DatabaseCounts> = {
-            [dbKeyForCondition[condition]]: 1
+            [condition]: 1
         };
         await this._collection.updateOne({identifier: COUNT_DOCUMENT_NAME}, {$inc: incrementAmount}, {upsert: true});
     }
