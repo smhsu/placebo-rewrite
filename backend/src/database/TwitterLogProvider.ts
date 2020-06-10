@@ -1,4 +1,4 @@
-import { Collection, MongoClient } from "mongodb";
+import {Collection, MongoClient} from "mongodb";
 
 export class TwitterLogProvider {
     #collection: Collection<unknown>
@@ -10,7 +10,6 @@ export class TwitterLogProvider {
         if (!result.insertedId) {
             throw new Error("Failed to insert document");
         }
-        const insertedId = `${result.insertedId}`;
-        return insertedId;
+        return `${result.insertedId}`;
     }
 }
