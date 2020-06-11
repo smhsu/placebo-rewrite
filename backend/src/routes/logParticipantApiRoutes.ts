@@ -1,6 +1,6 @@
 import { Server } from "@hapi/hapi";
 import Boom from "@hapi/boom";
-import { MongoClient } from "mongodb";
+import { MongoClient, MongoError } from "mongodb";
 
 import * as StoreParticipantLogsApi from "../common/logParticipantApi";
 import { ParticipantLogProvider } from "../database/ParticipantLogProvider";
@@ -21,12 +21,20 @@ export function registerRoutes(server: Server): void {
     server.route({
         method: StoreParticipantLogsApi.METHOD,
         path: StoreParticipantLogsApi.PATH,
-        handler: async (req) => {
-            if (!StoreParticipantLogsApi.isRequestPayload(req.payload)) {
+        handler: async request => {
+            if (!StoreParticipantLogsApi.isRequestPayload(request.payload)) {
                 return Boom.badRequest();
             }
 
-            await logProvider.storeLog(req.payload.data);
+            try {
+                await logProvider.storeLog(request.payload.data);
+            } catch (error) {
+                return new Boom.Boom(undefined, {
+                    statusCode: error instanceof MongoError ? 502 : 500,
+                    data: error
+                });
+            }
+
             return {};
         }
     });

@@ -6,7 +6,8 @@
         "sourceMap": true,
         "module": "commonjs",
         "moduleResolution": "node",
-        "esModuleInterop": true
+        "esModuleInterop": true,
+        "strictNullChecks": true
     }, 
     "include": [
         "./src/**/*",
