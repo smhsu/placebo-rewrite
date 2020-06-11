@@ -1,13 +1,16 @@
-import process from "process";
-import path from "path";
-import dotenv from "dotenv";
-import { MongoClient } from "mongodb";
-import { setUpServer } from "./server";
-const ExitCode = {
-    UNKNOWN_ARGUMENT: 1,
-    MONGO_ERROR: 2,
-    SERVER_SETUP_ERROR: 3
-};
+import process = require("process");
+import path = require("path");
+import dotenv = require("dotenv");
+import { setUpServer } from "./setUpServer";
+import { getClient } from "./database/initialization";
+
+// todo: test backend using curl
+
+const enum ExitCode {
+    UNKNOWN_ARGUMENT = 1,
+    MONGO_ERROR = 2,
+    SERVER_SETUP_ERROR = 3
+}
 
 function readEnvironmentVars() {
     if (process.env.NODE_ENV === "production") { // NODE_ENV should be set from the command line (see package.json)
@@ -24,21 +27,21 @@ function readEnvironmentVars() {
 
 /**
  * Main entry point.  Starts the server.
- * 
+ *
  * @param argv - command line arguments.  Unused for now.
  */
-async function main(argv: string[]) {
+async function main(argv: string[]) { // eslint-disable-line @typescript-eslint/no-unused-vars
     readEnvironmentVars();
+
+    if (!process.env.MONGODB_URI) {
+        throw new Error("Mongodb URI must be specified in the environment variable");
+    }
 
     // Connect to MongoDB
     let mongoClient;
     try {
-        const dbUrl = process.env.MONGODB_URI;
-        console.log(`🛠 Attempting to establish MongoDB connection at <${dbUrl}>...`);
-        mongoClient = await MongoClient.connect(dbUrl, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        });
+        console.log(`🛠 Attempting to establish MongoDB connection at <${process.env.MONGODB_URI}>...`);
+        mongoClient = await getClient();
         console.log("✅ Database connection successful.");
     } catch (error) {
         console.error(error.toString());
@@ -65,7 +68,7 @@ async function main(argv: string[]) {
     }
 
     // Set up callbacks after server has started
-    process.on("SIGINT", async function() {
+    process.on("SIGINT", async function () {
         console.log("Stopping server...");
         await server.stop();
         process.exit(0);
@@ -74,5 +77,5 @@ async function main(argv: string[]) {
 }
 
 if (require.main === module) { // Called directly
-    main(process.argv)
+    main(process.argv);
 } // else required as a module

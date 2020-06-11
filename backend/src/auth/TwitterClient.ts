@@ -41,7 +41,7 @@ interface AccessToken {
 
 /**
  * Parameters for Twitter's home_timeline API as described in
- * https://developer.twitter.com/en/docs/tweets/timelines/api-reference/get-statuses-home_timeline 
+ * https://developer.twitter.com/en/docs/tweets/timelines/api-reference/get-statuses-home_timeline
  */
 interface GetTweetsOptions {
     /** Number of Tweets to get. */
@@ -51,7 +51,7 @@ interface GetTweetsOptions {
 /**
  * Twitter client that handles OAuth flow and fetching data from Twitter.  This class partially implements the flow
  * described in https://developer.twitter.com/en/docs/basics/authentication/oauth-1-0a/obtaining-user-access-tokens
- * 
+ *
  * @author Silas Hsu
  */
 export class TwitterClient {
@@ -63,14 +63,21 @@ export class TwitterClient {
         this._oauthClient = this._createOAuthClient();
     }
 
-    _createOAuthClient() {
+    /**
+     * @return whether this instance was configued with an access token.
+     */
+    get hasAccessToken(): boolean {
+        return this._config.access_token_key !== undefined && this._config.access_token_secret !== undefined;
+    }
+
+    _createOAuthClient(): OAuth {
         const client = new OAuth({
             consumer: {
                 key: this._config.consumer_key,
                 secret: this._config.consumer_secret
             },
             signature_method: "HMAC-SHA1",
-            hash_function: (baseString: string, key: string) => 
+            hash_function: (baseString: string, key: string) =>
                 crypto
                     .createHmac("sha1", key)
                     .update(baseString)
@@ -78,16 +85,16 @@ export class TwitterClient {
         });
 
         return client;
-    };
+    }
 
     /**
      * Makes HTTP headers that contain a OAuth signature.
-     * 
+     *
      * @param url - the URL that the HTTP request will be made to.  Should include query parameters, if any.
      * @param method - HTTP request method
      * @return headers contained in an object
      */
-    _makeOAuthHeaders(url: string, method: "GET" | "POST") {
+    _makeOAuthHeaders(url: string, method: "GET" | "POST"): OAuth.Header {
         let token: OAuth.Token;
         if (this.hasAccessToken) {
             token = {
@@ -102,10 +109,10 @@ export class TwitterClient {
     /**
      * Tries to read and parse error messages from Twitter, and throw a TwitterError.  If parsing is unsuccessful,
      * throws a generic error.
-     * 
+     *
      * @param error - an Axios error to reformat and throw
      */
-    _reformatAndThrowError(error: AxiosError) {
+    _reformatAndThrowError(error: AxiosError): void {
         if (error.response) { // Response from server available
             const data = error.response.data;
             const messagePrefix = `${error.request.path} HTTP ${error.response.status}: `;
@@ -129,16 +136,9 @@ export class TwitterClient {
     }
 
     /**
-     * @return whether this instance was configued with an access token.
-     */
-    get hasAccessToken() {
-        return this._config.access_token_key !== undefined && this._config.access_token_secret !== undefined;
-    }
-
-    /**
      * Gets an OAuth token that can be used to ask for a user's access token.  This is step 1 of the 3-Legged OAuth
      * process.
-     * 
+     *
      * @param callbackUrl - URL from your Twitter Developers account.  See the README for more information.
      * @return promise for the OAuth request token
      */
@@ -147,7 +147,7 @@ export class TwitterClient {
 
         let response;
         try {
-            response = await axios.post<string>(url, { oauth_callback: callbackUrl }, {
+            response = await axios.post<string>(url, {oauth_callback: callbackUrl}, {
                 headers: this._makeOAuthHeaders(url, "POST"),
                 responseType: "text"
             });
@@ -160,11 +160,11 @@ export class TwitterClient {
 
     /**
      * Given a user's request token (i.e. permission to access their data), requests their access token from Twitter.
-     * 
+     *
      * @param token - user's request token, i.e. permission to access their data
      * @return promise for the user's access token
      */
-    async getAccessToken(token: {oauth_token: string, oauth_verifier: string}): Promise<AccessToken> {
+    async getAccessToken(token: { oauth_token: string, oauth_verifier: string }): Promise<AccessToken> {
         const url = `${AUTH_BASE_URL}/access_token?${querystring.stringify(token)}`;
 
         let response;
@@ -183,16 +183,16 @@ export class TwitterClient {
     /**
      * Gets a user's home timeline Tweets.  An access token must have been configured in the constructor, i.e. a user
      * must be authenticated, otherwise this method will not work.
-     * 
-     * The `options` parameter corresponds to Twitter's API parameters as described in 
-     * https://developer.twitter.com/en/docs/tweets/timelines/api-reference/get-statuses-home_timeline 
-     * 
+     *
+     * The `options` parameter corresponds to Twitter's API parameters as described in
+     * https://developer.twitter.com/en/docs/tweets/timelines/api-reference/get-statuses-home_timeline
+     *
      * @param options - parameters to pass to Twitter's API
      * @return promise for a list of Tweets on the authenticated user's home timeline.
      */
     async getTweets(options: GetTweetsOptions): Promise<Status[]> {
         if (!this.hasAccessToken) {
-            throw new Error("No access token configured -- cannot use this API without one.")
+            throw new Error("No access token configured -- cannot use this API without one.");
         }
 
         // Always get extended tweets.  It makes "full_text" instead of "text" show up in Tweet data.  For more, see
@@ -219,7 +219,7 @@ export class TwitterError extends Error {
     /** HTTP status returned from Twitter's API.  If negative, Twitter didn't respond at all. */
     statusFromTwitter: number;
 
-    constructor(message: string, statusFromTwitter=-1) {
+    constructor(message: string, statusFromTwitter = -1) {
         super(message);
         this.name = TwitterError.name;
         this.statusFromTwitter = statusFromTwitter;

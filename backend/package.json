@@ -20,13 +20,18 @@
   "scripts": {
     "start-prod": "NODE_ENV=production node ./dist/main.js",
     "start": "npx nodemon -e ts --exec \"npm run compile\"",
-    "compile": "tsc && NODE_ENV=development node ./dist/main.js"
+    "compile": "tsc && NODE_ENV=development node ./dist/main.js",
+    "lint": "npx eslint \"**/*.ts\" --ignore-pattern node_modules/",
+    "lint-fix": "npx eslint --fix \"**/*.ts\" --ignore-pattern node_modules/"
   },
   "devDependencies": {
     "@types/hapi__hapi": "^19.0.2",
     "@types/hapi__inert": "^5.2.0",
     "@types/mongodb": "^3.5.10",
     "@types/node": "^13.13.2",
+    "@typescript-eslint/eslint-plugin": "^3.0.1",
+    "@typescript-eslint/parser": "^3.0.1",
+    "eslint": "^7.1.0",
     "nodemon": "^2.0.3",
     "twitter-d": "^0.4.0",
     "typescript": "^3.8.3"

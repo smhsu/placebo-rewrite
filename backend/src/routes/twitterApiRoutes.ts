@@ -1,16 +1,16 @@
 import { Server } from "@hapi/hapi";
 import Boom from "@hapi/boom";
-import * as RequestTokenApi from "./common/requestTokenApi";
-import * as GetTweetsApi from "./common/getTweetsApi";
-import { TwitterClient, TwitterError } from "./TwitterClient";
+import * as RequestTokenApi from "../common/requestTokenApi";
+import * as GetTweetsApi from "../common/getTweetsApi";
+import { TwitterClient, TwitterError } from "../auth/TwitterClient";
 
 /**
  * Registers APIs that relate to authenticating and fetching data from Twitter.
- * 
+ *
  * @param server - Hapi server to register routes with
  * @author Silas Hsu
  */
-export function registerRoutes(server: Server) {
+export function registerRoutes(server: Server): void {
     if (!process.env.CONSUMER_KEY || !process.env.CONSUMER_SECRET || !process.env.CALLBACK_URL) {
         throw new Error("Needed Twitter app keys unset in environment variables!");
     }
@@ -28,10 +28,11 @@ export function registerRoutes(server: Server) {
     server.route({
         method: RequestTokenApi.METHOD,
         path: RequestTokenApi.PATH,
-        handler: async function(request, h) {
+        handler: async function() {
             try {
-                const response = await twitterClient.getRequestToken(callbackUrl);
-                return { oauth_token: response.oauth_token };
+                const tokenData = await twitterClient.getRequestToken(callbackUrl);
+                const response: RequestTokenApi.ResponsePayload = { oauth_token: tokenData.oauth_token };
+                return response;
             } catch (error) {
                 return handleTwitterError(error);
             }
@@ -45,13 +46,13 @@ export function registerRoutes(server: Server) {
     server.route({
         method: GetTweetsApi.METHOD,
         path: GetTweetsApi.PATH,
-        handler: async function(request, h) {
+        handler: async function(request) {
             if (!GetTweetsApi.checkQueryParams(request.query)) {
                 return Boom.badRequest("Missing required query parameters.");
             }
 
             try {
-                const response = await twitterClient.getAccessToken({
+                const accessToken = await twitterClient.getAccessToken({
                     oauth_token: request.query.oauth_token,
                     oauth_verifier: request.query.oauth_verifier
                 });
@@ -59,12 +60,13 @@ export function registerRoutes(server: Server) {
                 const authedTwitterClient = new TwitterClient({
                     consumer_key: process.env.CONSUMER_KEY,
                     consumer_secret: process.env.CONSUMER_SECRET,
-                    access_token_key: response.oauth_token,
-                    access_token_secret: response.oauth_token_secret
+                    access_token_key: accessToken.oauth_token,
+                    access_token_secret: accessToken.oauth_token_secret
                 });
 
-                const tweets = await authedTwitterClient.getTweets({count: 200});
-                return { tweets };
+                const tweets = await authedTwitterClient.getTweets({ count: 200 });
+                const response: GetTweetsApi.ResponsePayload = { tweets };
+                return response;
             } catch (error) {
                 return handleTwitterError(error);
             }
@@ -76,7 +78,7 @@ export function registerRoutes(server: Server) {
  * When there is a problem with the Twitter API, returns the proper 500-level error and user-facing message in a Boom
  * object.  Note that when returning a Boom error, an error logging event will be emitted, so this method does not and
  * should not log anything.
- * 
+ *
  * @param error - error thrown while calling the Twitter API
  * @return appropriate Boom error to return to caller of the API
  */
