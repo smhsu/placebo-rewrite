@@ -8,10 +8,7 @@ export class TwitterLogProvider {
     }
 
     async storeLog(data: unknown): Promise<string> {
-        const result = await this._collection.insertOne(data);
-        if (!result.insertedId) {
-            throw new Error("Failed to insert document");
-        }
-        return `${result.insertedId}`;
+        const insertResult = await this._collection.insertOne(data);
+        return insertResult.insertedId.toHexString();
     }
 }

@@ -3,21 +3,15 @@ import { ExperimentalCondition } from "../common/getExperimentalConditionApi";
 
 const COUNT_DOCUMENT_NAME = "counts";
 
-interface DatabaseCounts {
-    experimentalGroupCount: number;
-    controlGroupCount: number;
-}
-
-interface CountSchema extends Partial<DatabaseCounts> {
+type ConditionCounts = Record<ExperimentalCondition, number>;
+interface CountSchema extends ConditionCounts {
     identifier: string;
 }
-
-type ConditionCounts = Record<ExperimentalCondition, number>;
 
 export class ConditionCountsProvider {
     static makeZeroedCountDictionary(): ConditionCounts {
         const allZeros: Partial<ConditionCounts> = {};
-        for (const condition in ExperimentalCondition) {
+        for (const condition of Object.values(ExperimentalCondition)) {
             allZeros[condition] = 0;
         }
         return allZeros as ConditionCounts;
@@ -30,20 +24,19 @@ export class ConditionCountsProvider {
     }
 
     async getCounts(): Promise<ConditionCounts> {
-        const document: CountSchema = await this._collection.findOne({identifier: COUNT_DOCUMENT_NAME});
-        const result = ConditionCountsProvider.makeZeroedCountDictionary();
+        const document = await this._collection.findOne({identifier: COUNT_DOCUMENT_NAME});
+        const counts = ConditionCountsProvider.makeZeroedCountDictionary();
         if (!document) {
-            return result;
+            return counts;
         }
 
-        for (const [condition, dbKey] of Object.entries(ExperimentalCondition)) {
-            result[condition] = document[dbKey]; // Merge in values from database to the zeroed counts. 
-        }
-        return result;
+        // Merge in values from database to the zeroed counts, excluding the `identifier` property.
+        delete document.identifier;
+        return Object.assign(counts, document);
     }
 
     async incrementCount(condition: ExperimentalCondition): Promise<void> {
-        const incrementAmount: Partial<DatabaseCounts> = {
+        const incrementAmount: Partial<ConditionCounts> = {
             [condition]: 1
         };
         await this._collection.updateOne({identifier: COUNT_DOCUMENT_NAME}, {$inc: incrementAmount}, {upsert: true});
