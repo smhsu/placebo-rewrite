@@ -12,8 +12,16 @@ export interface RequestQueryParams {
     oauth_token: string;
 }
 
-export function checkQueryParams(queryDict: { [key: string]: any }): queryDict is RequestQueryParams {
-    return typeof queryDict.oauth_verifier === "string" && typeof queryDict.oauth_token === "string";
+/**
+ * Checks whether the input contains the parameters this API needs.
+ * 
+ * @param toCheck - anything to check
+ * @return whether the input contains the right paramters for this API
+ */
+export function checkQueryParams(toCheck: unknown): toCheck is RequestQueryParams {
+    return typeof toCheck === "object" &&
+        typeof toCheck["oauth_verifier"] === "string" &&
+        typeof toCheck["oauth_token"] === "string";
 }
 
 export interface ResponsePayload {

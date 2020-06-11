@@ -3,24 +3,7 @@ import Boom from "@hapi/boom";
 import { MongoClient } from "mongodb";
 
 import * as StoreParticipantLogsApi from "../common/logParticipantApi";
-import { TwitterLogProvider } from "../database/TwitterLogProvider";
-
-/**
- * Checks whether payload has the correct shape during runtime.
- * @param payload
- * @author hhhenrysss
- */
-function isSubmissionRequest(payload: unknown): payload is StoreParticipantLogsApi.RequestPayload {
-    if (!payload) {
-        return false;
-    }
-    // assume that payload is JSON serializable
-    if (typeof payload !== "object") {
-        return false;
-    }
-    const keys = Object.keys(payload);
-    return keys.length === 1 && keys[0] === "data";
-}
+import { ParticipantLogProvider } from "../database/ParticipantLogProvider";
 
 /**
  * Registers APIs that relate to storing data received from front-end.
@@ -29,23 +12,22 @@ function isSubmissionRequest(payload: unknown): payload is StoreParticipantLogsA
  */
 export function registerRoutes(server: Server): void {
     if (!(process.env.DATA_COLLECTION_NAME && process.env.DATABASE_NAME)) {
-        throw new Error("DATA_COLLECTION_NAME and DATABASE_NAME must be specified in the environment");
+        throw new Error("DATA_COLLECTION_NAME and DATABASE_NAME must be specified in the environment variables.");
     }
+
     const client = server.app["mongoClient"] as MongoClient;
-    const logProvider = new TwitterLogProvider(client, process.env.DATA_COLLECTION_NAME, process.env.DATABASE_NAME);
+    const logProvider = new ParticipantLogProvider(client, process.env.DATA_COLLECTION_NAME, process.env.DATABASE_NAME);
+
     server.route({
         method: StoreParticipantLogsApi.METHOD,
         path: StoreParticipantLogsApi.PATH,
         handler: async (req) => {
-            if (!isSubmissionRequest(req.payload)) {
-                return Boom.badRequest("payload object can only have \"data\" as the only key");
+            if (!StoreParticipantLogsApi.isRequestPayload(req.payload)) {
+                return Boom.badRequest();
             }
-            const requestPayload = req.payload;
-            const id = await logProvider.storeLog(requestPayload.data);
-            const result: StoreParticipantLogsApi.ResponsePayload = {
-                mongoDBId: id
-            };
-            return result;
+
+            await logProvider.storeLog(req.payload.data);
+            return {};
         }
     });
 }
