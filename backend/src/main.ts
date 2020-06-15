@@ -2,7 +2,7 @@ import process = require("process");
 import path = require("path");
 import dotenv = require("dotenv");
 import { setUpServer } from "./setUpServer";
-import { getClient } from "./database/initialization";
+import { MongoClient } from "mongodb";
 
 const enum ExitCode {
     UNKNOWN_ARGUMENT = 1,
@@ -32,14 +32,19 @@ async function main(argv: string[]) { // eslint-disable-line @typescript-eslint/
     readEnvironmentVars();
 
     if (!process.env.MONGODB_URI) {
-        throw new Error("Mongodb URI must be specified in the environment variable");
+        throw new Error("MongoDB URI must be specified in the environment variables.");
+    } else if (!process.env.PORT) {
+        throw new Error("PORT must be specified in the environment variables.");
     }
 
     // Connect to MongoDB
     let mongoClient;
     try {
         console.log(`🛠 Attempting to establish MongoDB connection at <${process.env.MONGODB_URI}>...`);
-        mongoClient = await getClient();
+        mongoClient = await MongoClient.connect(process.env.MONGODB_URI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        });
         console.log("✅ Database connection successful.");
     } catch (error) {
         console.error(error.toString());

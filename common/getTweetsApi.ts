@@ -19,10 +19,10 @@ export interface RequestQueryParams {
  * @return whether the input contains the right paramters for this API
  */
 export function checkQueryParams(toCheck: unknown): toCheck is RequestQueryParams {
-    return toCheck !== null &&
-        typeof toCheck === "object" &&
-        typeof toCheck["oauth_verifier"] === "string" &&
-        typeof toCheck["oauth_token"] === "string";
+    return  typeof toCheck === "object" &&
+        toCheck !== null &&
+        typeof (toCheck as Record<string, unknown>).oauth_verifier === "string" &&
+        typeof (toCheck as Record<string, unknown>).oauth_token === "string";
 }
 
 export interface ResponsePayload {

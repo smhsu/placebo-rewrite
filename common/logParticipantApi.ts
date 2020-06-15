@@ -12,5 +12,8 @@ export interface RequestPayload {
  * @return whether the input contains the right paramters for this API
  */
 export function isRequestPayload(toCheck: unknown): toCheck is RequestPayload {
-    return toCheck !== null && typeof toCheck === "object" && typeof toCheck["data"] === "object";
+    return typeof toCheck === "object" &&
+        toCheck !== null &&
+        typeof (toCheck as Record<string, unknown>).data === "object" &&
+        typeof (toCheck as Record<string, unknown>).data !== null;
 }

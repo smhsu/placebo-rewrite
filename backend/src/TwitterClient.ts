@@ -95,11 +95,11 @@ export class TwitterClient {
      * @return headers contained in an object
      */
     _makeOAuthHeaders(url: string, method: "GET" | "POST"): OAuth.Header {
-        let token: OAuth.Token;
+        let token: OAuth.Token | undefined;
         if (this.hasAccessToken) {
-            token = {
-                key: this._config.access_token_key,
-                secret: this._config.access_token_secret
+            token = { // this.hasAccessToken ensures these are strings and not undefined.
+                key: this._config.access_token_key as string,
+                secret: this._config.access_token_secret as string
             };
         }
         const signature = this._oauthClient.authorize({url, method}, token);
