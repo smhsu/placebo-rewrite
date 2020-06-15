@@ -1,125 +1,107 @@
 import React from "react";
-import axios from "axios";
-import querystring from "querystring";
 import { Status } from "twitter-d";
-
-import { LoginPane } from "./LoginPane";
+import { LoginAndTweetLoader } from "./LoginAndTweetLoader";
 import { TweetView } from "./TweetView";
-import * as GetTweetsApi from "../common/getTweetsApi";
-import { ApiErrorHandler } from "../ApiErrorHandler";
 
 import sampleTweets from "../sampleTweets.json";
-import spinner from "../loading-small.gif";
 import "./App.css";
 
+/** For debugging purposes.  Setting this to `true` skips the login flow and loads a static set of Tweets. */
 const IS_USING_STATIC_TWEETS = false;
 
-enum TweetFetchStatus {
-    NOT_LOGGED_IN,
-    LOADING,
-    LOGIN_ERROR,
-    FETCH_ERROR,
-    DONE
-}
+/** How much time users have to view their Tweets before they disappear. */
+const TWEET_VIEW_DURATION_SECONDS = 15;
+
+/** How long of a warning users will get that their Tweets will be disappearing. */
+const TWEET_DISAPPEAR_WARNING_SECONDS = 10;
 
 interface State {
-    tweetFetchStatus: TweetFetchStatus;
-    tweets: Readonly<Status>[];
-    fetchErrorReason: string;
+    /** Tweets to display.  If null, Tweets have not been loaded yet. */
+    tweets: Readonly<Status>[] | null;
+
+    /** Time left to view Tweets. */
+    timeLeftSeconds: number;
+
+    settingsYOffset: number;
 }
 
 export class App extends React.Component<{}, State> {
+    private _timerID?: number;
+    private _topBar: React.RefObject<HTMLDivElement>;
+
     constructor(props: {}) {
         super(props);
         this.state = {
-            tweetFetchStatus: TweetFetchStatus.NOT_LOGGED_IN,
-            tweets: [],
-            fetchErrorReason: ""
+            tweets: null,
+            timeLeftSeconds: Number.POSITIVE_INFINITY,
+            settingsYOffset: 0
         };
-        this.setTweets = this.setTweets.bind(this);
-        this.fetchTweets = this.fetchTweets.bind(this);
-        this.handleError = this.handleError.bind(this);
+
+        this._topBar = React.createRef();
+        this.handleTweetsFetched = this.handleTweetsFetched.bind(this);
     }
 
     componentDidMount() {
         if (IS_USING_STATIC_TWEETS) {
-            this.setTweets(sampleTweets);
-        } else {
-            // Use the URL query string to check if we can immediately fetch the user's tweets.
-            // substring(1) cuts off the "?" in the URL query string
-            const queryParams = querystring.parse(window.location.search.substring(1));
-            if (GetTweetsApi.checkQueryParams(queryParams)) {
-                this.fetchTweets({
-                    oauth_token: queryParams.oauth_token,
-                    oauth_verifier: queryParams.oauth_verifier
-                });
-            }
+            this.handleTweetsFetched(sampleTweets as unknown as Status[]);
         }
     }
 
-    async fetchTweets(params: GetTweetsApi.RequestQueryParams): Promise<void> {
-        this.setState({ tweetFetchStatus: TweetFetchStatus.LOADING });
-        try {
-            const response = await axios.request<GetTweetsApi.ResponsePayload>({
-                method: GetTweetsApi.METHOD,
-                baseURL: GetTweetsApi.PATH,
-                params: params
-            });
-            this.setTweets(response.data.tweets);
-        } catch (error) {
-            this.handleError(error, TweetFetchStatus.FETCH_ERROR);
-        }
-    }
-
-    setTweets(tweets: Status[]) {
+    handleTweetsFetched(tweets: Status[]) {
         this.setState({
             tweets,
-            tweetFetchStatus: TweetFetchStatus.DONE
+            timeLeftSeconds: TWEET_VIEW_DURATION_SECONDS
         });
+
+        this._timerID = window.setInterval(() => {
+            this.setState(prevState => {
+                return { timeLeftSeconds: prevState.timeLeftSeconds - 1 };
+            });
+        }, 1000);
     }
 
-    handleError(error: any, nextFetchStatus: TweetFetchStatus) {
-        this.setState({
-            tweetFetchStatus: nextFetchStatus,
-            fetchErrorReason: new ApiErrorHandler().getTwitterApiErrorReason(error)
-        });
+    componentDidUpdate() {
+        const topBarHeight = this._topBar.current ? this._topBar.current.offsetHeight : 0;
+        const settingsYOffset = topBarHeight + 10;
+
+        if (this.state.settingsYOffset !== settingsYOffset) {
+            this.setState({ settingsYOffset: settingsYOffset });
+        }
+    }
+
+    componentWillUnmount() {
+        window.clearInterval(this._timerID);
     }
 
     render() {
-        let pane = null;
-        switch (this.state.tweetFetchStatus) {
-            case TweetFetchStatus.LOADING:
-                pane = <div className="vertical-and-horiz-center">
-                    <div>Loading your Tweets... <img src={spinner} alt="Loading" /></div>
-                </div>;
-                break;
-            case TweetFetchStatus.DONE:
-                pane = <TweetView tweets={this.state.tweets} />;
-                break;
-            case TweetFetchStatus.LOGIN_ERROR:
-            case TweetFetchStatus.FETCH_ERROR:
-            case TweetFetchStatus.NOT_LOGGED_IN:
-            default: // Render login pane
-                let errorMessage = "";
-                if (this.state.tweetFetchStatus === TweetFetchStatus.LOGIN_ERROR) {
-                    errorMessage = "Login request failed.";
-                } else if (this.state.tweetFetchStatus === TweetFetchStatus.FETCH_ERROR) {
-                    errorMessage = "Couldn't fetch your tweets.";
-                }
-
-                pane = <LoginPane
-                    onError={error => this.handleError(error, TweetFetchStatus.LOGIN_ERROR)}
-                    mainErrorMessage={errorMessage}
-                    errorReason={this.state.fetchErrorReason}
-                />;
-                break;
-        }
-
+        const { tweets, timeLeftSeconds } = this.state;
         return <div>
-            <nav className="navbar sticky-top">
-                <span className="navbar-brand">Custom Twitter Viewer</span>
-            </nav>
-            {pane}
+            <div className="sticky-top" ref={this._topBar} >
+                <nav className="navbar">
+                    <span className="navbar-brand">Custom Twitter Viewer</span>
+                </nav>
+                {timeLeftSeconds <= TWEET_DISAPPEAR_WARNING_SECONDS &&
+                    <div className="alert alert-warning App-tweet-disappear-warning">
+                        <span role="img" aria-label="warning">⚠️</span> Tweets will disappear
+                        in {Math.max(0, timeLeftSeconds)} seconds.
+                    </div>
+                }
+            </div>
+
+            {tweets === null ?
+                <LoginAndTweetLoader onTweetsFetched={this.handleTweetsFetched} />
+                :
+                <TweetView tweets={tweets} settingsYOffset={this.state.settingsYOffset} />
+            }
+
+            {timeLeftSeconds <= 0 &&
+                <div className="App-hide-tweet-overlay vertical-center">
+                    <div className="container">
+                        <h1>Thanks for browsing!</h1>
+                        <p>Please enter this code to continue inside Qualtrics: <code>lots of tweets</code></p>
+                    </div>
+                </div>
+            }
         </div>;
     }
 }

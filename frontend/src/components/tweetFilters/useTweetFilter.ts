@@ -31,7 +31,7 @@ export function useTweetFilter(tweets: Status[], filterType: TweetFilterType) {
         default:
             filterObj = new RandomFilter();
     }
-    console.log(POPULARITY_CALCULATOR.getPopularities(tweets));
+
     const [settingState, updateSettingState] = React.useState(filterObj.getInitialState(tweets));
     return {
         renderedSetting: filterObj.renderSetting(tweets, settingState, updateSettingState),

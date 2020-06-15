@@ -7,8 +7,10 @@ import "./TweetView.css";
 
 interface Props {
     tweets: Status[];
+    settingsYOffset?: number;
 }
 
+// TODO render retweets and threads correctly
 export function TweetView(props: Props) {
     const { renderedSetting, filteredTweets } = useTweetFilter(props.tweets, getFilterType());
 
@@ -20,7 +22,7 @@ export function TweetView(props: Props) {
             </div>
 
             <div className="col col-sm-5 col-md-4 col-xl-3">
-                <div className="TweetView-settings">
+                <div className="TweetView-settings" style={{ top: props.settingsYOffset }}>
                     <h4>Settings</h4>
                     {renderedSetting}
                 </div>

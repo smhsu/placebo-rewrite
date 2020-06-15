@@ -20,6 +20,7 @@ interface Props {
     tweet: Status;
 }
 
+// TODO do something about URLs, we can't change the page
 export class Tweet extends React.PureComponent<Props> {
     getTweetAuthor() {
         const user = this.props.tweet.user;
