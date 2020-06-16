@@ -2,17 +2,21 @@ import React from "react";
 import { Status } from "twitter-d";
 import { Tweet } from "./Tweet";
 import { useTweetFilter, TweetFilterType } from "./tweetFilters/useTweetFilter";
+import { ParticipantLog } from "../ParticipantLog";
 
 import "./TweetView.css";
 
 interface Props {
     tweets: Status[];
+    log: ParticipantLog;
     settingsYOffset?: number;
 }
 
 // TODO render retweets and threads correctly
 export function TweetView(props: Props) {
-    const { renderedSetting, filteredTweets } = useTweetFilter(props.tweets, getFilterType());
+    const { renderedSetting, filteredTweets } = useTweetFilter(props.tweets, getFilterType(), () => {
+        props.log.didInteractWithSetting = true;
+    });
 
     return <div className="container-fluid">
         <div className="row justify-content-center">

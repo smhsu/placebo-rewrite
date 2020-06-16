@@ -18,7 +18,7 @@ const POPULARITY_CALCULATOR = new TweetPopularityCalculator();
 POPULARITY_CALCULATOR.getPopularities = memoizeOne(POPULARITY_CALCULATOR.getPopularities);
 POPULARITY_CALCULATOR.getPopularityRange = memoizeOne(POPULARITY_CALCULATOR.getPopularityRange);
 
-export function useTweetFilter(tweets: Status[], filterType: TweetFilterType) {
+export function useTweetFilter(tweets: Status[], filterType: TweetFilterType, onChange?: () => void) {
     let filterObj: ITweetFilter<unknown>;
     switch (filterType) {
         case TweetFilterType.THRESHOLD:
@@ -33,8 +33,13 @@ export function useTweetFilter(tweets: Status[], filterType: TweetFilterType) {
     }
 
     const [settingState, updateSettingState] = React.useState(filterObj.getInitialState(tweets));
+    const wrappedOnChange = (newState: unknown) => {
+        updateSettingState(newState);
+        onChange && onChange();
+    }
+
     return {
-        renderedSetting: filterObj.renderSetting(tweets, settingState, updateSettingState),
+        renderedSetting: filterObj.renderSetting(tweets, settingState, wrappedOnChange),
         filteredTweets: filterObj.filter(tweets, settingState)
     };
 }

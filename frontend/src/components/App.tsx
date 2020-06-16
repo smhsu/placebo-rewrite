@@ -2,18 +2,19 @@ import React from "react";
 import { Status } from "twitter-d";
 import { LoginAndTweetLoader } from "./LoginAndTweetLoader";
 import { TweetView } from "./TweetView";
+import { ParticipantLog } from "../ParticipantLog";
 
 import sampleTweets from "../sampleTweets.json";
 import "./App.css";
 
 /** For debugging purposes.  Setting this to `true` skips the login flow and loads a static set of Tweets. */
-const IS_USING_STATIC_TWEETS = false;
+const IS_USING_STATIC_TWEETS = true;
 
 /** How much time users have to view their Tweets before they disappear. */
-const TWEET_VIEW_DURATION_SECONDS = 15;
+const TWEET_VIEW_DURATION_SECONDS = 10;
 
 /** How long of a warning users will get that their Tweets will be disappearing. */
-const TWEET_DISAPPEAR_WARNING_SECONDS = 10;
+const TWEET_DISAPPEAR_WARNING_SECONDS = 5;
 
 interface State {
     /** Tweets to display.  If null, Tweets have not been loaded yet. */
@@ -28,6 +29,7 @@ interface State {
 export class App extends React.Component<{}, State> {
     private _timerID?: number;
     private _topBar: React.RefObject<HTMLDivElement>;
+    private _log: ParticipantLog;
 
     constructor(props: {}) {
         super(props);
@@ -38,6 +40,7 @@ export class App extends React.Component<{}, State> {
         };
 
         this._topBar = React.createRef();
+        this._log = new ParticipantLog();
         this.handleTweetsFetched = this.handleTweetsFetched.bind(this);
     }
 
@@ -55,22 +58,35 @@ export class App extends React.Component<{}, State> {
 
         this._timerID = window.setInterval(() => {
             this.setState(prevState => {
-                return { timeLeftSeconds: prevState.timeLeftSeconds - 1 };
+                const newTimeLeft = prevState.timeLeftSeconds - 1;
+                if (newTimeLeft <= 0) {
+                    window.clearInterval(this._timerID);
+                }
+                return { timeLeftSeconds: newTimeLeft };
             });
         }, 1000);
     }
 
+    componentWillUnmount() {
+        window.clearInterval(this._timerID);
+    }
+
     componentDidUpdate() {
+        /** Measure top bar height */
         const topBarHeight = this._topBar.current ? this._topBar.current.offsetHeight : 0;
         const settingsYOffset = topBarHeight + 10;
-
         if (this.state.settingsYOffset !== settingsYOffset) {
             this.setState({ settingsYOffset: settingsYOffset });
         }
-    }
 
-    componentWillUnmount() {
-        window.clearInterval(this._timerID);
+        /** Upload participant log */
+        if (this.state.timeLeftSeconds <= 0) {
+            try {
+                this._log.uploadEnsuringOnce();
+            } catch (error) {
+                console.error(error);
+            }
+        }
     }
 
     render() {
@@ -91,7 +107,7 @@ export class App extends React.Component<{}, State> {
             {tweets === null ?
                 <LoginAndTweetLoader onTweetsFetched={this.handleTweetsFetched} />
                 :
-                <TweetView tweets={tweets} settingsYOffset={this.state.settingsYOffset} />
+                <TweetView tweets={tweets} settingsYOffset={this.state.settingsYOffset} log={this._log} />
             }
 
             {timeLeftSeconds <= 0 &&

@@ -1,8 +1,16 @@
+import { ExperimentalCondition } from "./getExperimentalConditionApi";
+
 export const METHOD = "POST";
-export const PATH = "/api/store_submission";
+export const PATH = "/api/store_log";
+
+export interface IParticipantLog {
+    qualtricsID: string;
+    experimentalCondition: ExperimentalCondition;
+    didInteractWithSetting: boolean;
+}
 
 export interface RequestPayload {
-    data: Record<string, unknown>;
+    data: IParticipantLog;
 }
 
 /**
@@ -15,5 +23,5 @@ export function isRequestPayload(toCheck: unknown): toCheck is RequestPayload {
     return typeof toCheck === "object" &&
         toCheck !== null &&
         typeof (toCheck as Record<string, unknown>).data === "object" &&
-        typeof (toCheck as Record<string, unknown>).data !== null;
+        (toCheck as Record<string, unknown>).data !== null;
 }
