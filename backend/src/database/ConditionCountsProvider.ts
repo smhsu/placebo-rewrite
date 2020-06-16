@@ -12,7 +12,7 @@ type ConditionCounts = Record<ExperimentalCondition, number>;
 /**
  * Database schema for storing counts of participants assigned to each experimental condition.
  */
-interface CountSchema extends ConditionCounts {
+interface CountSchema extends Partial<ConditionCounts> {
     /** Identifier of the one document we plan to store. */
     identifier: string;
 }
@@ -55,15 +55,19 @@ export class ConditionCountsProvider {
      * @return a promise for the number of participants assigned to each experimental condition.
      */
     async getCounts(): Promise<ConditionCounts> {
-        const document = await this._collection.findOne({identifier: COUNT_DOCUMENT_NAME});
-        const counts = ConditionCountsProvider.makeZeroedCountDictionary();
+        let document: Partial<ConditionCounts> | null =
+            await this._collection.findOne({identifier: COUNT_DOCUMENT_NAME});
         if (!document) {
-            return counts;
+            document = {};
         }
 
-        // Merge in values from database to the zeroed counts, excluding the `identifier` property.
-        delete document.identifier;
-        return Object.assign(counts, document);
+        // Select the relevant values from the document
+        const counts: Partial<ConditionCounts> = {};
+        for (const condition of Object.values(ExperimentalCondition)) {
+            counts[condition] = document[condition] || 0;
+        }
+
+        return counts as ConditionCounts;
     }
 
     /**
