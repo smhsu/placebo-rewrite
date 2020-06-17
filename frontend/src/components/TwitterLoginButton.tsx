@@ -36,7 +36,10 @@ export class TwitterLoginButton extends React.Component<Props, State> {
     async redirectToTwitterLogin() {
         this.setState({isLoading: true});
         try {
-            const response = await axios.post<RequestTokenApi.ResponsePayload>(RequestTokenApi.PATH, undefined);
+            const response = await axios.request<RequestTokenApi.ResponsePayload>({
+                method: RequestTokenApi.METHOD,
+                url: RequestTokenApi.PATH
+            });
             window.location.href = TWITTER_AUTH_URL + "?oauth_token=" + response.data.oauth_token;
         } catch (error) {
             this.setState({isLoading: false});

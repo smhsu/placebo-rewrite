@@ -1,8 +1,10 @@
 import React from "react";
 import { Status } from "twitter-d";
 import { Tweet } from "./Tweet";
-import { useTweetFilter, TweetFilterType } from "./tweetFilters/useTweetFilter";
+import { useTweetFilter } from "./tweetFilters/useTweetFilter";
 import { ParticipantLog } from "../ParticipantLog";
+import { ExperimentalCondition } from "../common/getExperimentalConditionApi";
+import { useExperimentalConditionFetch } from "./useExperimentalConditionFetch";
 
 import "./TweetView.css";
 
@@ -13,8 +15,11 @@ interface Props {
 }
 
 // TODO render retweets and threads correctly
-export function TweetView(props: Props) {
-    const { renderedSetting, filteredTweets } = useTweetFilter(props.tweets, getFilterType(), () => {
+// TODO render settings at top if window too narrow
+export const TweetView = React.memo((props: Props) => {
+    const condition = useExperimentalConditionFetch();
+    props.log.experimentalCondition = condition;
+    const { renderedSetting, filteredTweets } = useTweetFilter(props.tweets, condition, () => {
         props.log.didInteractWithSetting = true;
     });
 
@@ -34,13 +39,4 @@ export function TweetView(props: Props) {
 
         </div>
     </div>;
-}
-
-function getFilterType(): TweetFilterType {
-    for (const filterType of Object.values(TweetFilterType)) {
-        if (window.location.search.includes(filterType)) {
-            return filterType;
-        }
-    }
-    return TweetFilterType.RANGE;
-}
+});

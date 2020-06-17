@@ -3,38 +3,50 @@ import memoizeOne from "memoize-one";
 import { Status } from "twitter-d";
 
 import { TweetPopularityCalculator } from "../../TweetPopularityCalculator";
+import { ExperimentalCondition } from "../../common/getExperimentalConditionApi";
+
 import { ITweetFilter } from "./ITweetFilter";
-import { ThresholdPopularityFilter } from "./ThresholdPopularityFilter";
 import { RangePopularityFilter } from "./RangePopularityFilter";
 import { RandomFilter } from "./RandomFilter";
-
-export enum TweetFilterType {
-    RANDOM = "random",
-    THRESHOLD = "threshold",
-    RANGE = "range"
-}
+import { LoadingFilter } from "./LoadingFilter";
 
 const POPULARITY_CALCULATOR = new TweetPopularityCalculator();
 POPULARITY_CALCULATOR.getPopularities = memoizeOne(POPULARITY_CALCULATOR.getPopularities);
 POPULARITY_CALCULATOR.getPopularityRange = memoizeOne(POPULARITY_CALCULATOR.getPopularityRange);
 
-export function useTweetFilter(tweets: Status[], filterType: TweetFilterType, onChange?: () => void) {
-    let filterObj: ITweetFilter<unknown>;
-    switch (filterType) {
-        case TweetFilterType.THRESHOLD:
-            filterObj = new ThresholdPopularityFilter(POPULARITY_CALCULATOR);
-            break;
-        case TweetFilterType.RANGE:
-            filterObj = new RangePopularityFilter(POPULARITY_CALCULATOR);
-            break;
-        case TweetFilterType.RANDOM:
+const getTweetFilterForCondition = memoizeOne((condition: ExperimentalCondition): ITweetFilter<unknown> => {
+    switch (condition) {
+        case ExperimentalCondition.UNKNOWN:
+            return new LoadingFilter();
+        case ExperimentalCondition.RANDOMIZER_SETTING:
+            return new RandomFilter();
+        case ExperimentalCondition.POPULARITY_SLIDER:
         default:
-            filterObj = new RandomFilter();
+            return new RangePopularityFilter(POPULARITY_CALCULATOR);
+    }
+});
+
+interface ReturnValue {
+    renderedSetting: React.ReactElement | null;
+    filteredTweets: Status[];
+}
+
+export function useTweetFilter(tweets: Status[], condition: ExperimentalCondition, onChange?: () => void): ReturnValue {
+    const filterObj = getTweetFilterForCondition(condition);
+    const [prevCondition, setPrevCondition] = React.useState<ExperimentalCondition | null>(null);
+    const [settingState, setSettingState] = React.useState(filterObj.getInitialState(tweets));
+
+    if (condition !== prevCondition) { // We need to reset state.  Bail early.
+        setSettingState(filterObj.getInitialState(tweets));
+        setPrevCondition(condition);
+        return {
+            renderedSetting: null,
+            filteredTweets: tweets
+        };
     }
 
-    const [settingState, updateSettingState] = React.useState(filterObj.getInitialState(tweets));
     const wrappedOnChange = (newState: unknown) => {
-        updateSettingState(newState);
+        setSettingState(newState);
         onChange && onChange();
     }
 
