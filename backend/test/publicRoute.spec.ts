@@ -1,13 +1,13 @@
-import * as Lab from '@hapi/lab';
-import {expect} from '@hapi/code';
+import * as Lab from "@hapi/lab";
+import {expect} from "@hapi/code";
 import {Server} from "@hapi/hapi";
 import {createServer} from "./setUp";
 import {MockMongoClient} from "./mockObjects/MockMongoClient";
 
-const { describe, it, beforeEach, afterEach } = Lab.script();
+const { describe, it, beforeEach, afterEach } = exports.lab = Lab.script();
 
 
-describe('Server public routes Testing', () => {
+describe("Server public routes testing ->", () => {
     let server: Server;
     let mongoClient: MockMongoClient;
     beforeEach(async () => {
@@ -17,17 +17,17 @@ describe('Server public routes Testing', () => {
     afterEach(async () => {
         await server.stop();
     });
-    it('responds with 200 for valid public resources', async () => {
+    it("should respond with 200 for valid public resources", async () => {
         const res = await server.inject({
-            method: 'get',
-            url: '/'
+            method: "get",
+            url: "/"
         });
         expect(res.statusCode).to.equal(200);
     });
-    it('responds with 404 for invalid public resources', async () => {
+    it("should respond with 404 for invalid public resources", async () => {
         const res = await server.inject({
-            method: 'get',
-            url: '/stuff-that-does-not-exist'
+            method: "get",
+            url: "/stuff-that-does-not-exist"
         });
         expect(res.statusCode).to.equal(404);
     });

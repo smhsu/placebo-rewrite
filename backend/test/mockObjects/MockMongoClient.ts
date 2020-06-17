@@ -25,25 +25,25 @@ class MockCollection {
 
     findOne = async () => {
         if (this._config.findOne.throwError) {
-            throw new MongoError('findOne failed');
+            throw new MongoError("findOne failed");
         }
         if (this._config.findOne.notFind) {
             return undefined;
         }
         return {
             ...this._config.conditionCounts,
-            identifier: 'mock doc',
+            identifier: "mock doc",
         };
     }
     updateOne = async (...args) => {
         if (this._config.updateOne.throwError) {
-            throw new MongoError('updateOne failed');
+            throw new MongoError("updateOne failed");
         }
         return args;
     }
     insertOne = async () => {
         if (this._config.insertOne.throwError) {
-            throw new MongoError('insertOne failed');
+            throw new MongoError("insertOne failed");
         }
     }
 }
@@ -74,14 +74,14 @@ export class MockMongoClient {
             }
         }
     };
-    db = () => {
+    db: () => { collection: () => MockCollection } = () => {
         if (this.config.db.throwError) {
-            throw new Error('db connection failed');
+            throw new Error("db connection failed");
         }
         return {
-            collection: () => {
+            collection: (): MockCollection => {
                 if (this.config.collection.throwError) {
-                    throw new Error('collection connection failed');
+                    throw new Error("collection connection failed");
                 }
                 return new MockCollection(this.config.collectionConfig);
             }
