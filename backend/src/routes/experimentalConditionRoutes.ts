@@ -48,7 +48,7 @@ export function registerRoutes(server: Server): void {
                 totalAssignments += count;
             }
 
-            let assignment = ExperimentalCondition.CONTROL;
+            let assignment: ExperimentalCondition;
             if (totalAssignments === 0) {
                 if (Math.random() <= desiredControlPercentage) {
                     assignment = ExperimentalCondition.CONTROL;
