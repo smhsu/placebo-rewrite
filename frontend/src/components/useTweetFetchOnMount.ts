@@ -3,22 +3,19 @@ import querystring from "querystring";
 import axios from "axios";
 import { Status } from "twitter-d";
 import * as GetTweetsApi from "../common/getTweetsApi";
+import { getDebugOptions } from "../getDebugOptions";
 
 import sampleTweets from "../sampleTweets.json";
 
-/** For debugging purposes.  Setting this to `true` to skip directly to the onFetchSuccess handler. */
-const IS_USING_STATIC_TWEETS = true;
+/** Whether to use a static set of Tweets, and to skip directly to the onFetchSuccess handler. */
+const IS_USING_STATIC_TWEETS = getDebugOptions("use_static_tweets") === "true";
 
 function getTweetFetchParameters(): GetTweetsApi.RequestQueryParams | null {
     // Use the URL query string to check if we can immediately fetch the user's tweets.
     // substring(1) cuts off the "?" in the URL query string
     // Do this only once, at mount.
     const queryParams = querystring.parse(window.location.search.substring(1));
-    if (GetTweetsApi.checkQueryParams(queryParams)) {
-        return queryParams;
-    } else {
-        return null;
-    }
+    return GetTweetsApi.extractQueryParams(queryParams);
 }
 
 interface TweetFetchHandlers {

@@ -1,5 +1,4 @@
 import axios from "axios";
-import querystring from "querystring";
 
 import * as LogParticipantApi from "./common/logParticipantApi";
 import { IParticipantLog } from "./common/logParticipantApi";
@@ -8,18 +7,9 @@ import { ExperimentalCondition } from "./common/getExperimentalConditionApi";
 const QUALTRICS_QUERY_PARAM_NAME = "qualtricsID";
 
 function getAndStoreQualtricsID(): string {
-    const queryParams = querystring.parse(window.location.search.substring(1));
-    const qualtricsParam = queryParams[QUALTRICS_QUERY_PARAM_NAME];
-    let qualtricsID: string;
-    if (typeof qualtricsParam === "string") {
-        qualtricsID = qualtricsParam;
-    } else if (Array.isArray(qualtricsParam)) {
-        qualtricsID = qualtricsParam[0];
-    } else {
-        qualtricsID = "";
-    }
-
-    if (qualtricsID.length > 0) {
+    const params = new URLSearchParams(window.location.search);
+    const qualtricsID = params.get(QUALTRICS_QUERY_PARAM_NAME);
+    if (qualtricsID) { // Guarantees not empty string too.
         window.sessionStorage.setItem(QUALTRICS_QUERY_PARAM_NAME, qualtricsID);
         return qualtricsID;
     } else {

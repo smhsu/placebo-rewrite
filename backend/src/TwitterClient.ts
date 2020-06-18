@@ -143,11 +143,11 @@ export class TwitterClient {
      * @return promise for the OAuth request token
      */
     async getRequestToken(callbackUrl: string): Promise<RequestToken> {
-        const url = AUTH_BASE_URL + "/request_token";
+        const url = `${AUTH_BASE_URL}/request_token?${querystring.stringify({ oauth_callback: callbackUrl })}`;
 
         let response;
         try {
-            response = await axios.post<string>(url, {oauth_callback: callbackUrl}, {
+            response = await axios.post<string>(url, undefined, {
                 headers: this._makeOAuthHeaders(url, "POST"),
                 responseType: "text"
             });

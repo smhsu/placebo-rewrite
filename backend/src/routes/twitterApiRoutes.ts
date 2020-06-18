@@ -1,3 +1,4 @@
+import querystring from "querystring";
 import { Server } from "@hapi/hapi";
 import Boom from "@hapi/boom";
 import * as RequestTokenApi from "../common/requestTokenApi";
@@ -22,14 +23,18 @@ export function registerRoutes(server: Server): void {
 
     /**
      * The Request Token API gets a request token that can be used to ask for a user's access token on behalf of this
-     * app.
+     * app.  Any query parameters passed to this function will be added to the URL that the client will be redirected
+     * to in step 2 of the OAuth flow.
      */
     server.route({
         method: RequestTokenApi.METHOD,
         path: RequestTokenApi.PATH,
-        handler: async function() {
+        handler: async function(request) {
+            const extraQueryParams = querystring.stringify(request.query);
+            const callbackPlusQuery = extraQueryParams ? callbackUrl + "?" + extraQueryParams : callbackUrl;
+
             try {
-                const tokenData = await twitterClient.getRequestToken(callbackUrl);
+                const tokenData = await twitterClient.getRequestToken(callbackPlusQuery);
                 const response: RequestTokenApi.ResponsePayload = { oauth_token: tokenData.oauth_token };
                 return response;
             } catch (error) {
@@ -46,16 +51,13 @@ export function registerRoutes(server: Server): void {
         method: GetTweetsApi.METHOD,
         path: GetTweetsApi.PATH,
         handler: async function(request) {
-            if (!GetTweetsApi.checkQueryParams(request.query)) {
+            const token = GetTweetsApi.extractQueryParams(request.query);
+            if (!token) {
                 return Boom.badRequest("Missing required query parameters.");
             }
 
             try {
-                const accessToken = await twitterClient.getAccessToken({
-                    oauth_token: request.query.oauth_token,
-                    oauth_verifier: request.query.oauth_verifier
-                });
-
+                const accessToken = await twitterClient.getAccessToken(token);
                 const authedTwitterClient = new TwitterClient({
                     consumer_key,
                     consumer_secret,
