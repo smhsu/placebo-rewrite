@@ -12,10 +12,10 @@ import spinner from "../loading-small.gif";
 import "./App.css";
 
 /** How much time users have to view their Tweets before they disappear. */
-const TWEET_VIEW_DURATION_SECONDS = 10;
+const TWEET_VIEW_DURATION_SECONDS = Number.POSITIVE_INFINITY;
 
 /** How long of a warning users will get that their Tweets will be disappearing. */
-const TWEET_DISAPPEAR_WARNING_SECONDS = 5;
+const TWEET_DISAPPEAR_WARNING_SECONDS = 10;
 
 enum ErrorCause {
     LOGIN_ERROR = "Login request failed.",

@@ -1,12 +1,22 @@
 import React from "react";
+import moment from "moment";
 import { Status } from "twitter-d";
-import { Tweet } from "./Tweet";
+import { Tweet, TIME_PARSE_STRING } from "./Tweet";
 import { useTweetFilter } from "./tweetFilters/useTweetFilter";
 import { ParticipantLog } from "../ParticipantLog";
 import { ExperimentalCondition } from "../common/getExperimentalConditionApi";
 import { useExperimentalConditionFetch } from "./useExperimentalConditionFetch";
+import { getDebugOptions } from "../getDebugOptions";
 
 import "./TweetView.css";
+
+const isShowingConditionChooser = getDebugOptions("show_setting_chooser") === "true";
+const MANUALLY_SELECTABLE_CONDITIONS: ExperimentalCondition[] = [
+    ExperimentalCondition.RANDOM,
+    ExperimentalCondition.RANGE,
+    ExperimentalCondition.THRESHOLD,
+    ExperimentalCondition.INTERVAL
+];
 
 interface Props {
     tweets: Status[];
@@ -19,20 +29,31 @@ interface Props {
 export const TweetView = React.memo((props: Props) => {
     const condition = useExperimentalConditionFetch();
     props.log.experimentalCondition = condition;
-    const { renderedSetting, filteredTweets } = useTweetFilter(props.tweets, condition, () => {
+    const [manualCondition, setManualCondition] = React.useState<ExperimentalCondition | "">("");
+    const { renderedSetting, filteredTweets } = useTweetFilter(props.tweets, manualCondition || condition, () => {
         props.log.didInteractWithSetting = true;
+    });
+
+    const sortedByTime = filteredTweets.slice();
+    sortedByTime.sort((tweet1, tweet2) => {
+        const time1 = moment(tweet1.created_at, TIME_PARSE_STRING);
+        const time2 = moment(tweet2.created_at, TIME_PARSE_STRING);
+        return time2.unix() - time1.unix();
     });
 
     return <div className="container-fluid">
         <div className="row justify-content-center">
 
             <div className="col" style={{maxWidth: 600, padding: 0}}>
-                {filteredTweets.map(tweet => <Tweet key={tweet.id} tweet={tweet} />)}
+                {sortedByTime.map(tweet => <Tweet key={tweet.id} tweet={tweet} />)}
             </div>
 
             <div className="col col-sm-5 col-md-4 col-xl-3">
                 <div className="TweetView-settings" style={{ top: props.settingsYOffset }}>
                     <h4>Settings</h4>
+                    {isShowingConditionChooser &&
+                        <ManualConditionChooser condition={manualCondition} onChange={setManualCondition} />
+                    }
                     {renderedSetting}
                 </div>
             </div>
@@ -40,3 +61,25 @@ export const TweetView = React.memo((props: Props) => {
         </div>
     </div>;
 });
+
+
+
+interface ManualConditionChooserProps {
+    condition: ExperimentalCondition | "";
+    onChange: (condition: ExperimentalCondition | "") => void
+}
+
+function ManualConditionChooser(props: ManualConditionChooserProps) {
+    const options = [<option key="" value="">(server-chosen)</option>];
+    for (const condition of MANUALLY_SELECTABLE_CONDITIONS) {
+        options.push(<option key={condition} value={condition}>{condition}</option>);
+    }
+
+    function handleSelectChanged(event: React.ChangeEvent<HTMLSelectElement>) {
+        props.onChange(event.target.value as ExperimentalCondition | "");
+    }
+
+    return <div style={{fontSize: "small", marginBottom: 10}}>
+        [Debug] choose setting kind: <select value={props.condition} onChange={handleSelectChanged}>{options}</select>
+    </div>;
+}

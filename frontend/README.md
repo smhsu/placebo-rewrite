@@ -8,7 +8,11 @@ frontend components independent of the backend.  This feature is only enabled wi
 you can choose what debug flags you want to enable by adding
 [query parameters](https://en.wikipedia.org/wiki/Query_string) to the URL in your web browser.
 
-**Convenience URL that enables all flags:** http://localhost:3000/?use_static_tweets=true
+**Convenience URL that enables all flags:** http://localhost:3000/?use_static_tweets=true&show_setting_chooser=true
 
 ### Use static set of tweets: `use_static_tweets=true`
-Skips the login flow and directly renders a predefined set of tweets (the ones in `sampleTweets.json`).
+Skips the login flow and directly renders a predefined set of Tweets (the ones in `sampleTweets.json`).
+
+### Show a setting chooser: `show_setting_chooser=true`
+While the kind of setting is normally selected by the server, this flag allows you to manually select the kind of
+setting that controls Tweet ordering/filtering.
