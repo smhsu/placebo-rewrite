@@ -1,9 +1,10 @@
 import React from "react";
-import moment from "moment";
 import he from "he";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faRetweet, faHeart } from "@fortawesome/free-solid-svg-icons";
-import { Status, User, FullUser } from "twitter-d";
+import { User, FullUser } from "twitter-d";
+
+import { TimeParsedTweet } from "../TimeParsedTweet";
 
 import "./Tweet.css";
 
@@ -16,10 +17,8 @@ const UNKNOWN_USER: Pick<FullUser, "name" | "screen_name" | "profile_image_url_h
     profile_image_url_https: DEFAULT_PROFILE_PICTURE_URL,
 };
 
-export const TIME_PARSE_STRING = "ddd MMM DD HH:mm:ss ZZ YYYY";
-
 interface Props {
-    tweet: Status;
+    tweet: TimeParsedTweet;
 }
 
 export class Tweet extends React.PureComponent<Props> {
@@ -36,12 +35,11 @@ export class Tweet extends React.PureComponent<Props> {
     }
 
     renderTweetHeading() {
-        const parsedTime = moment(this.props.tweet.created_at, TIME_PARSE_STRING);
         const { name, screen_name } = this.getTweetAuthor();
         return <div>
             <span className="Tweet-heading-main">{name} </span>
             <span className="Tweet-heading-other">
-                @{screen_name} • {parsedTime.fromNow()}
+                @{screen_name} • {this.props.tweet.created_at_description}
             </span>
         </div>;
     }

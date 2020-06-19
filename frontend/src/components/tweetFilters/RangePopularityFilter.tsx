@@ -1,11 +1,11 @@
 import React from "react";
 import { Slider } from "@material-ui/core";
-import { Status } from "twitter-d";
 import { flatten } from "lodash";
 
 import { ITweetFilter } from "./ITweetFilter";
 import { SliderContainer } from "./SliderContainer";
 import { TweetPopularityCalculator } from "../../TweetPopularityCalculator";
+import { TimeParsedTweet } from "../../TimeParsedTweet";
 
 export class RangePopularityFilter implements ITweetFilter<[number, number]> {
     private _popularityCalculator: TweetPopularityCalculator;
@@ -43,7 +43,7 @@ export class RangePopularityFilter implements ITweetFilter<[number, number]> {
         </SliderContainer>;
     }
 
-    filter(tweets: Status[], currentState: [number, number]): Status[] {
+    filter(tweets: TimeParsedTweet[], currentState: [number, number]): TimeParsedTweet[] {
         const chunks = this._popularityCalculator.sortAndChunk(tweets, this._numSliderStops);
         return flatten(chunks.slice(currentState[0] - 1, currentState[1]));
     }

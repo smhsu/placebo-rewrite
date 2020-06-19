@@ -1,6 +1,6 @@
 import React from "react";
-import { Status } from "twitter-d";
 
+import { TimeParsedTweet } from "../../TimeParsedTweet";
 import { TweetPopularityCalculator } from "../../TweetPopularityCalculator";
 import { ExperimentalCondition } from "../../common/getExperimentalConditionApi";
 
@@ -34,10 +34,10 @@ function getTweetFilterForCondition(condition: ExperimentalCondition): ITweetFil
 
 interface ReturnValue {
     renderedSetting: React.ReactElement | null;
-    filteredTweets: Status[];
+    filteredTweets: TimeParsedTweet[];
 }
 
-export function useTweetFilter(tweets: Status[], condition: ExperimentalCondition, onChange?: () => void): ReturnValue {
+export function useTweetFilter(tweets: TimeParsedTweet[], condition: ExperimentalCondition, onChange?: () => void): ReturnValue {
     const filterObj = getTweetFilterForCondition(condition);
     const [prevCondition, setPrevCondition] = React.useState<ExperimentalCondition | null>(null);
     const [settingState, setSettingState] = React.useState(filterObj.getInitialState());

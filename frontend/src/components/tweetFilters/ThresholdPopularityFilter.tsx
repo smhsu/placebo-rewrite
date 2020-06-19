@@ -1,11 +1,11 @@
 import React from "react";
 import { Slider } from "@material-ui/core";
-import { Status } from "twitter-d";
 import { flatten } from "lodash";
 
 import { ITweetFilter } from "./ITweetFilter";
 import { SliderContainer } from "./SliderContainer";
 import { TweetPopularityCalculator } from "../../TweetPopularityCalculator";
+import { TimeParsedTweet } from "../../TimeParsedTweet";
 
 export class ThresholdPopularityFilter implements ITweetFilter<number> {
     private _popularityCalculator: TweetPopularityCalculator;
@@ -44,7 +44,7 @@ export class ThresholdPopularityFilter implements ITweetFilter<number> {
         </SliderContainer>;
     }
 
-    filter(tweets: Status[], currentState: number): Status[] {
+    filter(tweets: TimeParsedTweet[], currentState: number): TimeParsedTweet[] {
         if (currentState === 0) {
             return tweets;
         }

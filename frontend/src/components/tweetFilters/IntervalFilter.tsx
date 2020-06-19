@@ -1,10 +1,10 @@
 import React from "react";
 import { Slider } from "@material-ui/core";
-import { Status } from "twitter-d";
 
 import { SliderContainer } from "./SliderContainer";
 import { ITweetFilter } from "./ITweetFilter";
 import { TweetPopularityCalculator } from "../../TweetPopularityCalculator";
+import { TimeParsedTweet } from "../../TimeParsedTweet";
 
 export class IntervalFilter implements ITweetFilter<number> {
     private _popularityCalculator: TweetPopularityCalculator;
@@ -45,7 +45,7 @@ export class IntervalFilter implements ITweetFilter<number> {
         </SliderContainer>;
     }
 
-    filter(tweets: Status[], currentState: number): Status[] {
+    filter(tweets: TimeParsedTweet[], currentState: number): TimeParsedTweet[] {
         const chunks = this._popularityCalculator.sortAndChunk(tweets, this._numStops);
         return chunks[currentState];
     }

@@ -1,7 +1,9 @@
 import React from "react";
 import querystring from "querystring";
 import axios from "axios";
+
 import { Status } from "twitter-d";
+import { TimeParsedTweet, addTimeData } from "../TimeParsedTweet";
 import * as GetTweetsApi from "../common/getTweetsApi";
 import { getDebugOptions } from "../getDebugOptions";
 
@@ -25,9 +27,11 @@ interface TweetFetchHandlers {
 
 export function useTweetFetchOnMount(handlers: TweetFetchHandlers) {
     const [isLoading, setIsLoading] = React.useState(false);
-    const [tweets, setTweets] = React.useState<Readonly<Status>[] | null>(
-        IS_USING_STATIC_TWEETS ? sampleTweets as unknown as Status[] : null
+    const initialState = React.useMemo(
+        () => IS_USING_STATIC_TWEETS ? addTimeData(sampleTweets.slice() as unknown as Status[]) : null,
+        []
     );
+    const [tweets, setTweets] = React.useState<TimeParsedTweet[] | null>(initialState);
 
     const hasRun = React.useRef(false);
     React.useEffect(() => {
@@ -43,7 +47,8 @@ export function useTweetFetchOnMount(handlers: TweetFetchHandlers) {
                     baseURL: GetTweetsApi.PATH,
                     params: params
                 });
-                setTweets(response.data.tweets);
+                const tweets = addTimeData(response.data.tweets);
+                setTweets(tweets);
                 handlers.onFetchSuccess();
             } catch (error) {
                 handlers.onError(error);

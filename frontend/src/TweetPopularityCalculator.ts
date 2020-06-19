@@ -6,7 +6,7 @@ export class TweetPopularityCalculator {
         return tweet.retweeted_status ? tweet.retweeted_status.favorite_count : tweet.favorite_count;
     }
 
-    sortAndChunk(tweets: Status[], numChunks: number): Status[][] {
+    sortAndChunk<T extends Status>(tweets: T[], numChunks: number): T[][] {
         const sorted = sortBy(tweets, this.getPopularity);
         const chunkSize = Math.ceil(tweets.length / numChunks);
         return chunk(sorted, chunkSize);

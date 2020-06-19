@@ -1,11 +1,11 @@
 import React from "react";
-import moment from "moment";
-import { Status } from "twitter-d";
-import { Tweet, TIME_PARSE_STRING } from "./Tweet";
+import { Tweet } from "./Tweet";
+import { useExperimentalConditionFetch } from "./useExperimentalConditionFetch";
 import { useTweetFilter } from "./tweetFilters/useTweetFilter";
+
+import { TimeParsedTweet } from "../TimeParsedTweet";
 import { ParticipantLog } from "../ParticipantLog";
 import { ExperimentalCondition } from "../common/getExperimentalConditionApi";
-import { useExperimentalConditionFetch } from "./useExperimentalConditionFetch";
 import { getDebugOptions } from "../getDebugOptions";
 
 import "./TweetView.css";
@@ -19,7 +19,7 @@ const MANUALLY_SELECTABLE_CONDITIONS: ExperimentalCondition[] = [
 ];
 
 interface Props {
-    tweets: Status[];
+    tweets: TimeParsedTweet[];
     log: ParticipantLog;
     settingsYOffset?: number;
 }
@@ -35,17 +35,13 @@ export const TweetView = React.memo((props: Props) => {
     });
 
     const sortedByTime = filteredTweets.slice();
-    sortedByTime.sort((tweet1, tweet2) => {
-        const time1 = moment(tweet1.created_at, TIME_PARSE_STRING);
-        const time2 = moment(tweet2.created_at, TIME_PARSE_STRING);
-        return time2.unix() - time1.unix();
-    });
+    sortedByTime.sort((tweet1, tweet2) => tweet2.created_at_unix - tweet1.created_at_unix);
 
     return <div className="container-fluid">
         <div className="row justify-content-center">
 
             <div className="col" style={{maxWidth: 600, padding: 0}}>
-                {sortedByTime.map(tweet => <Tweet key={tweet.id} tweet={tweet} />)}
+                {filteredTweets.map(tweet => <Tweet key={tweet.id} tweet={tweet} />)}
             </div>
 
             <div className="col col-sm-5 col-md-4 col-xl-3">
