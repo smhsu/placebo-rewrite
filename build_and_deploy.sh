@@ -6,9 +6,9 @@ echo "Compiling frontend..."
 cd frontend
 npm run build > /dev/null # A lot of output from the create-react-app build script, suppress it.
 
-# Copy the frontend's compiled files to ../backend/public
-rm -r ../backend/public/* # Remove anything that might be there already
-cp -r build/ ../backend/public/
+# Move the frontend's compiled files to ../backend/public
+rm -rf ../backend/public # Remove anything that might be there already
+mv build ../backend/public
 
 echo "Compiling backend..."
 cd ../backend

@@ -95,11 +95,11 @@ export class TwitterClient {
      * @return headers contained in an object
      */
     _makeOAuthHeaders(url: string, method: "GET" | "POST"): OAuth.Header {
-        let token: OAuth.Token;
+        let token: OAuth.Token | undefined;
         if (this.hasAccessToken) {
-            token = {
-                key: this._config.access_token_key,
-                secret: this._config.access_token_secret
+            token = { // this.hasAccessToken ensures these are strings and not undefined.
+                key: this._config.access_token_key as string,
+                secret: this._config.access_token_secret as string
             };
         }
         const signature = this._oauthClient.authorize({url, method}, token);
@@ -143,11 +143,11 @@ export class TwitterClient {
      * @return promise for the OAuth request token
      */
     async getRequestToken(callbackUrl: string): Promise<RequestToken> {
-        const url = AUTH_BASE_URL + "/request_token";
+        const url = `${AUTH_BASE_URL}/request_token?${querystring.stringify({ oauth_callback: callbackUrl })}`;
 
         let response;
         try {
-            response = await axios.post<string>(url, {oauth_callback: callbackUrl}, {
+            response = await axios.post<string>(url, undefined, {
                 headers: this._makeOAuthHeaders(url, "POST"),
                 responseType: "text"
             });

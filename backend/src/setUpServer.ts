@@ -4,8 +4,6 @@ import Boom from "@hapi/boom";
 import { MongoClient } from "mongodb";
 import { registerAllRoutes } from "./routes/registerAllRoutes";
 
-// todo: add jsdoc for functions, classes and interfaces
-
 /**
  * Sets up a Hapi server, all configured and ready to go.  The only thing left to do is to start it.  For Hapi config
  * options, see https://hapijs.com/api#server.options

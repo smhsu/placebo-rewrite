@@ -19,7 +19,7 @@ interface Props {
  * @return component to render
  * @author Silas Hsu
  */
-export function LoginPane(props: Props): JSX.Element {
+export function LoginPane(props: Props): React.ReactElement {
     let instructions = null;
 
     if (props.mainErrorMessage) {

@@ -1,13 +1,8 @@
-.Settings {
+.TweetView-settings {
     border: 1px solid lightgray;
     display: block;
     padding: 5px 15px;
     max-width: 300px;
 
     position: sticky;
-    top: 70px;
-}
-
-.Settings input[type="range"] {
-    width: 100%;
 }
