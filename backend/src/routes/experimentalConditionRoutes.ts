@@ -11,18 +11,22 @@ import { ConditionCountsProvider } from "../database/ConditionCountsProvider";
  * @author hhhenrysss
  */
 export function registerRoutes(server: Server): void {
-    if (!process.env.COUNT_COLLECTION_NAME || !process.env.DATABASE_NAME || !process.env.CONTROL_GROUP_PERCENTAGE) {
+    if (
+        !process.env.COUNT_COLLECTION_NAME ||
+        !process.env.DATABASE_NAME ||
+        !process.env.RANDOMIZER_SETTING_PROPORTION
+    ) {
         throw new Error(
-            "COUNT_COLLECTION_NAME, DATABASE_NAME, and CONTROL_GROUP_PERCENTAGE must be specified in the " + 
+            "COUNT_COLLECTION_NAME, DATABASE_NAME, and RANDOMIZER_SETTING_PROPORTION must be specified in the " + 
             "environment variables."
         );
     }
 
-    const desiredControlPercentage = parseFloat(process.env.CONTROL_GROUP_PERCENTAGE);
-    if (Number.isNaN(desiredControlPercentage)) {
-        throw new Error("CONTROL_GROUP_PERCENTAGE environment variable must be a number.");
-    } else if (desiredControlPercentage < 0 || desiredControlPercentage > 1) {
-        throw new Error("CONTROL_GROUP_PERCENTAGE must within the range [0, 1].");
+    const desiredRandomSettingProportion = parseFloat(process.env.RANDOMIZER_SETTING_PROPORTION);
+    if (Number.isNaN(desiredRandomSettingProportion)) {
+        throw new Error("RANDOMIZER_SETTING_PROPORTION environment variable must be a number.");
+    } else if (desiredRandomSettingProportion < 0 || desiredRandomSettingProportion > 1) {
+        throw new Error("RANDOMIZER_SETTING_PROPORTION must within the range [0, 1].");
     }
 
     const conditionCountsProvider = new ConditionCountsProvider(
@@ -33,37 +37,23 @@ export function registerRoutes(server: Server): void {
         method: ExperimentalConditionApi.METHOD,
         path: ExperimentalConditionApi.PATH,
         handler: async (request) => {
-            let counts: Record<ExperimentalCondition, number>;
+            let proportionWithRandomizerSetting: number;
             try {
-                counts = await conditionCountsProvider.getCounts();
+                const counts = await conditionCountsProvider.getCounts();
+                let totalAssignments = 0;
+                for (const count of Object.values(counts)) {
+                    totalAssignments += count;
+                }
+                proportionWithRandomizerSetting = counts[ExperimentalCondition.RANDOMIZER_SETTING] / totalAssignments;
             } catch (error) {
-                counts = ConditionCountsProvider.makeZeroedCountDictionary();
                 request.log("error", "Problem getting count of experimental condition assignments from database.  " +
                     "Participant will get a random assignment.");
                 request.log("error", error);
+                proportionWithRandomizerSetting = Math.random();
             }
 
-            let totalAssignments = 0;
-            for (const count of Object.values(counts)) {
-                totalAssignments += count;
-            }
-
-            let assignment: ExperimentalCondition;
-            if (totalAssignments === 0) {
-                if (Math.random() <= desiredControlPercentage) {
-                    assignment = ExperimentalCondition.CONTROL;
-                } else {
-                    assignment = ExperimentalCondition.EXPERIMENTAL;
-                }
-            } else {
-                const currentControlPercentage = counts[ExperimentalCondition.CONTROL] / totalAssignments;
-                // Round-robin-like assignment
-                if (currentControlPercentage < desiredControlPercentage) {
-                    assignment = ExperimentalCondition.CONTROL;
-                } else {
-                    assignment = ExperimentalCondition.EXPERIMENTAL;
-                }
-            }
+            const assignment = proportionWithRandomizerSetting < desiredRandomSettingProportion ?
+                ExperimentalCondition.RANDOMIZER_SETTING : ExperimentalCondition.POPULARITY_SLIDER;
 
             try {
                 await conditionCountsProvider.incrementCount(assignment);
@@ -71,7 +61,7 @@ export function registerRoutes(server: Server): void {
                 request.log("Problem writing assigned experimental condition to database.");
                 request.log("error", error);
             }
-            
+
             const payload: ExperimentalConditionApi.ResponsePayload = { assignment };
             return payload;
         }

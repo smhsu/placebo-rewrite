@@ -1,41 +1,43 @@
 import React from "react";
 import { Slider } from "@material-ui/core";
-import { flatten } from "lodash";
 
-import { ITweetFilter } from "./ITweetFilter";
 import { SliderContainer } from "./SliderContainer";
+import { ITweetFilter } from "./ITweetFilter";
 import { TweetPopularityCalculator } from "../../TweetPopularityCalculator";
 import { TimeParsedTweet } from "../../TimeParsedTweet";
 
-export class RangePopularityFilter implements ITweetFilter<[number, number]> {
+export class IntervalFilter implements ITweetFilter<number> {
     private _popularityCalculator: TweetPopularityCalculator;
-    private _numSliderStops: number;
+    private _numStops: number;
     constructor(popularityCalculator: TweetPopularityCalculator, numStops: number) {
         this._popularityCalculator = popularityCalculator;
-        this._numSliderStops = numStops;
+        this._numStops = numStops;
     }
     
-    getInitialState(): [number, number] {
-        return [1, this._numSliderStops];
+    getInitialState() {
+        return Math.floor(this._numStops / 2);
     }
 
-    renderSetting(currentState: [number, number], updateState: (newState: [number, number]) => void): JSX.Element {
+    renderSetting(
+        currentState: number,
+        updateState: (newState: number) => void
+    ): JSX.Element {
         const onChange = (_event: React.ChangeEvent<{}>, value: number | number[]) => {
             if (typeof value === "number") {
-                updateState([value, value]);
+                updateState(value);
             } else {
-                updateState(value as [number, number]);
+                updateState(value[0]);
             }
         };
 
         return <SliderContainer
-            mainLabel="Popularity range"
+            mainLabel="Popularity"
             lowLabel="Least popular"
             highLabel="Most popular"
         >
             <Slider
-                min={1}
-                max={this._numSliderStops}
+                min={0}
+                max={this._numStops - 1}
                 step={1}
                 value={currentState}
                 onChange={onChange}
@@ -43,8 +45,8 @@ export class RangePopularityFilter implements ITweetFilter<[number, number]> {
         </SliderContainer>;
     }
 
-    filter(tweets: TimeParsedTweet[], currentState: [number, number]): TimeParsedTweet[] {
-        const chunks = this._popularityCalculator.sortAndChunk(tweets, this._numSliderStops);
-        return flatten(chunks.slice(currentState[0] - 1, currentState[1]));
+    filter(tweets: TimeParsedTweet[], currentState: number): TimeParsedTweet[] {
+        const chunks = this._popularityCalculator.sortAndChunk(tweets, this._numStops);
+        return chunks[currentState];
     }
 }

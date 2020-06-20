@@ -1,10 +1,10 @@
-import { Status } from "twitter-d";
-import { ReactElement } from "react";
+import React from "react";
+import { TimeParsedTweet } from "../../TimeParsedTweet";
 
 export interface ITweetFilter<S> {
-    getInitialState(tweets: Status[]): S;
+    getInitialState(): S;
 
-    renderSetting(tweets: Status[], currentState: S, updateState: (newState: S) => void): ReactElement
+    renderSetting(currentState: S, updateState: (newState: S) => void): React.ReactElement
 
-    filter(tweets: Status[], currentState: S): Status[];
+    filter(tweets: TimeParsedTweet[], currentState: S): TimeParsedTweet[];
 }

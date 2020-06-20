@@ -1,9 +1,10 @@
 import React from "react";
-import Moment from "react-moment";
+import he from "he";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faRetweet, faHeart } from "@fortawesome/free-solid-svg-icons";
-import he from "he";
-import { Status, User, FullUser } from "twitter-d";
+import { User, FullUser } from "twitter-d";
+
+import { TimeParsedTweet } from "../TimeParsedTweet";
 
 import "./Tweet.css";
 
@@ -17,7 +18,7 @@ const UNKNOWN_USER: Pick<FullUser, "name" | "screen_name" | "profile_image_url_h
 };
 
 interface Props {
-    tweet: Status;
+    tweet: TimeParsedTweet;
 }
 
 export class Tweet extends React.PureComponent<Props> {
@@ -30,42 +31,15 @@ export class Tweet extends React.PureComponent<Props> {
         const tweet = this.props.tweet;
         const tweetText = tweet.full_text;
         const displayTextRange = tweet.display_text_range || [0, undefined];
-        if (!tweet.entities.urls) {
-            return <p>{tweetText.substring(displayTextRange[0], displayTextRange[1])}</p>;
-        }
-
-        const parts = [];
-        let prevEntityIndex = displayTextRange[0];
-        for (const urlEntity of tweet.entities.urls) {
-            if (!urlEntity.indices) {
-                continue;
-            }
-
-            const [entityStart, entityEnd] = urlEntity.indices;
-            parts.push(he.decode(tweetText.substring(prevEntityIndex, entityStart)));
-            parts.push(
-                <a
-                    title={urlEntity.expanded_url}
-                    href={urlEntity.url}
-                    key={urlEntity.url}
-                >
-                    {urlEntity.url}
-                </a>
-            );
-            prevEntityIndex = entityEnd;
-        }
-        parts.push(he.decode(tweetText.substring(prevEntityIndex, displayTextRange[1])));
-
-        return <p>{parts}</p>;
+        return <p>{he.decode(tweetText.substring(displayTextRange[0], displayTextRange[1]))}</p>;
     }
 
     renderTweetHeading() {
-        const created_at = this.props.tweet.created_at;
         const { name, screen_name } = this.getTweetAuthor();
         return <div>
             <span className="Tweet-heading-main">{name} </span>
             <span className="Tweet-heading-other">
-                @{screen_name} • <Moment parse="ddd MMM DD HH:mm:ss ZZ YYYY" fromNow={true}>{created_at}</Moment>
+                @{screen_name} • {this.props.tweet.created_at_description}
             </span>
         </div>;
     }

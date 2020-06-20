@@ -68,8 +68,8 @@ export class MockMongoClient {
                 throwError: false,
             },
             conditionCounts: {
-                [ExperimentalCondition.CONTROL]: 30,
-                [ExperimentalCondition.EXPERIMENTAL]: 70,
+                [ExperimentalCondition.POPULARITY_SLIDER]: 30,
+                [ExperimentalCondition.RANDOMIZER_SETTING]: 70,
                 controlGroupPercentage: 0.3
             }
         }

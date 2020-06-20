@@ -1,22 +1,26 @@
 import React from "react";
 import { Slider } from "@material-ui/core";
-import { Status } from "twitter-d";
+import { flatten } from "lodash";
 
 import { ITweetFilter } from "./ITweetFilter";
 import { SliderContainer } from "./SliderContainer";
 import { TweetPopularityCalculator } from "../../TweetPopularityCalculator";
+import { TimeParsedTweet } from "../../TimeParsedTweet";
 
 export class ThresholdPopularityFilter implements ITweetFilter<number> {
     private _popularityCalculator: TweetPopularityCalculator;
-    constructor(popularityCalculator: TweetPopularityCalculator) {
+    private _numStops: number;
+    constructor(popularityCalculator: TweetPopularityCalculator, numStops: number) {
         this._popularityCalculator = popularityCalculator;
+        this._numStops = numStops;
     }
 
     getInitialState(): number {
         return 0;
     }
 
-    renderSetting(tweets: Status[], currentState: number, updateState: (newState: number) => void): JSX.Element {
+    renderSetting(currentState: number, updateState: (newState: number) => void): JSX.Element {
+        const halfRange = Math.floor(this._numStops / 2);
         const onChange = (_event: React.ChangeEvent<{}>, value: number | number[]) => {
             if (typeof value === "number") {
                 updateState(value);
@@ -25,37 +29,32 @@ export class ThresholdPopularityFilter implements ITweetFilter<number> {
             }
         };
 
-        const [minPopularity, maxPopularity] = this._popularityCalculator.getPopularityRange(tweets);
-        const popularityRange = maxPopularity - minPopularity;
         return <SliderContainer
             mainLabel="Popularity"
             lowLabel="Only show least popular"
             highLabel="Only show most popular"
         >
             <Slider
-                min={-popularityRange}
-                max={popularityRange}
-                step={popularityRange/4}
+                min={-halfRange}
+                max={halfRange}
+                step={1}
                 value={currentState}
                 onChange={onChange}
             />
         </SliderContainer>;
     }
 
-    filter(tweets: Status[], currentState: number): Status[] {
+    filter(tweets: TimeParsedTweet[], currentState: number): TimeParsedTweet[] {
         if (currentState === 0) {
             return tweets;
         }
-        
-        const popularities = this._popularityCalculator.getPopularities(tweets);
-        const [minPopularity, maxPopularity] = this._popularityCalculator.getPopularityRange(tweets);
+
+        const numChunks = Math.floor(this._numStops / 2) + 1;
+        const chunks = this._popularityCalculator.sortAndChunk(tweets, numChunks);
         if (currentState > 0) {
-            const minThreshold = minPopularity + currentState;
-            return tweets.filter((tweet, i) => popularities[i] >= minThreshold);
+            return flatten(chunks.slice(currentState));
         } else {
-            // `currentState` is negative so we are actually subtracting
-            const maxThreshold = maxPopularity + currentState + 0.00001; // + a small amount because precision issues
-            return tweets.filter((tweet, i) => popularities[i] <= maxThreshold);
+            return flatten(chunks.slice(0, currentState));
         }
     }
 }

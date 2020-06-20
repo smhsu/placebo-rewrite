@@ -13,16 +13,38 @@ export interface RequestQueryParams {
 }
 
 /**
- * Checks whether the input contains the parameters this API needs.
+ * Extracts the parameters this API needs, if possible.
  * 
- * @param toCheck - anything to check
- * @return whether the input contains the right paramters for this API
+ * @param parsedParams - parsed query parameter dictionary
+ * @return object containing the right query parameters, or null if extraction failed
  */
-export function checkQueryParams(toCheck: unknown): toCheck is RequestQueryParams {
-    return  typeof toCheck === "object" &&
-        toCheck !== null &&
-        typeof (toCheck as Record<string, unknown>).oauth_verifier === "string" &&
-        typeof (toCheck as Record<string, unknown>).oauth_token === "string";
+export function extractQueryParams(
+    parsedParams: Record<string, string | string[] | undefined>
+): RequestQueryParams | null {
+    const oauth_verifier = getLast("oauth_verifier");
+    const oauth_token = getLast("oauth_token");
+    if (oauth_token && oauth_verifier) {
+        return {oauth_token, oauth_verifier};
+    } else {
+        return null;
+    }
+
+    /**
+     * Gets the last value of a query parameter, in case it was specified more than once.
+     * 
+     * @param key - parameter name whose value to get
+     * @return the parameter value, or null if it doesn't exist
+     */
+    function getLast(key: string): string | null {
+        const value = parsedParams[key];
+        if (value === undefined) {
+            return null;
+        } else if (Array.isArray(value)) {
+            return value[value.length - 1];
+        } else {
+            return value;
+        }
+    }
 }
 
 export interface ResponsePayload {

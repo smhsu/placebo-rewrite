@@ -43,21 +43,21 @@ describe("Condition assignment routes testing -> ", () => {
             ).to.be.not.undefined();
         });
     it(`should respond with EXPERIMENTAL when calling ${ExperimentalConditionApi.PATH}`, async () => {
-        mongoClient.config.collectionConfig.conditionCounts[ExperimentalCondition.EXPERIMENTAL] = 69;
-        mongoClient.config.collectionConfig.conditionCounts[ExperimentalCondition.CONTROL] = 30;
+        mongoClient.config.collectionConfig.conditionCounts[ExperimentalCondition.POPULARITY_SLIDER] = 69;
+        mongoClient.config.collectionConfig.conditionCounts[ExperimentalCondition.RANDOMIZER_SETTING] = 30;
         const res = await getRes();
         expect(res.statusCode).to.equal(200);
         expect(
             (JSON.parse(res.payload) as ExperimentalConditionApi.ResponsePayload).assignment
-        ).to.equal(ExperimentalCondition.EXPERIMENTAL);
+        ).to.equal(ExperimentalCondition.POPULARITY_SLIDER);
     });
     it(`should respond with CONTROL when calling ${ExperimentalConditionApi.PATH}`, async () => {
-        mongoClient.config.collectionConfig.conditionCounts[ExperimentalCondition.EXPERIMENTAL] = 70;
-        mongoClient.config.collectionConfig.conditionCounts[ExperimentalCondition.CONTROL] = 29;
+        mongoClient.config.collectionConfig.conditionCounts[ExperimentalCondition.POPULARITY_SLIDER] = 70;
+        mongoClient.config.collectionConfig.conditionCounts[ExperimentalCondition.RANDOMIZER_SETTING] = 29;
         const res = await getRes();
         expect(res.statusCode).to.equal(200);
         expect(
             (JSON.parse(res.payload) as ExperimentalConditionApi.ResponsePayload).assignment
-        ).to.equal(ExperimentalCondition.CONTROL);
+        ).to.equal(ExperimentalCondition.RANDOMIZER_SETTING);
     });
 });
