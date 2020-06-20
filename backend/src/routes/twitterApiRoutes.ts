@@ -5,6 +5,11 @@ import * as RequestTokenApi from "../common/requestTokenApi";
 import * as GetTweetsApi from "../common/getTweetsApi";
 import { TwitterClient, TwitterError } from "../TwitterClient";
 
+
+export const TESTING__twitterApiDependencies = {
+    mockTwitterClient: null as null | TwitterClient
+};
+
 /**
  * Registers APIs that relate to authenticating and fetching data from Twitter.
  *
@@ -19,7 +24,8 @@ export function registerRoutes(server: Server): void {
     const consumer_key = process.env.CONSUMER_KEY;
     const consumer_secret = process.env.CONSUMER_SECRET;
     const callbackUrl = process.env.CALLBACK_URL;
-    const twitterClient = new TwitterClient({ consumer_key, consumer_secret });
+    const twitterClient = TESTING__twitterApiDependencies.mockTwitterClient ??
+        new TwitterClient({ consumer_key, consumer_secret });
 
     /**
      * The Request Token API gets a request token that can be used to ask for a user's access token on behalf of this
@@ -58,12 +64,13 @@ export function registerRoutes(server: Server): void {
 
             try {
                 const accessToken = await twitterClient.getAccessToken(token);
-                const authedTwitterClient = new TwitterClient({
-                    consumer_key,
-                    consumer_secret,
-                    access_token_key: accessToken.oauth_token,
-                    access_token_secret: accessToken.oauth_token_secret
-                });
+                const authedTwitterClient = TESTING__twitterApiDependencies.mockTwitterClient ??
+                    new TwitterClient({
+                        consumer_key,
+                        consumer_secret,
+                        access_token_key: accessToken.oauth_token,
+                        access_token_secret: accessToken.oauth_token_secret
+                    });
 
                 const tweets = await authedTwitterClient.getTweets({ count: 200 });
                 const response: GetTweetsApi.ResponsePayload = { tweets };

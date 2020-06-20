@@ -2,7 +2,7 @@ import { Collection, MongoClient } from "mongodb";
 import { IParticipantLog } from "../common/logParticipantApi";
 
 export class ParticipantLogProvider {
-    _collection: Collection<IParticipantLog>;
+    private _collection: Collection<IParticipantLog>;
 
     constructor(client: MongoClient, dbName: string, collectionName: string) {
         this._collection = client.db(dbName).collection(collectionName);
