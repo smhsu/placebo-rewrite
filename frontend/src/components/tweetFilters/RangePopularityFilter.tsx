@@ -30,6 +30,7 @@ export class RangePopularityFilter implements ITweetFilter<[number, number]> {
 
         return <SliderContainer
             mainLabel="Popularity range"
+            instructions="Move the endpoints to customize Tweets."
             lowLabel="Least popular"
             highLabel="Most popular"
         >

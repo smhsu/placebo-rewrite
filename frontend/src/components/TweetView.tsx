@@ -41,7 +41,7 @@ export const TweetView = React.memo((props: Props) => {
         <div className="row justify-content-center">
 
             <div className="col" style={{maxWidth: 600, padding: 0}}>
-                {filteredTweets.map(tweet => <Tweet key={tweet.id} tweet={tweet} />)}
+                {sortedByTime.map(tweet => <Tweet key={tweet.id} tweet={tweet} />)}
             </div>
 
             <div className="col col-sm-5 col-md-4 col-xl-3">
