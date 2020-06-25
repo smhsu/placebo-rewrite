@@ -46,6 +46,10 @@ export class IntervalFilter implements ITweetFilter<number> {
     }
 
     filter(tweets: TimeParsedTweet[], currentState: number): TimeParsedTweet[] {
+        if (tweets.length === 0) {
+            return tweets;
+        }
+
         const chunks = this._popularityCalculator.sortAndChunk(tweets, this._numStops);
         return chunks[currentState];
     }
