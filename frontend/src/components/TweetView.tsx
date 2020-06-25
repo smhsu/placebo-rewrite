@@ -26,7 +26,7 @@ interface Props {
 
 // TODO render retweets and threads correctly
 // TODO render settings at top if window too narrow
-export const TweetView = React.memo((props: Props) => {
+function _TweetView(props: Props) {
     const condition = useExperimentalConditionFetch();
     props.log.experimentalCondition = condition;
     const [manualCondition, setManualCondition] = React.useState<ExperimentalCondition | "">("");
@@ -34,14 +34,14 @@ export const TweetView = React.memo((props: Props) => {
         props.log.didInteractWithSetting = true;
     });
 
-    const sortedByTime = filteredTweets.slice();
-    sortedByTime.sort((tweet1, tweet2) => tweet2.created_at_unix - tweet1.created_at_unix);
-
     return <div className="container-fluid">
         <div className="row justify-content-center">
 
-            <div className="col" style={{maxWidth: 600, padding: 0}}>
-                {sortedByTime.map(tweet => <Tweet key={tweet.id} tweet={tweet} />)}
+            <div className="col TweetView-tweet-col">
+                {filteredTweets.length === 0 &&
+                    <div className="alert alert-secondary TweetView-no-tweets-alert">No Tweets to show!</div>
+                }
+                {filteredTweets.map(tweet => <Tweet key={tweet.id} tweet={tweet} />)}
             </div>
 
             <div className="col col-sm-5 col-md-4 col-xl-3">
@@ -56,9 +56,8 @@ export const TweetView = React.memo((props: Props) => {
 
         </div>
     </div>;
-});
-
-
+};
+export const TweetView = React.memo(_TweetView);
 
 interface ManualConditionChooserProps {
     condition: ExperimentalCondition | "";

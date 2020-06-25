@@ -56,8 +56,17 @@ export function useTweetFilter(tweets: TimeParsedTweet[], condition: Experimenta
         onChange && onChange();
     }
 
+    const filteredTweets = filterObj.filter(tweets, settingState);
+    let resultTweets: TimeParsedTweet[];
+    if (filterObj.isDisallowSortingByTime) {
+        resultTweets = filteredTweets;
+    } else {
+        resultTweets = filteredTweets.slice();
+        resultTweets.sort((tweet1, tweet2) => tweet2.created_at_unix - tweet1.created_at_unix);
+    }
+
     return {
         renderedSetting: filterObj.renderSetting(settingState, wrappedOnChange),
-        filteredTweets: filterObj.filter(tweets, settingState)
+        filteredTweets: resultTweets
     };
 }

@@ -6,3 +6,13 @@
 
     position: sticky;
 }
+
+.TweetView-tweet-col {
+    max-width: 600px;
+    padding: 0;
+}
+
+.TweetView-no-tweets-alert {
+    margin-top: 50px;
+    text-align: center;
+}

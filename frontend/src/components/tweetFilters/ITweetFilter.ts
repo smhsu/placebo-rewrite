@@ -7,4 +7,6 @@ export interface ITweetFilter<S> {
     renderSetting(currentState: S, updateState: (newState: S) => void): React.ReactElement
 
     filter(tweets: TimeParsedTweet[], currentState: S): TimeParsedTweet[];
+
+    isDisallowSortingByTime?: boolean;
 }

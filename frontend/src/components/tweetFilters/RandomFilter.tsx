@@ -10,6 +10,8 @@ const randomSeedPrefix = Date.now().toString();
 
 export class RandomFilter implements ITweetFilter<number> {
     private _numStops: number;
+    public isDisallowSortingByTime = true;
+
     constructor(numSliderStops: number) {
         this._numStops = numSliderStops;
     }
