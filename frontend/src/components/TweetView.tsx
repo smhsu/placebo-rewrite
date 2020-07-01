@@ -24,8 +24,7 @@ interface Props {
     settingsYOffset?: number;
 }
 
-// TODO render retweets and threads correctly
-// TODO render settings at top if window too narrow
+
 export const TweetView = React.memo((props: Props) => {
     const condition = useExperimentalConditionFetch();
     props.log.experimentalCondition = condition;
@@ -36,21 +35,40 @@ export const TweetView = React.memo((props: Props) => {
 
     const sortedByTime = filteredTweets.slice();
     sortedByTime.sort((tweet1, tweet2) => tweet2.created_at_unix - tweet1.created_at_unix);
+    const threads = new Map<string, TimeParsedTweet[]>();
+    const independentTweets = [];
+    for (const tweet of sortedByTime) {
+        const targetTweetId = tweet.in_reply_to_status_id_str;
+        if (targetTweetId) {
+            if (threads.has(targetTweetId)) {
+                threads.get(targetTweetId)!.push(tweet);
+            } else {
+                threads.set(targetTweetId, [tweet]);
+            }
+        } else {
+            independentTweets.push(tweet)
+        }
+    }
 
     return <div className="container-fluid">
-        <div className="row justify-content-center">
+        <div className="TweetView-wrapper row justify-content-center">
 
-            <div className="col" style={{maxWidth: 600, padding: 0}}>
-                {filteredTweets.map(tweet => <Tweet key={tweet.id} tweet={tweet} />)}
+            <div className="TweetView-tweets-wrapper col" style={{maxWidth: 600, padding: 0}}>
+                {independentTweets.map(tweet => <Tweet
+                    key={tweet.id_str} tweet={tweet} threads={threads.get(tweet.id_str) ?? []}
+                />)}
             </div>
 
-            <div className="col col-sm-5 col-md-4 col-xl-3">
+            <div className="TweetView-settings-wrapper col col-sm-5 col-md-4 col-xl-3">
                 <div className="TweetView-settings" style={{ top: props.settingsYOffset }}>
-                    <h4>Settings</h4>
-                    {isShowingConditionChooser &&
-                        <ManualConditionChooser condition={manualCondition} onChange={setManualCondition} />
-                    }
-                    {renderedSetting}
+                    <h4 className="TweetView-settings-header">Settings</h4>
+                    <div className="TweetView-settings-slider-wrapper">
+                        {
+                            isShowingConditionChooser &&
+                                <ManualConditionChooser condition={manualCondition} onChange={setManualCondition} />
+                        }
+                        {renderedSetting}
+                    </div>
                 </div>
             </div>
 

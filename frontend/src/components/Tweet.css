@@ -1,12 +1,9 @@
 .Tweet {
     min-height: 150px;
-    border: 1px solid lightgrey;
-    padding-left: 15px;
-    padding-right: 15px;
-    padding-top: 10px;
-    padding-bottom: 40px;
-
+    padding: 10px 15px 40px;
     display: flex;
+    overflow: hidden;
+    position: relative;
 }
 
 .Tweet-profile {
@@ -36,4 +33,46 @@
     display: inline-block;
     color: grey;
     margin-right: 20px;
+}
+
+.Tweet-heading-condensed-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.Tweet-heading-condensed-icon {
+    margin-right: 5px;
+    height: 20px;
+    width: 20px;
+    border-radius: 999px;
+    box-shadow: rgba(0, 0, 0, 0.02) 0 0 2px 0 inset;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.Tweet-heading-condensed-display-name {
+    margin-right: 5px;
+}
+
+.Tweet-retweet-wrapper {
+    border: 1px solid rgb(215, 223, 229);
+    border-radius: 10px;
+    margin: 15px 0;
+    padding: 10px;
+}
+
+.Tweet-left-vertical-line {
+    width: 40px;
+    height: 100%;
+    border-right: 2px solid rgb(204, 214, 221);
+    position: absolute;
+    left: 0;
+    top: 80px;
+}
+
+.Tweet-extended {
+    border: 1px solid lightgrey;
+    display: flex;
+    flex-direction: column;
 }

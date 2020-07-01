@@ -1,7 +1,7 @@
 import {Collection, MongoClient} from "mongodb";
 
 export class TwitterLogProvider {
-    #collection: Collection<unknown>
+    #collection: Collection<any>
     constructor(client: MongoClient, dbName: string, collectionName: string) {
         this.#collection = client.db(dbName).collection(collectionName);
     }

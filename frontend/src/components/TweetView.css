@@ -3,6 +3,44 @@
     display: block;
     padding: 5px 15px;
     max-width: 300px;
-
     position: sticky;
+}
+
+@media (max-width: 717px) {
+    .TweetView-wrapper {
+        display: flex;
+        flex-direction: column-reverse !important;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .TweetView-settings-wrapper {
+        position: fixed;
+        left: 0;
+        top: 56px;
+        background-color: white;
+        padding: 0;
+        width: 100vw;
+        max-width: 100vw;
+    }
+
+    .TweetView-settings {
+        display: flex;
+        flex-direction: row;
+        width: 100vw;
+        max-width: 100vw;
+        align-items: center;
+    }
+
+    .TweetView-settings-header {
+        margin-right: 20px;
+    }
+
+    .TweetView-tweets-wrapper {
+        margin-top: 90px;
+    }
+
+    .TweetView-settings-slider-wrapper {
+        width: 100%;
+    }
 }
