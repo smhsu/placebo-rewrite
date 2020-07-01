@@ -7,7 +7,7 @@ const COUNT_DOCUMENT_NAME = "counts";
 /**
  * Mapping from experimental condition to the number of participants assigned to that condition.
  */
-type ConditionCounts = Record<ExperimentalCondition, number>;
+export type ConditionCounts = Record<ExperimentalCondition, number>;
 
 /**
  * Database schema for storing counts of participants assigned to each experimental condition.
@@ -17,6 +17,23 @@ interface CountSchema extends Partial<ConditionCounts> {
     identifier: string;
 }
 
+
+/**
+ * Factory function to create ConditionCountsProvider
+ */
+export type ConditionCountsProviderFactory = (
+    ...args: ConstructorParameters<typeof ConditionCountsProvider>
+) => ConditionCountsProvider;
+
+/**
+ * Default factory function to create ConditionCountsProvider
+ * @param args
+ */
+export function defaultConditionCountsProviderFactory(
+    ...args: Parameters<ConditionCountsProviderFactory>
+): ConditionCountsProvider {
+    return new ConditionCountsProvider(...args);
+}
 /**
  * Provides a high-level API for accessing the counts of how many participants have been assigned to experimental 
  * conditions.
@@ -24,16 +41,6 @@ interface CountSchema extends Partial<ConditionCounts> {
  * @author Silas Hsu
  */
 export class ConditionCountsProvider {
-    /**
-     * @return all experimental conditions mapped to the number 0
-     */
-    static makeZeroedCountDictionary(): ConditionCounts {
-        const allZeros: Partial<ConditionCounts> = {};
-        for (const condition of Object.values(ExperimentalCondition)) {
-            allZeros[condition] = 0;
-        }
-        return allZeros as ConditionCounts;
-    }
 
     private _collection: Collection<CountSchema>;
 

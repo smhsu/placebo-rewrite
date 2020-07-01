@@ -5,55 +5,69 @@ import {createServer} from "./setUp";
 import {MockMongoClient} from "./mockObjects/MockMongoClient";
 import * as ExperimentalConditionApi from "../../common/getExperimentalConditionApi";
 import {ExperimentalCondition} from "../../common/getExperimentalConditionApi";
+import {MockConditionCountsProvider} from "./mockObjects/MockConditionCountsProvider";
+import experimentalConditionRoutes from "../src/routes/experimentalConditionRoutes";
 
 const { describe, it, beforeEach, afterEach } = exports.lab = Lab.script();
 
 describe("Condition assignment routes testing -> ", () => {
     let server: Server;
     let mongoClient: MockMongoClient;
+    let conditionCountsProvider: MockConditionCountsProvider;
+
     function getRes() {
         return server.inject({
             method: ExperimentalConditionApi.METHOD,
             url: ExperimentalConditionApi.PATH,
         });
     }
+
     beforeEach(async () => {
         mongoClient = new MockMongoClient();
-        server = await createServer(mongoClient);
+        conditionCountsProvider = new MockConditionCountsProvider(mongoClient, "", "");
+        server = createServer(mongoClient);
+        experimentalConditionRoutes(server, () => conditionCountsProvider);
     });
+
     afterEach(async () => {
         await server.stop();
     });
+
     it(`should respond with assignment for db errors when calling ${ExperimentalConditionApi.PATH}`,
         async () => {
-            mongoClient.config.collectionConfig.findOne.throwError = true;
+            conditionCountsProvider.config.getCounts.throwError = true;
             const res = await getRes();
             expect(res.statusCode).to.equal(200);
             expect(
                 (JSON.parse(res.payload) as ExperimentalConditionApi.ResponsePayload).assignment
             ).to.be.not.undefined();
         });
+
     it(`should respond with assignment for empty document when calling ${ExperimentalConditionApi.PATH}`,
         async () => {
-            mongoClient.config.collectionConfig.findOne.notFind = true;
+            Object.values(ExperimentalCondition).forEach(
+                val => conditionCountsProvider.config.getCounts.counts.set(val, 0)
+            );
             const res = await getRes();
             expect(res.statusCode).to.equal(200);
             expect(
                 (JSON.parse(res.payload) as ExperimentalConditionApi.ResponsePayload).assignment
             ).to.be.not.undefined();
         });
+
     it(`should respond with EXPERIMENTAL when calling ${ExperimentalConditionApi.PATH}`, async () => {
-        mongoClient.config.collectionConfig.conditionCounts[ExperimentalCondition.POPULARITY_SLIDER] = 69;
-        mongoClient.config.collectionConfig.conditionCounts[ExperimentalCondition.RANDOMIZER_SETTING] = 30;
+        conditionCountsProvider.config.getCounts.counts.set(ExperimentalCondition.POPULARITY_SLIDER, 69);
+        conditionCountsProvider.config.getCounts.counts.set(ExperimentalCondition.RANDOMIZER_SETTING, 30);
         const res = await getRes();
         expect(res.statusCode).to.equal(200);
         expect(
             (JSON.parse(res.payload) as ExperimentalConditionApi.ResponsePayload).assignment
         ).to.equal(ExperimentalCondition.POPULARITY_SLIDER);
     });
+
     it(`should respond with CONTROL when calling ${ExperimentalConditionApi.PATH}`, async () => {
-        mongoClient.config.collectionConfig.conditionCounts[ExperimentalCondition.POPULARITY_SLIDER] = 70;
-        mongoClient.config.collectionConfig.conditionCounts[ExperimentalCondition.RANDOMIZER_SETTING] = 29;
+        conditionCountsProvider.config.getCounts.counts.set(ExperimentalCondition.POPULARITY_SLIDER, 70);
+        conditionCountsProvider.config.getCounts.counts.set(ExperimentalCondition.RANDOMIZER_SETTING, 29);
         const res = await getRes();
         expect(res.statusCode).to.equal(200);
         expect(

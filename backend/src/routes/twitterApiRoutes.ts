@@ -3,20 +3,19 @@ import { Server } from "@hapi/hapi";
 import Boom from "@hapi/boom";
 import * as RequestTokenApi from "../common/requestTokenApi";
 import * as GetTweetsApi from "../common/getTweetsApi";
-import { TwitterClient, TwitterError } from "../TwitterClient";
+import {defaultTwitterClientFactory, TwitterClientFactory, TwitterError} from "../TwitterClient";
 
-
-export const TESTING__twitterApiDependencies = {
-    mockTwitterClient: null as null | TwitterClient
-};
 
 /**
  * Registers APIs that relate to authenticating and fetching data from Twitter.
  *
  * @param server - Hapi server to register routes with
+ * @param factory
  * @author Silas Hsu
  */
-export function registerRoutes(server: Server): void {
+export default function registerRoutes(
+    server: Server, factory: TwitterClientFactory = defaultTwitterClientFactory
+): void {
     if (!process.env.CONSUMER_KEY || !process.env.CONSUMER_SECRET || !process.env.CALLBACK_URL) {
         throw new Error("Needed Twitter app keys unset in environment variables!");
     }
@@ -24,8 +23,7 @@ export function registerRoutes(server: Server): void {
     const consumer_key = process.env.CONSUMER_KEY;
     const consumer_secret = process.env.CONSUMER_SECRET;
     const callbackUrl = process.env.CALLBACK_URL;
-    const twitterClient = TESTING__twitterApiDependencies.mockTwitterClient ??
-        new TwitterClient({ consumer_key, consumer_secret });
+    const twitterClient = factory({ consumer_key, consumer_secret });
 
     /**
      * The Request Token API gets a request token that can be used to ask for a user's access token on behalf of this
@@ -38,7 +36,6 @@ export function registerRoutes(server: Server): void {
         handler: async function(request) {
             const extraQueryParams = querystring.stringify(request.query);
             const callbackPlusQuery = extraQueryParams ? callbackUrl + "?" + extraQueryParams : callbackUrl;
-
             try {
                 const tokenData = await twitterClient.getRequestToken(callbackPlusQuery);
                 const response: RequestTokenApi.ResponsePayload = { oauth_token: tokenData.oauth_token };
@@ -64,13 +61,12 @@ export function registerRoutes(server: Server): void {
 
             try {
                 const accessToken = await twitterClient.getAccessToken(token);
-                const authedTwitterClient = TESTING__twitterApiDependencies.mockTwitterClient ??
-                    new TwitterClient({
-                        consumer_key,
-                        consumer_secret,
-                        access_token_key: accessToken.oauth_token,
-                        access_token_secret: accessToken.oauth_token_secret
-                    });
+                const authedTwitterClient = factory({
+                    consumer_key,
+                    consumer_secret,
+                    access_token_key: accessToken.oauth_token,
+                    access_token_secret: accessToken.oauth_token_secret
+                });
 
                 const tweets = await authedTwitterClient.getTweets({ count: 200 });
                 const response: GetTweetsApi.ResponsePayload = { tweets };

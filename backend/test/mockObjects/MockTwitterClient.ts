@@ -1,4 +1,5 @@
-import {TwitterError} from "../../src/TwitterClient";
+import {AccessToken, RequestToken, TwitterClient, TwitterError} from "../../src/TwitterClient";
+import {Status} from "twitter-d";
 
 export enum TwitterErrorResponseCodes {
     "Bad Request" = 400,
@@ -16,7 +17,7 @@ export enum TwitterErrorResponseCodes {
     "Gateway timeout" = 504,
 }
 
-export class MockTwitterClient {
+export class MockTwitterClient extends TwitterClient {
     config = {
         errorType: null as null | TwitterErrorResponseCodes,
         getRequestToken: {
@@ -34,27 +35,46 @@ export class MockTwitterClient {
             throw new TwitterError("testing", this.config.errorType);
         }
     }
-    getRequestToken = async (): Promise<{ oauth_token: string }> => {
+    getRequestToken = async (url: string): Promise<RequestToken> => {
         if (this.config.getRequestToken.throwError) {
             this.generateError();
         }
         return {
-            oauth_token: "oauth_token"
+            oauth_callback_confirmed: true,
+            oauth_token_secret: "",
+            oauth_token: url
         };
     }
-    getAccessToken = async (): Promise<{ oauth_token: string; oauth_token_secret: string }> => {
+    getAccessToken = async (): Promise<AccessToken> => {
         if (this.config.getAccessToken.throwError) {
             this.generateError();
         }
         return {
+            screen_name: "",
+            user_id: "",
             oauth_token: "oauth_token",
             oauth_token_secret: "oauth_token_secret"
         };
     }
-    getTweets = async (): Promise<any> => {
+    getTweets = async (): Promise<Status[]> => {
         if (this.config.getTweets.throwError) {
             this.generateError();
         }
-        return "tweets";
+        const tweet: Status = {
+            created_at: "",
+            entities: undefined,
+            favorite_count: 0,
+            favorited: false,
+            id: 0,
+            id_str: "",
+            is_quote_status: false,
+            retweet_count: 0,
+            retweeted: false,
+            source: "",
+            truncated: false,
+            user: undefined,
+            full_text: "tweets"
+        };
+        return [tweet];
     }
 }

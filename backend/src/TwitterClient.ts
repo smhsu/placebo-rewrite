@@ -25,14 +25,14 @@ interface TwitterClientConfig {
 }
 
 /** Token that can be used to request an access token from a Twitter user. */
-interface RequestToken {
+export interface RequestToken {
     oauth_token: string;
     oauth_token_secret: string;
     oauth_callback_confirmed: true;
 }
 
 /** Access token data for one Twitter user. */
-interface AccessToken {
+export interface AccessToken {
     oauth_token: string;
     oauth_token_secret: string;
     user_id: string;
@@ -224,4 +224,18 @@ export class TwitterError extends Error {
         this.name = TwitterError.name;
         this.statusFromTwitter = statusFromTwitter;
     }
+}
+
+
+/**
+ * Factory function to create TwitterClient
+ */
+export type TwitterClientFactory = (...args: ConstructorParameters<typeof TwitterClient>) => TwitterClient;
+
+/**
+ * Default factory function to create TwitterClient
+ * @param args
+ */
+export function defaultTwitterClientFactory(...args: ConstructorParameters<typeof TwitterClient>): TwitterClient {
+    return new TwitterClient(...args);
 }

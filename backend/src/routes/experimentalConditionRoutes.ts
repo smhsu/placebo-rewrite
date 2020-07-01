@@ -2,15 +2,21 @@ import { Server } from "@hapi/hapi";
 import { MongoClient } from "mongodb";
 import * as ExperimentalConditionApi from "../common/getExperimentalConditionApi";
 import { ExperimentalCondition } from "../common/getExperimentalConditionApi";
-import { ConditionCountsProvider } from "../database/ConditionCountsProvider";
+import {
+    ConditionCountsProviderFactory,
+    defaultConditionCountsProviderFactory,
+} from "../database/ConditionCountsProvider";
 
 /**
  * Registers APIs that relate to generating random group assignments.
- * 
+ *
  * @param server
+ * @param factory
  * @author hhhenrysss
  */
-export function registerRoutes(server: Server): void {
+export default function registerRoutes(
+    server: Server, factory: ConditionCountsProviderFactory = defaultConditionCountsProviderFactory
+): void {
     if (
         !process.env.COUNT_COLLECTION_NAME ||
         !process.env.DATABASE_NAME ||
@@ -29,7 +35,7 @@ export function registerRoutes(server: Server): void {
         throw new Error("RANDOMIZER_SETTING_PROPORTION must within the range [0, 1].");
     }
 
-    const conditionCountsProvider = new ConditionCountsProvider(
+    const conditionCountsProvider = factory(
         server.app["mongoClient"] as MongoClient, process.env.DATABASE_NAME, process.env.COUNT_COLLECTION_NAME
     );
 
