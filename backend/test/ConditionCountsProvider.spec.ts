@@ -1,13 +1,11 @@
 import * as Lab from "@hapi/lab";
-import {expect} from "@hapi/code";
-import {ConditionCountsProvider} from "../src/database/ConditionCountsProvider";
-import {ExperimentalCondition} from "../../common/getExperimentalConditionApi";
-import {MockMongoClient} from "./mockObjects/MockMongoClient";
+import { expect } from "@hapi/code";
+import { stub } from "sinon";
+import { ConditionCountsProvider, ConditionCounts } from "../src/database/ConditionCountsProvider";
+import { ExperimentalCondition } from "../../common/getExperimentalConditionApi";
+import { MockMongoClient } from "./mockObjects/MockMongoClient";
 
 const { describe, it, beforeEach } = exports.lab = Lab.script();
-
-const dbName = "random db name";
-const collectionName = "random collection name";
 
 describe("ConditionCountsProvider testing -> ", () => {
     let mockMongoClient: MockMongoClient;
@@ -15,40 +13,49 @@ describe("ConditionCountsProvider testing -> ", () => {
 
     beforeEach(() => {
         mockMongoClient = new MockMongoClient();
-        provider = new ConditionCountsProvider(mockMongoClient, dbName, collectionName);
+        provider = ConditionCountsProvider.defaultFactory({
+            client: mockMongoClient,
+            dbName: "random db name",
+            collectionName: "random collection name"
+        });
     });
 
     it("should propagate getCounts promise rejection", async () => {
-        mockMongoClient.config.dbConfig.collectionConfig.findOne.throwError = true;
-        await expect(provider.getCounts()).to.reject();
+        mockMongoClient.modifyCollection({ findOne: stub().rejects() });
+        expect(provider.getCounts()).to.reject();
     });
 
     it("should get empty counts when no records found", async () => {
-        mockMongoClient.config.dbConfig.collectionConfig.findOne.notFind = true;
+        mockMongoClient.modifyCollection({ findOne: stub().resolves(null) });
         const result = await provider.getCounts();
         for (const val of Object.values(ExperimentalCondition)) {
             expect(result[val]).to.equal(0);
         }
     });
 
-    it("should get correct counts without any other keys", async () => {
-        const counts = Object.values(ExperimentalCondition).reduce((acc, curr) => {
-            acc[curr] = Math.floor(Math.random() * 100);
-            return acc;
-        }, {} as Record<ExperimentalCondition, number>);
-        mockMongoClient.config.dbConfig.collectionConfig.conditionCounts = counts;
+    it("should get correct counts even when not all counts are in the database", async () => {
+        const dbCounts: Partial<ConditionCounts> = {
+            [ExperimentalCondition.RANDOM]: 3,
+            [ExperimentalCondition.INTERVAL]: 5
+        };
+        mockMongoClient.modifyCollection({ findOne: stub().resolves(dbCounts) });
         const result = await provider.getCounts();
-        const allKeys = new Set(Object.keys(result));
-        for (const val of Object.values(ExperimentalCondition)) {
-            expect(result[val]).to.equal(counts[val]);
-            allKeys.delete(val);
+
+        expect(Object.keys(result)).to.have.length(Object.values(ExperimentalCondition).length);
+        for (const condition of Object.values(ExperimentalCondition)) {
+            if (condition in dbCounts) {
+                expect(result[condition]).to.equal(dbCounts[condition]);
+            } else {
+                expect(result[condition]).to.equal(0);
+            }
         }
-        expect(allKeys.size).to.equal(0);
     });
+
+    // TODO should get correct counts if database has extraneous keys
 
     it("should propagate incrementCount promise rejection", async () => {
         // incrementCount cannot be fully tested without connecting to an actual db
-        mockMongoClient.config.dbConfig.collectionConfig.updateOne.throwError = true;
-        await expect(provider.incrementCount(ExperimentalCondition.RANDOMIZER_SETTING)).to.reject();
+        mockMongoClient.modifyCollection({ updateOne: stub().rejects() });
+        expect(provider.incrementCount(ExperimentalCondition.RANDOMIZER_SETTING)).to.reject();
     });
 });

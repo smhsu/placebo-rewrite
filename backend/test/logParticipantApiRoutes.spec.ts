@@ -1,7 +1,7 @@
 import * as Lab from "@hapi/lab";
 import {expect} from "@hapi/code";
 import {Server, ServerInjectResponse} from "@hapi/hapi";
-import {createServer} from "./setUp";
+import { createTestServer } from "./createTestServer";
 import {MockMongoClient} from "./mockObjects/MockMongoClient";
 import * as StoreParticipantLogsApi from "../../common/logParticipantApi";
 import {MockParticipantLogProvider} from "./mockObjects/MockParticipantLogProvider";
@@ -25,7 +25,7 @@ describe("Server log routes testing -> ", () => {
     beforeEach(async () => {
         mongoClient = new MockMongoClient();
         participantLogProvider = new MockParticipantLogProvider(mongoClient, "", "");
-        server = createServer(mongoClient);
+        server = createTestServer(mongoClient);
         logParticipantApiRoutes(server, () => participantLogProvider);
     });
 
@@ -33,8 +33,8 @@ describe("Server log routes testing -> ", () => {
         await server.stop();
     });
 
-    it(`should respond with appropriate error messages for 
-    request payload errors when calling ${StoreParticipantLogsApi.PATH}`,
+    it("should respond with appropriate error messages for request payload errors " + 
+        `when calling ${StoreParticipantLogsApi.PATH}`,
     async () => {
         const res = await getRes({});
         expect(res.statusCode).to.equal(400);
@@ -46,8 +46,6 @@ describe("Server log routes testing -> ", () => {
             participantLogProvider.config.storeLog.throwError = true;
             const res = await getRes({data: {anything: "anything"}});
             expect(res.statusCode).to.be.in.range(500, 599);
-            // FIXME: should return some error messages
-            // expect(res.statusMessage).to.be.not.undefined();
         });
 
     it(`should respond with correctly when calling ${StoreParticipantLogsApi.PATH}`, async () => {

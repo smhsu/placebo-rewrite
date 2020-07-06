@@ -17,23 +17,15 @@ interface CountSchema extends Partial<ConditionCounts> {
     identifier: string;
 }
 
-
 /**
- * Factory function to create ConditionCountsProvider
+ * Everything needed to connect to a collection from MongoDB.
  */
-export type ConditionCountsProviderFactory = (
-    ...args: ConstructorParameters<typeof ConditionCountsProvider>
-) => ConditionCountsProvider;
-
-/**
- * Default factory function to create ConditionCountsProvider
- * @param args
- */
-export function defaultConditionCountsProviderFactory(
-    ...args: Parameters<ConditionCountsProviderFactory>
-): ConditionCountsProvider {
-    return new ConditionCountsProvider(...args);
+interface CollectionConfig {
+    client: MongoClient;
+    dbName: string;
+    collectionName: string;
 }
+
 /**
  * Provides a high-level API for accessing the counts of how many participants have been assigned to experimental 
  * conditions.
@@ -41,18 +33,28 @@ export function defaultConditionCountsProviderFactory(
  * @author Silas Hsu
  */
 export class ConditionCountsProvider {
+    /**
+     * Makes a new instance.
+     * 
+     * @param config - mongoDB connection information
+     * @return a configured instance
+     */
+    static defaultFactory(config: CollectionConfig): ConditionCountsProvider {
+        return new ConditionCountsProvider().withMongoConfig(config);
+    }
 
     private _collection: Collection<CountSchema>;
 
     /**
-     * Makes a new instance.
+     * Configures this instance's MongoDB connection, allowing its other methods to work.
      * 
-     * @param client - database connection
-     * @param dbName - name of the database to read/write from
-     * @param collectionName - collection to read/write from
+     * @param config - mongoDB connection information
+     * @return this
      */
-    constructor(client: MongoClient, dbName: string, collectionName: string) {
+    withMongoConfig(config: CollectionConfig): this {
+        const { client, dbName, collectionName } = config;
         this._collection = client.db(dbName).collection<CountSchema>(collectionName);
+        return this;
     }
 
     /**

@@ -1,5 +1,5 @@
-import {ParticipantLogProvider} from "../../src/database/ParticipantLogProvider";
-import {IParticipantLog} from "../../src/common/logParticipantApi";
+import { ParticipantLogProvider } from "../../src/database/ParticipantLogProvider";
+import { IParticipantLog } from "../../src/common/logParticipantApi";
 
 export class MockParticipantLogProvider extends ParticipantLogProvider {
     config = {
@@ -7,9 +7,6 @@ export class MockParticipantLogProvider extends ParticipantLogProvider {
             throwError: false,
             storeLogIntention: null as null | IParticipantLog,
         }
-    }
-    constructor(...args: ConstructorParameters<typeof ParticipantLogProvider>) {
-        super(...args);
     }
 
     storeLog = async (data: IParticipantLog): Promise<void> => {

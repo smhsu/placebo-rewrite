@@ -1,5 +1,5 @@
-import {AccessToken, RequestToken, TwitterClient, TwitterError} from "../../src/TwitterClient";
-import {Status} from "twitter-d";
+import { AccessToken, RequestToken, TwitterClient, TwitterError } from "../../src/TwitterClient";
+import { Status } from "twitter-d";
 
 export enum TwitterErrorResponseCodes {
     "Bad Request" = 400,
@@ -30,11 +30,13 @@ export class MockTwitterClient extends TwitterClient {
             throwError: false,
         },
     }
+
     private generateError = (): void => {
         if (this.config.errorType) {
             throw new TwitterError("testing", this.config.errorType);
         }
     }
+
     getRequestToken = async (url: string): Promise<RequestToken> => {
         if (this.config.getRequestToken.throwError) {
             this.generateError();
@@ -45,6 +47,7 @@ export class MockTwitterClient extends TwitterClient {
             oauth_token: url
         };
     }
+
     getAccessToken = async (): Promise<AccessToken> => {
         if (this.config.getAccessToken.throwError) {
             this.generateError();
@@ -56,6 +59,7 @@ export class MockTwitterClient extends TwitterClient {
             oauth_token_secret: "oauth_token_secret"
         };
     }
+
     getTweets = async (): Promise<Status[]> => {
         if (this.config.getTweets.throwError) {
             this.generateError();

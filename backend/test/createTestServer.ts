@@ -1,9 +1,9 @@
 import path = require("path");
 import dotenv = require("dotenv");
-import {MockMongoClient} from "./mockObjects/MockMongoClient";
-import {Server} from "@hapi/hapi";
+import { Server } from "@hapi/hapi";
+import { MockMongoClient } from "./mockObjects/MockMongoClient";
 
-export function createServer(client: MockMongoClient): Server {
+export function createTestServer(client: MockMongoClient): Server {
     dotenv.config({path: path.resolve(process.cwd(), ".env.test.local")});
     dotenv.config({path: path.resolve(process.cwd(), ".env.test")});
     dotenv.config(); // The plain .env file

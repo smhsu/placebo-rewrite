@@ -1,11 +1,11 @@
 import * as Lab from "@hapi/lab";
-import {expect} from "@hapi/code";
-import {Server} from "@hapi/hapi";
+import { expect } from "@hapi/code";
+import { Server } from "@hapi/hapi";
 import * as RequestTokenApi from "../../common/requestTokenApi";
 import * as GetTweetsApi from "../../common/getTweetsApi";
-import {createServer} from "./setUp";
-import {MockMongoClient} from "./mockObjects/MockMongoClient";
-import {MockTwitterClient, TwitterErrorResponseCodes} from "./mockObjects/MockTwitterClient";
+import { createTestServer } from "./createTestServer";
+import { MockMongoClient } from "./mockObjects/MockMongoClient";
+import { MockTwitterClient, TwitterErrorResponseCodes } from "./mockObjects/MockTwitterClient";
 import * as querystring from "querystring";
 import twitterApiRoutes from "../src/routes/twitterApiRoutes";
 
@@ -13,7 +13,6 @@ const { describe, it, beforeEach, afterEach } = exports.lab = Lab.script();
 
 describe("Server twitter api routes testing ->", () => {
     let server: Server;
-    let mongoClient: MockMongoClient;
     let twitterClient: MockTwitterClient;
 
     type QueryParameters = {
@@ -50,8 +49,7 @@ describe("Server twitter api routes testing ->", () => {
 
     beforeEach(async () => {
         twitterClient = new MockTwitterClient({ consumer_key: "", consumer_secret: "" });
-        mongoClient = new MockMongoClient();
-        server = createServer(mongoClient);
+        server = createTestServer(new MockMongoClient());
         twitterApiRoutes(server, () => twitterClient);
     });
 

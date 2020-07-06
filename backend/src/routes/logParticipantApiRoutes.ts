@@ -3,26 +3,24 @@ import Boom from "@hapi/boom";
 import { MongoClient, MongoError } from "mongodb";
 
 import * as StoreParticipantLogsApi from "../common/logParticipantApi";
-import {
-    defaultParticipantLogProviderFactory,
-    ParticipantLogProviderFactory
-} from "../database/ParticipantLogProvider";
+import { ParticipantLogProvider } from "../database/ParticipantLogProvider";
 
 /**
  * Registers APIs that relate to storing data received from front-end.
  * @param server
- * @param factory
+ * @param makeParticipantLogProvider
  * @author hhhenrysss
  */
 export default function registerRoutes(
-    server: Server, factory: ParticipantLogProviderFactory = defaultParticipantLogProviderFactory
+    server: Server,
+    makeParticipantLogProvider = ParticipantLogProvider.defaultFactory
 ): void {
     if (!(process.env.LOGS_COLLECTION_NAME && process.env.DATABASE_NAME)) {
         throw new Error("LOGS_COLLECTION_NAME and DATABASE_NAME must be specified in the environment variables.");
     }
 
     const client = server.app["mongoClient"] as MongoClient;
-    const logProvider = factory(client, process.env.DATABASE_NAME, process.env.LOGS_COLLECTION_NAME);
+    const logProvider = makeParticipantLogProvider(client, process.env.DATABASE_NAME, process.env.LOGS_COLLECTION_NAME);
 
     server.route({
         method: StoreParticipantLogsApi.METHOD,
