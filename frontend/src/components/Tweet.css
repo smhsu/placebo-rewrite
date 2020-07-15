@@ -76,3 +76,37 @@
     display: flex;
     flex-direction: column;
 }
+
+.Tweet-no-bottom-border {
+    border-bottom: 0;
+}
+
+.Tweet-no-top-border {
+    border-top: 0;
+}
+
+.Tweet-no-side-borders {
+    border-left: 0;
+    border-right: 0;
+}
+
+.Tweet-retweet-header-wrapper {
+    display: flex;
+    flex-direction: row;
+    font-size: 13px;
+    color: grey;
+}
+
+.Tweet-retweet-header-icon {
+    width: 50px;
+    margin-right: 15px;
+    margin-left: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.Tweet-retweet-header-text {
+    display: flex;
+    align-items: center;
+}
