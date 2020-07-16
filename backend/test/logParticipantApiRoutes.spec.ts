@@ -1,18 +1,21 @@
 import * as Lab from "@hapi/lab";
 import {expect} from "@hapi/code";
 import {Server, ServerInjectResponse} from "@hapi/hapi";
+import { stub } from "sinon";
 import { createTestServer } from "./createTestServer";
 import {MockMongoClient} from "./mockObjects/MockMongoClient";
 import * as StoreParticipantLogsApi from "../../common/logParticipantApi";
-import {MockParticipantLogProvider} from "./mockObjects/MockParticipantLogProvider";
-import logParticipantApiRoutes from "../src/routes/logParticipantApiRoutes";
+import registerLogParticipantApiRoutes from "../src/routes/logParticipantApiRoutes";
+import {ParticipantLogProvider} from "../src/database/ParticipantLogProvider";
+
+
 
 const { describe, it, beforeEach, afterEach } = exports.lab = Lab.script();
 
 describe("Server log routes testing -> ", () => {
     let server: Server;
     let mongoClient: MockMongoClient;
-    let participantLogProvider: MockParticipantLogProvider;
+    let participantLogProvider: ParticipantLogProvider;
 
     function getRes(payload: Record<string, unknown>): Promise<ServerInjectResponse> {
         return server.inject({
@@ -24,9 +27,10 @@ describe("Server log routes testing -> ", () => {
 
     beforeEach(async () => {
         mongoClient = new MockMongoClient();
-        participantLogProvider = new MockParticipantLogProvider(mongoClient, "", "");
+        participantLogProvider = new ParticipantLogProvider();
+        participantLogProvider.storeLog = stub().throws("Not implemented");
         server = createTestServer(mongoClient);
-        logParticipantApiRoutes(server, () => participantLogProvider);
+        registerLogParticipantApiRoutes(server, () => participantLogProvider);
     });
 
     afterEach(async () => {
@@ -43,12 +47,12 @@ describe("Server log routes testing -> ", () => {
 
     it(`should respond with appropriate error messages for db errors when calling ${StoreParticipantLogsApi.PATH}`,
         async () => {
-            participantLogProvider.config.storeLog.throwError = true;
             const res = await getRes({data: {anything: "anything"}});
             expect(res.statusCode).to.be.in.range(500, 599);
         });
 
-    it(`should respond with correctly when calling ${StoreParticipantLogsApi.PATH}`, async () => {
+    it(`should respond correctly when calling ${StoreParticipantLogsApi.PATH}`, async () => {
+        participantLogProvider.storeLog = stub().returns("");
         const res = await getRes({data: {}});
         expect(res.statusCode).to.be.in.range(200, 299);
     });

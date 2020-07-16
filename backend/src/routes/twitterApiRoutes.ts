@@ -3,18 +3,18 @@ import { Server } from "@hapi/hapi";
 import Boom from "@hapi/boom";
 import * as RequestTokenApi from "../common/requestTokenApi";
 import * as GetTweetsApi from "../common/getTweetsApi";
-import {defaultTwitterClientFactory, TwitterClientFactory, TwitterError} from "../TwitterClient";
+import {TwitterClient, TwitterError} from "../TwitterClient";
 
 
 /**
  * Registers APIs that relate to authenticating and fetching data from Twitter.
  *
  * @param server - Hapi server to register routes with
- * @param factory
+ * @param makeTwitterClient
  * @author Silas Hsu
  */
 export default function registerRoutes(
-    server: Server, factory: TwitterClientFactory = defaultTwitterClientFactory
+    server: Server, makeTwitterClient = TwitterClient.defaultFactory
 ): void {
     if (!process.env.CONSUMER_KEY || !process.env.CONSUMER_SECRET || !process.env.CALLBACK_URL) {
         throw new Error("Needed Twitter app keys unset in environment variables!");
@@ -23,7 +23,7 @@ export default function registerRoutes(
     const consumer_key = process.env.CONSUMER_KEY;
     const consumer_secret = process.env.CONSUMER_SECRET;
     const callbackUrl = process.env.CALLBACK_URL;
-    const twitterClient = factory({ consumer_key, consumer_secret });
+    const twitterClient = makeTwitterClient({ consumer_key, consumer_secret });
 
     /**
      * The Request Token API gets a request token that can be used to ask for a user's access token on behalf of this
@@ -61,7 +61,7 @@ export default function registerRoutes(
 
             try {
                 const accessToken = await twitterClient.getAccessToken(token);
-                const authedTwitterClient = factory({
+                const authedTwitterClient = makeTwitterClient({
                     consumer_key,
                     consumer_secret,
                     access_token_key: accessToken.oauth_token,

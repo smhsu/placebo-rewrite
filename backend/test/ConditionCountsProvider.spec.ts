@@ -51,7 +51,27 @@ describe("ConditionCountsProvider testing -> ", () => {
         }
     });
 
-    // TODO should get correct counts if database has extraneous keys
+    it("should have correct counts if database has extraneous keys", async () => {
+        const dbCounts = {
+            [ExperimentalCondition.RANDOM]: 3,
+            [ExperimentalCondition.INTERVAL]: 5,
+            [ExperimentalCondition.RANDOMIZER_SETTING]: 90,
+            extraneousKey1: "str1",
+            extraneousKey2: "str2",
+            extraneousKey3: true,
+        };
+        mockMongoClient.modifyCollection({findOne: stub().returns(dbCounts)});
+        const result = await provider.getCounts();
+        const allowedKeys = new Set(Object.values(ExperimentalCondition) as string[]);
+        for (const key of Object.keys(result)) {
+            expect(allowedKeys.has(key)).to.be.true();
+            if (Object.prototype.hasOwnProperty.call(dbCounts, key)) {
+                expect(result[key]).to.equal(dbCounts[key]);
+            } else {
+                expect(result[key]).to.equal(0);
+            }
+        }
+    });
 
     it("should propagate incrementCount promise rejection", async () => {
         // incrementCount cannot be fully tested without connecting to an actual db

@@ -20,7 +20,11 @@ export default function registerRoutes(
     }
 
     const client = server.app["mongoClient"] as MongoClient;
-    const logProvider = makeParticipantLogProvider(client, process.env.DATABASE_NAME, process.env.LOGS_COLLECTION_NAME);
+    const logProvider = makeParticipantLogProvider({
+        client,
+        dbName: process.env.DATABASE_NAME,
+        collectionName: process.env.LOGS_COLLECTION_NAME,
+    });
 
     server.route({
         method: StoreParticipantLogsApi.METHOD,

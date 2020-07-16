@@ -1,14 +1,18 @@
-import { Collection, MongoClient } from "mongodb";
+import { Collection } from "mongodb";
 import { IParticipantLog } from "../common/logParticipantApi";
+import {CollectionConfig} from "./ConditionCountsProvider";
 
 export class ParticipantLogProvider {
-    static defaultFactory = (...args: ConstructorParameters<typeof ParticipantLogProvider>): ParticipantLogProvider =>
-        new ParticipantLogProvider(...args);
+
+    static defaultFactory(config: CollectionConfig): ParticipantLogProvider {
+        return new ParticipantLogProvider().withMongoConfig(config);
+    }
 
     private _collection: Collection<IParticipantLog>;
 
-    constructor(client: MongoClient, dbName: string, collectionName: string) {
+    withMongoConfig({ client, dbName, collectionName }: CollectionConfig): this {
         this._collection = client.db(dbName).collection(collectionName);
+        return this;
     }
 
     async storeLog(data: IParticipantLog): Promise<void> {

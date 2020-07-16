@@ -1,5 +1,5 @@
 import * as Lab from "@hapi/lab";
-import sinon from "sinon";
+import * as sinon from "sinon";
 import {expect} from "@hapi/code";
 import {ParticipantLogProvider} from "../src/database/ParticipantLogProvider";
 import {MockMongoClient} from "./mockObjects/MockMongoClient";
@@ -8,16 +8,17 @@ import { IParticipantLog } from "../src/common/logParticipantApi";
 
 const { describe, it, beforeEach } = exports.lab = Lab.script();
 
-const dbName = "random db name";
-const collectionName = "random collection name";
-
 describe("ParticipantLogProvider testing ->", () => {
     let mockMongoClient: MockMongoClient;
     let provider: ParticipantLogProvider;
 
     beforeEach(() => {
         mockMongoClient = new MockMongoClient();
-        provider = new ParticipantLogProvider(mockMongoClient, dbName, collectionName);
+        provider = ParticipantLogProvider.defaultFactory({
+            client: mockMongoClient,
+            dbName: "random db name",
+            collectionName: "random collection name"
+        });
     });
 
     it("should propagate storeLog promise rejection", async () => {

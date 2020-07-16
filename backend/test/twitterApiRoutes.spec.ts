@@ -5,15 +5,17 @@ import * as RequestTokenApi from "../../common/requestTokenApi";
 import * as GetTweetsApi from "../../common/getTweetsApi";
 import { createTestServer } from "./createTestServer";
 import { MockMongoClient } from "./mockObjects/MockMongoClient";
-import { MockTwitterClient, TwitterErrorResponseCodes } from "./mockObjects/MockTwitterClient";
+import { TwitterErrorResponseCodes } from "./mockObjects/MockTwitterClient";
 import * as querystring from "querystring";
 import twitterApiRoutes from "../src/routes/twitterApiRoutes";
+import {TwitterClient} from "../src/TwitterClient";
+import { stub } from "sinon";
 
 const { describe, it, beforeEach, afterEach } = exports.lab = Lab.script();
 
 describe("Server twitter api routes testing ->", () => {
     let server: Server;
-    let twitterClient: MockTwitterClient;
+    let twitterClient: TwitterClient;
 
     type QueryParameters = {
         [index: string]: string | number | boolean | string[] | number[] | boolean[] | null | undefined
@@ -48,7 +50,7 @@ describe("Server twitter api routes testing ->", () => {
     }
 
     beforeEach(async () => {
-        twitterClient = new MockTwitterClient({ consumer_key: "", consumer_secret: "" });
+        twitterClient = new TwitterClient({ consumer_key: "", consumer_secret: "" });
         server = createTestServer(new MockMongoClient());
         twitterApiRoutes(server, () => twitterClient);
     });
@@ -58,17 +60,17 @@ describe("Server twitter api routes testing ->", () => {
     });
 
     it(`should respond with oauth token when calling ${RequestTokenApi.PATH}`, async () => {
+        twitterClient.getRequestToken = stub().returns({oauth_token: "oauth_token"});
         const res = await getRequestTokenRes();
         expect(res.statusCode).to.equal(200);
         expect(res.payload).to.be.not.undefined();
-        expect((JSON.parse(res.payload) as RequestTokenApi.ResponsePayload).oauth_token).to.equal(server.info.uri);
+        expect((JSON.parse(res.payload) as RequestTokenApi.ResponsePayload).oauth_token).to.equal("oauth_token");
     });
 
     it(`should respond with appropriate messages for getRequestToken errors when calling ${RequestTokenApi.PATH}`,
         async () => {
             for (const code of Object.values(TwitterErrorResponseCodes) as number[]) {
-                twitterClient.config.errorType = code;
-                twitterClient.config.getRequestToken.throwError = true;
+                twitterClient.getRequestToken = stub().throws(code);
                 const res = await getRequestTokenRes();
                 expect(res.statusCode).to.be.in.range(500, 599);
                 expect(res.statusMessage).to.be.not.undefined();
@@ -77,6 +79,7 @@ describe("Server twitter api routes testing ->", () => {
 
     it(`should get correct query parameters when calling ${RequestTokenApi.PATH}`, async () => {
         const query = {query: "query"};
+        twitterClient.getRequestToken = stub().callsFake((arg: string) => ({oauth_token: arg}));
         const res = await getRequestTokenRes(query);
         expect(
             (JSON.parse(res.payload) as RequestTokenApi.ResponsePayload)
@@ -86,15 +89,17 @@ describe("Server twitter api routes testing ->", () => {
     });
 
     it(`should respond with message when calling ${GetTweetsApi.PATH}`, async () => {
-        const res = await getTweetsRes({oauth_token: "o", oauth_verifier: "o"});
+        const params = {oauth_token: "o", oauth_verifier: "o"};
+        twitterClient.getTweets = stub().returns([{full_text: "tweets"}]);
+        twitterClient.getAccessToken = stub().returns(params);
+        const res = await getTweetsRes(params);
         expect((JSON.parse(res.payload) as GetTweetsApi.ResponsePayload).tweets[0].full_text).to.equal("tweets");
     });
 
     it(`should respond with appropriate messages for getAccessToken errors when calling ${GetTweetsApi.PATH}`,
         async () => {
             for (const code of Object.values(TwitterErrorResponseCodes) as number[]) {
-                twitterClient.config.errorType = code;
-                twitterClient.config.getAccessToken.throwError = true;
+                twitterClient.getAccessToken = stub().throws(code);
                 const res = await getTweetsRes({oauth_token: "o", oauth_verifier: "o"});
                 expect(res.statusCode).to.be.in.range(500, 599);
                 expect(res.statusMessage).to.be.not.undefined();
@@ -104,9 +109,10 @@ describe("Server twitter api routes testing ->", () => {
     it(`should respond with appropriate messages for getTweets errors when calling ${GetTweetsApi.PATH}`,
         async () => {
             for (const code of Object.values(TwitterErrorResponseCodes) as number[]) {
-                twitterClient.config.errorType = code;
-                twitterClient.config.getTweets.throwError = true;
-                const res = await getTweetsRes({oauth_token: "o", oauth_verifier: "o"});
+                const params = {oauth_token: "o", oauth_verifier: "o"};
+                twitterClient.getAccessToken = stub().returns(params);
+                twitterClient.getTweets = stub().throws(code);
+                const res = await getTweetsRes(params);
                 expect(res.statusCode).to.be.in.range(500, 599);
                 expect(res.statusMessage).to.be.not.undefined();
             }
@@ -118,8 +124,7 @@ describe("Server twitter api routes testing ->", () => {
                 {}, {oauth_token: "o"}, {oauth_verifier: "o"},
             ];
             for (const query of invalidObjects) {
-                twitterClient.config.errorType = TwitterErrorResponseCodes["Bad Request"];
-                twitterClient.config.getTweets.throwError = true;
+                twitterClient.getTweets = stub().throws(TwitterErrorResponseCodes["Bad Request"]);
                 const res = await getTweetsRes(query);
                 expect(res.statusCode).to.equal(400);
                 expect(res.statusMessage).to.be.not.undefined();

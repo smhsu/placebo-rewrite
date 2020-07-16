@@ -20,7 +20,7 @@ interface CountSchema extends Partial<ConditionCounts> {
 /**
  * Everything needed to connect to a collection from MongoDB.
  */
-interface CollectionConfig {
+export interface CollectionConfig {
     client: MongoClient;
     dbName: string;
     collectionName: string;

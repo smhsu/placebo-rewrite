@@ -1,8 +1,8 @@
 import crypto from "crypto";
 import OAuth from "oauth-1.0a";
-import axios, { AxiosError } from "axios";
+import axios, {AxiosError} from "axios";
 import querystring from "querystring";
-import { Status } from "twitter-d";
+import {Status} from "twitter-d";
 
 const AUTH_BASE_URL = "https://api.twitter.com/oauth";
 const API_BASE_URL = "https://api.twitter.com/1.1";
@@ -58,6 +58,10 @@ export class TwitterClient {
     private _config: TwitterClientConfig;
     private _oauthClient: OAuth;
 
+    static defaultFactory(...args: ConstructorParameters<typeof TwitterClient>): TwitterClient {
+        return new TwitterClient(...args);
+    }
+
     constructor(config: TwitterClientConfig) {
         this._config = config;
         this._oauthClient = this._createOAuthClient();
@@ -71,7 +75,7 @@ export class TwitterClient {
     }
 
     _createOAuthClient(): OAuth {
-        const client = new OAuth({
+        return new OAuth({
             consumer: {
                 key: this._config.consumer_key,
                 secret: this._config.consumer_secret
@@ -83,8 +87,6 @@ export class TwitterClient {
                     .update(baseString)
                     .digest("base64")
         });
-
-        return client;
     }
 
     /**
@@ -116,7 +118,7 @@ export class TwitterClient {
         if (error.response) { // Response from server available
             const data = error.response.data;
             const messagePrefix = `${error.request.path} HTTP ${error.response.status}: `;
-            let reason = "";
+            let reason: string;
             if (Array.isArray(data.errors) && data.errors.length > 0) {
                 // Handle standard Twitter error response format.
                 // (see https://developer.twitter.com/en/docs/ads/general/guides/response-codes)
@@ -224,18 +226,4 @@ export class TwitterError extends Error {
         this.name = TwitterError.name;
         this.statusFromTwitter = statusFromTwitter;
     }
-}
-
-
-/**
- * Factory function to create TwitterClient
- */
-export type TwitterClientFactory = (...args: ConstructorParameters<typeof TwitterClient>) => TwitterClient;
-
-/**
- * Default factory function to create TwitterClient
- * @param args
- */
-export function defaultTwitterClientFactory(...args: ConstructorParameters<typeof TwitterClient>): TwitterClient {
-    return new TwitterClient(...args);
 }
