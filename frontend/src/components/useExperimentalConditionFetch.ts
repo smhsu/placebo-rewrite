@@ -1,7 +1,7 @@
 import React from "react";
 import axios from "axios";
 import * as GetExperimentalConditionApi from "../common/getExperimentalConditionApi";
-import { ExperimentalCondition } from "../common/getExperimentalConditionApi";
+import {ExperimentalCondition} from "../common/getExperimentalConditionApi";
 
 export function useExperimentalConditionFetch() {
     const [condition, setCondition] = React.useState(ExperimentalCondition.UNKNOWN);

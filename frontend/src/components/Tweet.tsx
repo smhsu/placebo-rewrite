@@ -1,4 +1,4 @@
-import React, {memo, ReactNode} from "react";
+import React, {memo, useCallback, useState} from "react";
 import he from "he";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome"
 import {faHeart, faRetweet} from "@fortawesome/free-solid-svg-icons";
@@ -70,6 +70,20 @@ function getTweetAuthor(tweet: TimeParsedTweet) {
     return isFullUser(user) ? user : UNKNOWN_USER;
 }
 
+function useErrorImage(firstChoice: string): [string, (() => void)] {
+    const profileImgUrl = firstChoice || DEFAULT_PROFILE_PICTURE_URL;
+
+    const [isLoadError, setIsLoadError] = useState(true);
+    const [imageSrc, setImageSrc] = useState(profileImgUrl);
+    const onError = useCallback(() => {
+        if (isLoadError) {
+            setIsLoadError(false);
+            setImageSrc(DEFAULT_PROFILE_PICTURE_URL);
+        }
+    }, [isLoadError]);
+    return [imageSrc, onError];
+}
+
 const TweetText = memo(({ tweet }: { tweet: TimeParsedTweet }) => {
     const tweetText = tweet.full_text;
     const displayTextRange = tweet.display_text_range || [0, undefined];
@@ -100,9 +114,9 @@ const TweetHeading = memo(({ tweet }: { tweet: TimeParsedTweet }) => {
 const CondensedTweetHeading = memo(({ retweet }: { retweet: TimeParsedTweet }) => {
     const { name, screen_name } = getTweetAuthor(retweet);
     const user = getTweetAuthor(retweet);
-    const profileImgUrl = user.profile_image_url_https || DEFAULT_PROFILE_PICTURE_URL;
+    const [imageSrc, onError] = useErrorImage(user.profile_image_url_https);
     return <div className="Tweet-heading-condensed-wrapper">
-        <div className="Tweet-heading-condensed-icon" style={{ backgroundImage: profileImgUrl }}/>
+        <img className="Tweet-heading-condensed-icon" src={imageSrc} onError={onError} alt={'user profile'}/>
         <div className="Tweet-heading-main Tweet-heading-condensed-display-name">{name} </div>
         <div className="Tweet-heading-other">@{screen_name} • {retweet.created_at_description}</div>
     </div>
@@ -117,20 +131,20 @@ const Retweet = memo(({ retweet }: { retweet: TimeParsedTweet }) => {
 
 interface Props {
     tweet: TimeParsedTweet;
-    borderless?: boolean;
+    className?: string
     leftBar?: boolean;
 }
 
 const SingleTweet = memo((props: Props) => {
     const tweet = props.tweet;
     const user = getTweetAuthor(tweet);
-    const profileImgUrl = user.profile_image_url_https || DEFAULT_PROFILE_PICTURE_URL;
+    const [imageSrc, onError] = useErrorImage(user.profile_image_url_https);
 
-    return <div className={props.borderless ? '' : "Tweet-extended"}>
+    return <div className={props.className ?? "Tweet-extended"}>
         <div className="Tweet">
             {props.leftBar && <div className="Tweet-left-vertical-line"/>}
             <div className="Tweet-profile">
-                <img className="img-fluid rounded-circle" src={profileImgUrl} alt="User profile"/>
+                <img onError={onError} className="img-fluid rounded-circle" src={imageSrc} alt="User profile"/>
             </div>
             <div className="Tweet-content">
                 <TweetHeading tweet={tweet}/>
@@ -150,86 +164,49 @@ const SingleTweet = memo((props: Props) => {
     </div>;
 });
 
-function constructTreeBranch(
-    tweets: { element: ReactNode, id: string }[],
-    topBorder = false,
-    bottomBorder = true,
-    sideBorders = true
-) {
-    const firstId = tweets[0].id;
-    const lastId = tweets[tweets.length - 1].id;
+interface TweetTreeProps {
+    node: TweetThreads,
+    ignoreTopBorder: boolean,
+    ignoreBottomBorder: boolean,
+    ignoreRoot: boolean,
+    isRoot: boolean
+}
+
+const TweetTree = (props: TweetTreeProps) => {
+    const result = [];
     let className = 'Tweet-extended';
-    if (!topBorder) {
+    if (props.ignoreTopBorder) {
         className += ' Tweet-no-top-border';
     }
-    if (!bottomBorder) {
+    if (props.ignoreBottomBorder) {
         className += ' Tweet-no-bottom-border';
     }
-    if (!sideBorders) {
-        className += ' Tweet-no-side-borders';
+    if (!(props.isRoot && props.ignoreRoot)) {
+        result.push(
+            <SingleTweet
+                key={`single-tweet-${props.node.tweet.id_str}`}
+                tweet={props.node.tweet}
+                className={className}
+                leftBar={props.node.children.length > 0}
+            />
+        );
+    }
+    for (const childNode of props.node.children) {
+        result.push(
+            <TweetTree
+                key={`chilren-branch-tweet-${childNode.tweet.id_str}`}
+                node={childNode}
+                ignoreTopBorder={true}
+                ignoreBottomBorder={childNode.children.length > 0}
+                ignoreRoot={false}
+                isRoot={false}
+            />
+        )
     }
     return (
-        <div
-            className={className}
-            key={`branch-of-tree-from-${firstId}-to-${lastId}`}
-        >
-            {tweets.map(item => item.element)}
-        </div>
-    );
-}
-
-// assumptions: no retweets in reply; no tweets with duplicate id
-function generateTweetsTree(
-    threads: TweetThreads,
-    allowTopmostBorder: boolean,
-    allowBottommostBorder: boolean,
-    allowSideBorders: boolean,
-    ignoreRoot: boolean
-) {
-    const stack: TweetThreads[] = [];
-    const branches: ReactNode[] = [];
-    let cached: TimeParsedTweet[] = [];
-    let shouldIgnoreRoot = ignoreRoot;
-
-    function processCached() {
-        const currentBranch = cached.map((tweet, index) => {
-            const isEnd = index === cached.length - 1;
-            return {
-                element: <SingleTweet key={`tweet-in-tree-${tweet.id_str}`} tweet={tweet} leftBar={!isEnd} borderless/>,
-                id: tweet.id_str
-            }
-        });
-        const isFirstBranch = branches.length === 0;
-        const isLastBranch = stack.length === 0;
-        branches.push(
-            constructTreeBranch(
-                currentBranch,
-                isFirstBranch ? allowTopmostBorder : false,
-                isLastBranch ? allowBottommostBorder : true,
-                allowSideBorders
-            )
-        );
-        cached = [];
-    }
-
-    stack.push(threads);
-    while (stack.length > 0) {
-        const currentNode = stack.pop()!;
-        stack.push(...currentNode.children);
-        if (shouldIgnoreRoot) {
-            shouldIgnoreRoot = false;
-            continue;
-        }
-        cached.push(currentNode.tweet);
-        if (currentNode.children.length === 0 && cached.length > 0) {
-            processCached();
-        }
-    }
-    if (cached.length > 0) {
-        processCached();
-    }
-    return branches;
-}
+        <>{result}</>
+    )
+};
 
 const RetweetHeaderOnly = memo(({ retweet, threads }: { retweet: TimeParsedTweet, threads: TweetThreads }) => {
     const baseTweet = threads.tweet;
@@ -241,23 +218,34 @@ const RetweetHeaderOnly = memo(({ retweet, threads }: { retweet: TimeParsedTweet
         displayName = baseTweet.user.id_str;
     }
     return (
-        <div className="Tweet-extended Tweet-no-bottom-border">
-            <div className="Tweet-retweet-header-wrapper">
-                <div className='Tweet-retweet-header-icon'>
-                    <FontAwesomeIcon icon={faRetweet}/>
+        <>
+            <div className='Tweet-extended Tweet-no-bottom-border'>
+                <div className="Tweet-retweet-header-wrapper">
+                    <div className='Tweet-retweet-header-icon'>
+                        <FontAwesomeIcon icon={faRetweet}/>
+                    </div>
+                    <div className='Tweet-retweet-header-text'>
+                        {displayName} Retweeted
+                    </div>
                 </div>
-                <div className='Tweet-retweet-header-text'>
-                    {displayName} Retweeted
-                </div>
+                <SingleTweet tweet={retweet} leftBar={threads.children.length > 0} className={''}/>
             </div>
-            <SingleTweet tweet={retweet} leftBar={threads.children.length > 0} borderless/>
-            {generateTweetsTree(threads, false, true, false, true)}
-        </div>
+            <TweetTree
+                node={threads}
+                ignoreRoot={true}
+                ignoreTopBorder={true}
+                ignoreBottomBorder={threads.children.length > 0}
+                isRoot={true}
+            />
+        </>
     )
 });
 
 export const Tweet = memo(({ threads }: { threads: TweetThreads }) => {
     const mainTweet = threads.tweet;
+    if (mainTweet.id_str === '1267534335340666895') {
+        console.log('a', threads)
+    }
     if (isPureRetweet(mainTweet)) {
         const wellFormedTweet = addTimeData([mainTweet.retweeted_status!])[0];
         return (
@@ -265,9 +253,13 @@ export const Tweet = memo(({ threads }: { threads: TweetThreads }) => {
         )
     } else {
         return (
-            <div>
-                {generateTweetsTree(threads, true, true, true, false)}
-            </div>
+            <TweetTree
+                node={threads}
+                ignoreRoot={false}
+                ignoreTopBorder={false}
+                ignoreBottomBorder={threads.children.length > 0}
+                isRoot={true}
+            />
         )
     }
 });

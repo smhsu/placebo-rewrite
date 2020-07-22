@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useRef, useEffect, useMemo} from "react";
 import {Tweet, TweetThreads} from "./Tweet";
 import { useExperimentalConditionFetch } from "./useExperimentalConditionFetch";
 import { useTweetFilter } from "./tweetFilters/useTweetFilter";
@@ -31,34 +31,47 @@ export const TweetView = React.memo((props: Props) => {
     const { renderedSetting, filteredTweets } = useTweetFilter(props.tweets, manualCondition || condition, () => {
         props.log.didInteractWithSetting = true;
     });
-
-    const sortedByTime = filteredTweets.slice();
-    sortedByTime.sort((tweet1, tweet2) => tweet2.created_at_unix - tweet1.created_at_unix);
-    const threads = new Map<string, TweetThreads>();
-    const nodes = new Map<string, TweetThreads>();
-    for (let i = sortedByTime.length - 1; i >= 0; i -= 1) {
-        const tweet = sortedByTime[i];
-        const targetTweetId = tweet.in_reply_to_status_id_str;
-        const node: TweetThreads = { tweet, children: [] };
-        if (targetTweetId) {
-            if (nodes.has(targetTweetId)) {
-                nodes.get(targetTweetId)!.children.push(node);
-                nodes.set(tweet.id_str, node);
+    const memoizedThreads = useMemo(() => {
+        const sortedByTime = filteredTweets.slice();
+        sortedByTime.sort((tweet1, tweet2) => tweet2.created_at_unix - tweet1.created_at_unix);
+        const threads = new Map<string, TweetThreads>();
+        const nodes = new Map<string, TweetThreads>();
+        for (let i = sortedByTime.length - 1; i >= 0; i -= 1) {
+            const tweet = sortedByTime[i];
+            const targetTweetId = tweet.in_reply_to_status_id_str;
+            const node: TweetThreads = { tweet, children: [] };
+            if (targetTweetId) {
+                if (nodes.has(targetTweetId)) {
+                    // if (targetTweetId === '1267534337442033668') {
+                    //     console.log(tweet.full_text);
+                    // }
+                    nodes.get(targetTweetId)!.children.push(node);
+                    nodes.set(tweet.id_str, node);
+                } else {
+                    // if (targetTweetId === '1267534337442033668') {
+                    //     console.log('unexpected');
+                    // }
+                    threads.set(tweet.id_str, node);
+                    nodes.set(tweet.id_str, node);
+                }
             } else {
+                // if (targetTweetId === '1267534337442033668') {
+                //     console.log('first time');
+                // }
                 threads.set(tweet.id_str, node);
                 nodes.set(tweet.id_str, node);
             }
-        } else {
-            threads.set(tweet.id_str, node);
-            nodes.set(tweet.id_str, node);
         }
-    }
-    const reversedThreads = new Map(Array.from(threads).reverse());
+        console.log('recomputed')
+        const reversedThreads = new Map(Array.from(threads).reverse());
+        return reversedThreads;
+    }, [...filteredTweets.map(t => t.id_str).sort((a, b) => a.localeCompare(b))]);
+
     return <div className="container-fluid">
         <div className="TweetView-wrapper row justify-content-center">
 
             <div className="TweetView-tweets-wrapper col" style={{maxWidth: 600, padding: 0}}>
-                {Array.from(reversedThreads, ([key, threads]) => <Tweet key={`top-level-root-${key}`} threads={threads}/>)}
+                {Array.from(memoizedThreads, ([key, threads]) => <Tweet key={`top-level-root-${key}`} threads={threads}/>)}
             </div>
 
             <div className="TweetView-settings-wrapper col col-sm-5 col-md-4 col-xl-3">
