@@ -95,6 +95,7 @@
     flex-direction: row;
     font-size: 13px;
     color: grey;
+    margin-top: 10px;
 }
 
 .Tweet-retweet-header-icon {

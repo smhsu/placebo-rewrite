@@ -2,7 +2,7 @@ import React, {memo, ReactNode} from "react";
 import he from "he";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome"
 import {faHeart, faRetweet} from "@fortawesome/free-solid-svg-icons";
-import {FullUser, User} from "twitter-d";
+import {FullUser, Status, User} from "twitter-d";
 
 import {addTimeData, TimeParsedTweet} from "../TimeParsedTweet";
 
@@ -31,7 +31,23 @@ function isEmpty(text: string) {
         return true;
     }
     return text.trim() === '';
+}
 
+function isFormattedEmpty(parentTweetContent: string, originalTweet: Status) {
+    let baseContent = parentTweetContent.trim();
+    if (baseContent.endsWith('…')) {
+        baseContent = baseContent.substring(0, baseContent.length - 1);
+    }
+    const screenName = isFullUser(originalTweet.user) ? originalTweet.user.screen_name : UNKNOWN_USER.screen_name;
+    const originalTweetContent = originalTweet.full_text.trim();
+    const formattedContent = `RT @${screenName}: ${originalTweetContent}`;
+    return formattedContent.startsWith(baseContent);
+}
+
+function isPureRetweet(tweet: TimeParsedTweet) {
+    return tweet.retweeted_status &&
+        (isEmpty(tweet.full_text) ||
+        isFormattedEmpty(tweet.full_text, tweet.retweeted_status));
 }
 
 function toReadableNumber(num: number): string {
@@ -206,9 +222,6 @@ function generateTweetsTree(
         }
         cached.push(currentNode.tweet);
         if (currentNode.children.length === 0 && cached.length > 0) {
-            if (threads.tweet.id_str === '126869319596741836900000') {
-                console.log(cached.map(t => t.full_text))
-            }
             processCached();
         }
     }
@@ -245,8 +258,8 @@ const RetweetHeaderOnly = memo(({ retweet, threads }: { retweet: TimeParsedTweet
 
 export const Tweet = memo(({ threads }: { threads: TweetThreads }) => {
     const mainTweet = threads.tweet;
-    if (mainTweet.retweeted_status && isEmpty(mainTweet.full_text)) {
-        const wellFormedTweet = addTimeData([mainTweet.retweeted_status])[0];
+    if (isPureRetweet(mainTweet)) {
+        const wellFormedTweet = addTimeData([mainTweet.retweeted_status!])[0];
         return (
             <RetweetHeaderOnly retweet={wellFormedTweet} threads={threads}/>
         )
