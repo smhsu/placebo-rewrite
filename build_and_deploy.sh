@@ -17,10 +17,7 @@ npx tsc
 echo "Builds done."
 
 if [ "$1" != "build-only" ]; then
-    sed -i "" "/dist/d" .gitignore # Remove dist and public from .gitignore
-    sed -i "" "/public/d" .gitignore
-    echo "*.js.map" >> .gitignore # Ignore map files
-    echo "/src" >> .gitignore # We won't need the src folder
+    cp .heroku.gitignore .gitignore # Use the special gitignore for the Heroku push
 
     MESSAGE="$(git log -1 --pretty=%B)" # Most recent commit message
 
