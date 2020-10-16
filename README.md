@@ -67,3 +67,11 @@ additional details how, visit <https://devcenter.heroku.com/articles/config-vars
     * If you want to just run the build process without pushing to Heroku, you can `build_and_deploy.sh build-only`.
 
 Once you have everything set up, you only need to repeat the last step for future deployments.
+
+## TODOs
+Pull static tweets every N hours
+Follow more sports
+Photography/nature
+reword slider instructions
+show videos in feed
+sort chronologically, but scatter the random tweets randomly

@@ -19,8 +19,10 @@ export class ApiErrorHandler {
         this.isLoggingUnknownErrors = isLoggingUnknownErrors
     }
 
-    _isAxiosError(error: any): error is AxiosError {
-        return error.isAxiosError !== undefined;
+    _isAxiosError(error: unknown): error is AxiosError {
+        return typeof error === "object" &&
+            error !== null &&
+            (error as Record<string, unknown>).isAxiosError !== undefined;
     }
 
     /**
@@ -30,7 +32,7 @@ export class ApiErrorHandler {
      * @param error - error from Axios
      * @return user-friendly reason for the error
      */
-    getTwitterApiErrorReason(error: any): string {
+    getTwitterApiErrorReason(error: unknown): string {
         if (this._isAxiosError(error)) {
             if (error.response) {
                 const prefix = `HTTP ${error.response.status} ${error.response.statusText} -- `;
