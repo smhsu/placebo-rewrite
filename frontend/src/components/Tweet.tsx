@@ -29,9 +29,39 @@ export class Tweet extends React.PureComponent<Props> {
 
     renderTweetText(): React.ReactElement {
         const tweet = this.props.tweet;
-        const tweetText = tweet.full_text;
+        const tweetText = tweet.full_text || "";
         const displayTextRange = tweet.display_text_range || [0, undefined];
         return <p>{he.decode(tweetText.substring(displayTextRange[0], displayTextRange[1]))}</p>;
+    }
+
+    renderMedia(): React.ReactElement | null {
+        const tweet = this.props.tweet;
+        const media = tweet.extended_entities?.media
+        if (media && media[0]) {
+            const firstMedia = media[0];
+            if (firstMedia.type === "video") {
+                const firstValidVariant = firstMedia.video_info?.variants?.find(
+                    variant => variant.content_type.startsWith("video/")
+                );
+                if (!firstValidVariant) {
+                    return null;
+                }
+
+                return <div className="embed-responsive embed-responsive-16by9">
+                    <video className="embed-responsive-item" controls>
+                        <source src={firstValidVariant.url} />
+                    </video>
+                </div>
+            } else if (firstMedia.type === "photo") {
+                return <img
+                    className="img-fluid rounded"
+                    src={firstMedia.media_url_https}
+                    alt="Attachement"
+                />;
+            }
+        }
+
+        return null;
     }
 
     renderTweetHeading() {
@@ -58,6 +88,9 @@ export class Tweet extends React.PureComponent<Props> {
 
     render() {
         const tweet = this.props.tweet;
+        if (tweet.retweeted_status) {
+            return <Tweet tweet={tweet.retweeted_status as TimeParsedTweet} />
+        }
         const user = this.getTweetAuthor();
         const profileImgUrl = user.profile_image_url_https || DEFAULT_PROFILE_PICTURE_URL;
 
@@ -68,13 +101,7 @@ export class Tweet extends React.PureComponent<Props> {
             <div className="Tweet-content">
                 {this.renderTweetHeading()}
                 {this.renderTweetText()}
-                {tweet.entities.media &&
-                    <img
-                        className="img-fluid rounded"
-                        src={tweet.entities.media[0].media_url_https}
-                        alt="Attachement"
-                    />
-                }
+                {this.renderMedia()}
                 {this.renderTweetStatistics()}
             </div>
         </div>;
