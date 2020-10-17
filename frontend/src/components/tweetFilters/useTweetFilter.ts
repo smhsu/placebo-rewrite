@@ -45,6 +45,7 @@ export function useTweetFilter(tweets: TimeParsedTweet[], condition: Experimenta
     if (condition !== prevCondition) { // Setting type has changed.  We need to reset state.  Bail early.
         setSettingState(filterObj.getInitialState());
         setPrevCondition(condition);
+        console.warn('xxxxx', condition, settingState)
         return {
             renderedSetting: null,
             filteredTweets: tweets

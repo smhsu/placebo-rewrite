@@ -27,11 +27,7 @@ interface TweetFetchHandlers {
 
 export function useTweetFetchOnMount(handlers: TweetFetchHandlers) {
     const [isLoading, setIsLoading] = React.useState(false);
-    const initialState = React.useMemo(
-        () => IS_USING_STATIC_TWEETS ? addTimeData(sampleTweets.slice() as unknown as Status[]) : null,
-        []
-    );
-    const [tweets, setTweets] = React.useState<TimeParsedTweet[] | null>(initialState);
+    const [tweets, setTweets] = React.useState<TimeParsedTweet[] | null>(() => IS_USING_STATIC_TWEETS ? addTimeData(sampleTweets.slice() as unknown as Status[]) : null);
 
     const hasRun = React.useRef(false);
     React.useEffect(() => {

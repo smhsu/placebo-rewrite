@@ -35949,7 +35949,7 @@
     "lang": "en"
   },
   {
-    "created_at": "Thu Jul 9 23:56:43 +0000 2020",
+    "created_at": "Thu Jul 09 23:56:43 +0000 2020",
     "id": 99999999999999999,
     "id_str": "126869319596741836900000",
     "full_text": "",
@@ -36164,7 +36164,7 @@
     "lang": "en"
   },
   {
-    "created_at": "Thu Jul 9 23:56:54 +0000 2020",
+    "created_at": "Thu Jul 09 23:56:54 +0000 2020",
     "id": 888888888888888888,
     "id_str": "126869319596741836900001",
     "full_text": "first child",
@@ -36277,7 +36277,7 @@
     "lang": "en"
   },
   {
-    "created_at": "Thu Jul 9 23:56:55 +0000 2020",
+    "created_at": "Thu Jul 09 23:56:55 +0000 2020",
     "id": 7777777777777777,
     "id_str": "126869319596741836900002",
     "full_text": "second child",
@@ -36390,7 +36390,7 @@
     "lang": "en"
   },
   {
-    "created_at": "Thu Jul 9 23:56:56 +0000 2020",
+    "created_at": "Thu Jul 09 23:56:56 +0000 2020",
     "id": 666666666666666666,
     "id_str": "126869319596741836900003",
     "full_text": "first child to first child",
@@ -36503,7 +36503,7 @@
     "lang": "en"
   },
   {
-    "created_at": "Thu Jul 9 23:56:57 +0000 2020",
+    "created_at": "Thu Jul 09 23:56:57 +0000 2020",
     "id": 55555555555555555,
     "id_str": "126869319596741836900004",
     "full_text": "second child to first child",
@@ -36616,7 +36616,7 @@
     "lang": "en"
   },
   {
-  "created_at": "Thu Jul 9 23:56:59 +0000 2020",
+  "created_at": "Thu Jul 09 23:56:59 +0000 2020",
   "id": 44444444444444444,
   "id_str": "126869319596741836900005",
   "full_text": "first child to first child to first child",

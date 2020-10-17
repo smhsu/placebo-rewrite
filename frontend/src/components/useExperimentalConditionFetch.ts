@@ -21,12 +21,13 @@ export function useExperimentalConditionFetch() {
                 console.error(error);
                 condition = ExperimentalCondition.POPULARITY_SLIDER;
             }
-
             setCondition(condition);
         }
 
-        fetchExperimentalCondition();
-    }, []);
+        if (condition === ExperimentalCondition.UNKNOWN) {
+            fetchExperimentalCondition();
+        }
+    }, [condition]);
     
     return condition;
 }
