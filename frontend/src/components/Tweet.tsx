@@ -1,16 +1,16 @@
-import React, {memo, useCallback, useState} from "react";
+import React, { memo, useCallback, useState } from "react";
 import he from "he";
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome"
-import {faHeart, faRetweet} from "@fortawesome/free-solid-svg-icons";
-import {FullUser, Status, User} from "twitter-d";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faHeart, faRetweet } from "@fortawesome/free-solid-svg-icons";
+import { FullUser, User } from "twitter-d";
 
-import {addTimeData, TimeParsedTweet} from "../TimeParsedTweet";
+import { addTimeData, TimeParsedTweet } from "../TimeParsedTweet";
 
 import "./Tweet.css";
 
-export interface TweetThreads {
+export interface TweetTreeNode {
     tweet: TimeParsedTweet;
-    children: TweetThreads[];
+    children: TweetTreeNode[];
 }
 
 const DEFAULT_PROFILE_PICTURE_URL =
@@ -26,28 +26,24 @@ function isFullUser(user: User): user is FullUser {
     return Object.prototype.hasOwnProperty.call(user, 'name');
 }
 
-function isEmpty(text: string) {
-    if (text === null || text === undefined) {
-        return true;
-    }
-    return text.trim() === '';
-}
+function isPureRetweet(tweet: TimeParsedTweet): boolean {
+    if (tweet.retweeted_status) {
+        let retweetText = (tweet.full_text || "").trim();
+        if (retweetText.length <= 0) { // Retweet with no additional comments
+            return true
+        }
 
-function isFormattedEmpty(parentTweetContent: string, originalTweet: Status) {
-    let baseContent = parentTweetContent.trim();
-    if (baseContent.endsWith('…')) {
-        baseContent = baseContent.substring(0, baseContent.length - 1);
-    }
-    const screenName = isFullUser(originalTweet.user) ? originalTweet.user.screen_name : UNKNOWN_USER.screen_name;
-    const originalTweetContent = originalTweet.full_text.trim();
-    const formattedContent = `RT @${screenName}: ${originalTweetContent}`;
-    return formattedContent.startsWith(baseContent);
-}
+        if (retweetText.endsWith("…")) { // Remove the "..."
+            retweetText = retweetText.substring(0, retweetText.length - 1);
+        }
+        // Delete any "RT @someTwitterUser:" that might appear at the start
+        retweetText = retweetText.replace(/^RT @\w+:/, "").trim();
 
-function isPureRetweet(tweet: TimeParsedTweet) {
-    return tweet.retweeted_status &&
-        (isEmpty(tweet.full_text) ||
-        isFormattedEmpty(tweet.full_text, tweet.retweeted_status));
+        // Whether the tweet's text is entirely contained in the retweeted status's text
+        return tweet.retweeted_status.full_text.indexOf(retweetText) >= 0; 
+    }
+
+    return false;
 }
 
 function toReadableNumber(num: number): string {
@@ -104,10 +100,10 @@ const TweetStatistics = memo(({ tweet }: { tweet: TimeParsedTweet }) => {
 const TweetHeading = memo(({ tweet }: { tweet: TimeParsedTweet }) => {
     const { name, screen_name } = getTweetAuthor(tweet);
     return <div>
-        <span className="Tweet-heading-main">{name} </span>
+        <span className="Tweet-heading-main">{name}</span>
         <span className="Tweet-heading-other">
-                @{screen_name} • {tweet.created_at_description}
-            </span>
+            @{screen_name} • {tweet.created_at_description}
+        </span>
     </div>;
 });
 
@@ -116,10 +112,10 @@ const CondensedTweetHeading = memo(({ retweet }: { retweet: TimeParsedTweet }) =
     const user = getTweetAuthor(retweet);
     const [imageSrc, onError] = useErrorImage(user.profile_image_url_https);
     return <div className="Tweet-heading-condensed-wrapper">
-        <img className="Tweet-heading-condensed-icon" src={imageSrc} onError={onError} alt={'user profile'}/>
-        <div className="Tweet-heading-main Tweet-heading-condensed-display-name">{name} </div>
+        <img className="Tweet-heading-condensed-icon" src={imageSrc} onError={onError} alt="User profile"/>
+        <div className="Tweet-heading-main Tweet-heading-condensed-display-name">{name}</div>
         <div className="Tweet-heading-other">@{screen_name} • {retweet.created_at_description}</div>
-    </div>
+    </div>;
 });
 
 const Retweet = memo(({ retweet }: { retweet: TimeParsedTweet }) => {
@@ -129,20 +125,41 @@ const Retweet = memo(({ retweet }: { retweet: TimeParsedTweet }) => {
     </div>
 });
 
-interface Props {
+interface TweetDisplayProps {
     tweet: TimeParsedTweet;
-    className?: string
-    leftBar?: boolean;
+    retweeter?: string;
+    hasRepliesUnder?: boolean;
 }
 
-const SingleTweet = memo((props: Props) => {
+const TweetDisplay = memo((props: TweetDisplayProps) => {
     const tweet = props.tweet;
     const user = getTweetAuthor(tweet);
     const [imageSrc, onError] = useErrorImage(user.profile_image_url_https);
+    if(isPureRetweet(props.tweet)) {
+        const retweet = addTimeData([tweet.retweeted_status!])[0];
+        return <TweetDisplay tweet={retweet} retweeter={user.name} hasRepliesUnder={props.hasRepliesUnder} />;
+    }
 
-    return <div className={props.className ?? "Tweet-extended"}>
+    let retweeterHeader = null;
+    if (props.retweeter) {
+        retweeterHeader = <div className="Tweet-retweet-header-wrapper">
+            <div className='Tweet-retweet-header-icon'>
+                <FontAwesomeIcon icon={faRetweet}/>
+            </div>
+            <div className='Tweet-retweet-header-text'>
+                {props.retweeter} Retweeted
+            </div>
+        </div>;
+    }
+
+    let className = "Tweet-extended";
+    if (!props.hasRepliesUnder) {
+        className += " Tweet-bottom-border";
+    }
+    return <div className={className}>
+        {retweeterHeader}
         <div className="Tweet">
-            {props.leftBar && <div className="Tweet-left-vertical-line"/>}
+            {props.hasRepliesUnder && <div className="Tweet-left-vertical-line" />}
             <div className="Tweet-profile">
                 <img onError={onError} className="img-fluid rounded-circle" src={imageSrc} alt="User profile"/>
             </div>
@@ -156,7 +173,7 @@ const SingleTweet = memo((props: Props) => {
                         alt="Attachment"/>
                 }
                 {
-                    tweet.retweeted_status && <Retweet retweet={addTimeData([tweet.retweeted_status])[0]}/>
+                    tweet.retweeted_status && <Retweet retweet={addTimeData([tweet.retweeted_status])[0]} />
                 }
                 <TweetStatistics tweet={tweet}/>
             </div>
@@ -164,103 +181,18 @@ const SingleTweet = memo((props: Props) => {
     </div>;
 });
 
-interface TweetTreeProps {
-    node: TweetThreads,
-    ignoreTopBorder: boolean,
-    ignoreBottomBorder: boolean,
-    ignoreRoot: boolean,
-    isRoot: boolean
+interface TweetNodeProps {
+    node: TweetTreeNode,
 }
 
-const TweetTree = (props: TweetTreeProps) => {
-    const result = [];
-    let className = 'Tweet-extended';
-    if (props.ignoreTopBorder) {
-        className += ' Tweet-no-top-border';
-    }
-    if (props.ignoreBottomBorder) {
-        className += ' Tweet-no-bottom-border';
-    }
-    if (!(props.isRoot && props.ignoreRoot)) {
-        result.push(
-            <SingleTweet
-                key={`single-tweet-${props.node.tweet.id_str}`}
-                tweet={props.node.tweet}
-                className={className}
-                leftBar={props.node.children.length > 0}
-            />
-        );
-    }
-    for (const childNode of props.node.children) {
-        result.push(
-            <TweetTree
-                key={`chilren-branch-tweet-${childNode.tweet.id_str}`}
+export const TweetTreeDisplay = (props: TweetNodeProps) => {
+    return <>
+        <TweetDisplay tweet={props.node.tweet} hasRepliesUnder={props.node.children.length > 0} />
+        {props.node.children.map(childNode =>
+            <TweetTreeDisplay
+                key={childNode.tweet.id_str}
                 node={childNode}
-                ignoreTopBorder={true}
-                ignoreBottomBorder={childNode.children.length > 0}
-                ignoreRoot={false}
-                isRoot={false}
             />
-        )
-    }
-    return (
-        <>{result}</>
-    )
+        )}
+    </>;
 };
-
-const RetweetHeaderOnly = memo(({ retweet, threads }: { retweet: TimeParsedTweet, threads: TweetThreads }) => {
-    const baseTweet = threads.tweet;
-    let displayName: string;
-    if (isFullUser(baseTweet.user)) {
-        displayName = baseTweet.user.name;
-    } else {
-        console.error(`FullUser not found for tweet ${baseTweet.id_str}`);
-        displayName = baseTweet.user.id_str;
-    }
-    return (
-        <>
-            <div className='Tweet-extended Tweet-no-bottom-border'>
-                <div className="Tweet-retweet-header-wrapper">
-                    <div className='Tweet-retweet-header-icon'>
-                        <FontAwesomeIcon icon={faRetweet}/>
-                    </div>
-                    <div className='Tweet-retweet-header-text'>
-                        {displayName} Retweeted
-                    </div>
-                </div>
-                <SingleTweet tweet={retweet} leftBar={threads.children.length > 0} className={''}/>
-            </div>
-            <TweetTree
-                node={threads}
-                ignoreRoot={true}
-                ignoreTopBorder={true}
-                ignoreBottomBorder={threads.children.length > 0}
-                isRoot={true}
-            />
-        </>
-    )
-});
-
-export const Tweet = memo(({ threads }: { threads: TweetThreads }) => {
-    const mainTweet = threads.tweet;
-    if (mainTweet.id_str === '1267534335340666895') {
-        console.log('a', threads)
-    }
-    if (isPureRetweet(mainTweet)) {
-        const wellFormedTweet = addTimeData([mainTweet.retweeted_status!])[0];
-        return (
-            <RetweetHeaderOnly retweet={wellFormedTweet} threads={threads}/>
-        )
-    } else {
-        return (
-            <TweetTree
-                node={threads}
-                ignoreRoot={false}
-                ignoreTopBorder={false}
-                ignoreBottomBorder={threads.children.length > 0}
-                isRoot={true}
-            />
-        )
-    }
-});
-

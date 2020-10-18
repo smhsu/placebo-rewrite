@@ -6,6 +6,13 @@
     position: sticky;
 }
 
+.TweetView-tweets-wrapper {
+    max-width: 600px;
+    padding: 0;
+    border-left: 1px solid lightgray;
+    border-right: 1px solid lightgray;
+}
+
 @media (max-width: 717px) {
     .TweetView-wrapper {
         display: flex;
