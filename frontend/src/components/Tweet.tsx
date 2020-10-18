@@ -100,11 +100,22 @@ const TweetStatistics = memo(({ tweet }: { tweet: TimeParsedTweet }) => {
 const TweetHeading = memo(({ tweet }: { tweet: TimeParsedTweet }) => {
     const { name, screen_name } = getTweetAuthor(tweet);
     return <div>
-        <span className="Tweet-heading-main">{name}</span>
-        <span className="Tweet-heading-other">
+        <span className="Tweet-heading-author">{name} </span>
+        <span className="Tweet-heading-screen-name">
             @{screen_name} • {tweet.created_at_description}
         </span>
     </div>;
+});
+
+const TweetMedia = memo(({ tweet }: { tweet: TimeParsedTweet }) => {
+    if (!tweet.entities.media) {
+        return null;
+    }
+    const firstMedia = tweet.entities.media[0];
+    if (!firstMedia || firstMedia.source_status_id_str) { // No first media or the media is from another status
+        return null;
+    }
+    return <img className="img-fluid rounded" src={firstMedia.media_url_https} alt="Attachment"/>;
 });
 
 const CondensedTweetHeading = memo(({ retweet }: { retweet: TimeParsedTweet }) => {
@@ -113,8 +124,8 @@ const CondensedTweetHeading = memo(({ retweet }: { retweet: TimeParsedTweet }) =
     const [imageSrc, onError] = useErrorImage(user.profile_image_url_https);
     return <div className="Tweet-heading-condensed-wrapper">
         <img className="Tweet-heading-condensed-icon" src={imageSrc} onError={onError} alt="User profile"/>
-        <div className="Tweet-heading-main Tweet-heading-condensed-display-name">{name}</div>
-        <div className="Tweet-heading-other">@{screen_name} • {retweet.created_at_description}</div>
+        <div className="Tweet-heading-author Tweet-heading-condensed-display-name">{name}</div>
+        <div className="Tweet-heading-screen-name">@{screen_name} • {retweet.created_at_description}</div>
     </div>;
 });
 
@@ -122,7 +133,8 @@ const Retweet = memo(({ retweet }: { retweet: TimeParsedTweet }) => {
     return <div className="Tweet-retweet-wrapper">
         <CondensedTweetHeading retweet={retweet}/>
         <TweetText tweet={retweet}/>
-    </div>
+        <TweetMedia tweet={retweet}/>
+    </div>;
 });
 
 interface TweetDisplayProps {
@@ -140,41 +152,30 @@ const TweetDisplay = memo((props: TweetDisplayProps) => {
         return <TweetDisplay tweet={retweet} retweeter={user.name} hasRepliesUnder={props.hasRepliesUnder} />;
     }
 
-    let retweeterHeader = null;
+    let retweetIndicator = null;
     if (props.retweeter) {
-        retweeterHeader = <div className="Tweet-retweet-header-wrapper">
-            <div className='Tweet-retweet-header-icon'>
-                <FontAwesomeIcon icon={faRetweet}/>
-            </div>
-            <div className='Tweet-retweet-header-text'>
-                {props.retweeter} Retweeted
-            </div>
+        retweetIndicator = <div className="Tweet-retweet-indicator">
+            <div className="Tweet-retweet-indicator-icon"><FontAwesomeIcon icon={faRetweet}/></div>
+            <div>{props.retweeter} Retweeted</div>
         </div>;
     }
 
-    let className = "Tweet-extended";
+    let className = "Tweet-outer";
     if (!props.hasRepliesUnder) {
         className += " Tweet-bottom-border";
     }
     return <div className={className}>
-        {retweeterHeader}
-        <div className="Tweet">
-            {props.hasRepliesUnder && <div className="Tweet-left-vertical-line" />}
+        {retweetIndicator}
+        <div className="Tweet-inner">
+            {props.hasRepliesUnder && <div className="Tweet-thread-indicator" />}
             <div className="Tweet-profile">
                 <img onError={onError} className="img-fluid rounded-circle" src={imageSrc} alt="User profile"/>
             </div>
-            <div className="Tweet-content">
+            <div>
                 <TweetHeading tweet={tweet}/>
                 <TweetText tweet={tweet}/>
-                {
-                    tweet.entities.media && <img
-                        className="img-fluid rounded"
-                        src={tweet.entities.media[0].media_url_https}
-                        alt="Attachment"/>
-                }
-                {
-                    tweet.retweeted_status && <Retweet retweet={addTimeData([tweet.retweeted_status])[0]} />
-                }
+                <TweetMedia tweet={tweet}/>
+                {tweet.retweeted_status && <Retweet retweet={addTimeData([tweet.retweeted_status])[0]} />}
                 <TweetStatistics tweet={tweet}/>
             </div>
         </div>

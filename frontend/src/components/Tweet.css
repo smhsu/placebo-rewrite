@@ -1,35 +1,57 @@
 :root {
-    --Tweet-border-color: 1px solid lightgrey;
+    --Tweet-border-color: rgb(215, 223, 229);
+    --Tweet-profile-width: 50px;
+    --Tweet-profile-top-margin: 5px;
+    --Tweet-profile-right-margin: 10px;
+    --Tweet-profile-height: calc(var(--Tweet-profile-width) + var(--Tweet-profile-top-margin));
+    --Tweet-margin-top: 10px;
+    --Tweet-padding-bottom: 20px;
 }
 
-.Tweet {
-    min-height: 150px;
-    padding: 10px 15px 40px;
+.Tweet-outer {
     display: flex;
-    overflow: hidden;
+    flex-direction: column;
+    margin-top: var(--Tweet-margin-top);
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.Tweet-bottom-border {
+    border-bottom: 1px solid var(--Tweet-border-color);
+}
+
+.Tweet-inner {
+    display: flex;
     position: relative;
+    min-height: 140px;
+    padding-bottom: var(--Tweet-padding-bottom);
 }
 
 .Tweet-profile {
-    margin-top: 5px;
-    margin-right: 15px;
-    width: 50px;
+    margin-top: var(--Tweet-profile-top-margin);
+    margin-right: var(--Tweet-profile-right-margin);
+    width: var(--Tweet-profile-width);
     flex-shrink: 0;
+}
+
+.Tweet-thread-indicator {
+    width: calc(var(--Tweet-profile-width) * 0.5 + 1px);
+    height: calc(100% - var(--Tweet-profile-height) + var(--Tweet-margin-top) - 5px);
+    border-right: 2px solid var(--Tweet-border-color);
+    position: absolute;
+    top: calc(var(--Tweet-profile-height) + 5px);
+    z-index: -1;
 }
 
 .Tweet-profile img {
     border: 1px solid gainsboro;
 }
 
-.Tweet-content {
-    vertical-align: text-top;
-}
-
-.Tweet-heading-main {
+.Tweet-heading-author {
     font-weight: bold;
 }
 
-.Tweet-heading-other {
+.Tweet-heading-screen-name {
     color: grey;
 }
 
@@ -37,6 +59,18 @@
     display: inline-block;
     color: grey;
     margin-right: 20px;
+}
+
+.Tweet-retweet-indicator {
+    display: flex;
+    font-size: smaller;
+    color: grey;
+}
+
+.Tweet-retweet-indicator-icon {
+    width: var(--Tweet-profile-width);
+    margin-right: var(--Tweet-profile-right-margin);
+    text-align: right;
 }
 
 .Tweet-heading-condensed-wrapper {
@@ -60,53 +94,8 @@
 }
 
 .Tweet-retweet-wrapper {
-    border: 1px solid rgb(215, 223, 229);
+    border: 1px solid var(--Tweet-border-color);
     border-radius: 10px;
     margin: 15px 0;
     padding: 10px;
-}
-
-.Tweet-left-vertical-line {
-    width: 40px;
-    height: 100%;
-    border-right: 2px solid rgb(204, 214, 221);
-    position: absolute;
-    left: 0;
-    top: 80px;
-}
-
-.Tweet-extended {
-    display: flex;
-    flex-direction: column;
-}
-
-.Tweet-bottom-border {
-    border-bottom: var(--Tweet-border-color);
-}
-
-.Tweet-side-borders {
-    border-left: var(--Tweet-border-color);
-    border-right: var(--Tweet-border-color);
-}
-
-.Tweet-retweet-header-wrapper {
-    display: flex;
-    flex-direction: row;
-    font-size: 13px;
-    color: grey;
-    margin-top: 10px;
-}
-
-.Tweet-retweet-header-icon {
-    width: 50px;
-    margin-right: 15px;
-    margin-left: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-}
-
-.Tweet-retweet-header-text {
-    display: flex;
-    align-items: center;
 }
