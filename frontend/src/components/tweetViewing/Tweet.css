@@ -27,6 +27,10 @@
     padding-bottom: var(--Tweet-padding-bottom);
 }
 
+.Tweet-vertical-spaced-children > * { /* Adds margin-top to every direct child. */
+    margin-top: 1em;
+}
+
 .Tweet-profile {
     margin-top: var(--Tweet-profile-top-margin);
     margin-right: var(--Tweet-profile-right-margin);
@@ -90,6 +94,5 @@
 .Tweet-inner-tweet {
     border: 1px solid var(--Tweet-border-color);
     border-radius: 10px;
-    margin: 15px 0;
     padding: 10px;
 }

@@ -2,7 +2,7 @@ import React from "react";
 
 import { useTweetFetchOnMount } from "./useTweetFetchOnMount";
 import { useTimer } from "./useTimer";
-import { TweetView } from "./TweetView";
+import { TweetView } from "./tweetViewing/TweetView";
 import { LoginPane } from "./LoginPane";
 
 import { ApiErrorHandler } from "../ApiErrorHandler";
