@@ -66,18 +66,20 @@ function getTweetAuthor(tweet: TimeParsedTweet) {
     return isFullUser(user) ? user : UNKNOWN_USER;
 }
 
-function useErrorImage(firstChoice: string): [string, (() => void)] {
-    const profileImgUrl = firstChoice || DEFAULT_PROFILE_PICTURE_URL;
-
-    const [isLoadError, setIsLoadError] = useState(true);
-    const [imageSrc, setImageSrc] = useState(profileImgUrl);
-    const onError = useCallback(() => {
-        if (isLoadError) {
-            setIsLoadError(false);
-            setImageSrc(DEFAULT_PROFILE_PICTURE_URL);
+interface ImgWithFallbackProps extends React.ImgHTMLAttributes<HTMLImageElement> {
+    fallbackSrc: string;
+}
+function ImgWithFallback(props: ImgWithFallbackProps): JSX.Element {
+    const {src, fallbackSrc, ...otherProps} = props;
+    const [hasError, setHasError] = useState(false);
+    const handleError = useCallback(() => {
+        if (!hasError) {
+            setHasError(true);
         }
-    }, [isLoadError]);
-    return [imageSrc, onError];
+    }, [hasError]);
+
+    // eslint-disable-next-line jsx-a11y/alt-text
+    return <img {...otherProps} src={hasError ? fallbackSrc : src} onError={handleError} />;
 }
 
 const TweetText = memo(({ tweet }: { tweet: TimeParsedTweet }) => {
@@ -97,13 +99,19 @@ const TweetStatistics = memo(({ tweet }: { tweet: TimeParsedTweet }) => {
     </div>;
 });
 
-const TweetHeading = memo(({ tweet }: { tweet: TimeParsedTweet }) => {
-    const { name, screen_name } = getTweetAuthor(tweet);
-    return <div>
-        <span className="Tweet-heading-author">{name} </span>
-        <span className="Tweet-heading-screen-name">
-            @{screen_name} • {tweet.created_at_description}
-        </span>
+const TweetHeading = memo(({ tweet, showProfileImg, style }: { tweet: TimeParsedTweet, showProfileImg?: boolean, style?: React.CSSProperties }) => {
+    const user = getTweetAuthor(tweet);
+    return <div className="Tweet-heading" style={style}>
+        {
+        showProfileImg &&
+            <ImgWithFallback
+                src={user.profile_image_url_https}
+                fallbackSrc={DEFAULT_PROFILE_PICTURE_URL}
+                alt="User profile"
+            />
+        }
+        <span className="Tweet-heading-author">{user.name}</span>
+        <span className="Tweet-heading-screen-name">@{user.screen_name} • {tweet.created_at_description}</span>
     </div>;
 });
 
@@ -118,22 +126,11 @@ const TweetMedia = memo(({ tweet }: { tweet: TimeParsedTweet }) => {
     return <img className="img-fluid rounded" src={firstMedia.media_url_https} alt="Attachment"/>;
 });
 
-const CondensedTweetHeading = memo(({ retweet }: { retweet: TimeParsedTweet }) => {
-    const { name, screen_name } = getTweetAuthor(retweet);
-    const user = getTweetAuthor(retweet);
-    const [imageSrc, onError] = useErrorImage(user.profile_image_url_https);
-    return <div className="Tweet-heading-condensed-wrapper">
-        <img className="Tweet-heading-condensed-icon" src={imageSrc} onError={onError} alt="User profile"/>
-        <div className="Tweet-heading-author Tweet-heading-condensed-display-name">{name}</div>
-        <div className="Tweet-heading-screen-name">@{screen_name} • {retweet.created_at_description}</div>
-    </div>;
-});
-
-const Retweet = memo(({ retweet }: { retweet: TimeParsedTweet }) => {
-    return <div className="Tweet-retweet-wrapper">
-        <CondensedTweetHeading retweet={retweet}/>
-        <TweetText tweet={retweet}/>
-        <TweetMedia tweet={retweet}/>
+const InnerTweet = memo(({ tweet }: { tweet: TimeParsedTweet }) => {
+    return <div className="Tweet-inner-tweet">
+        <TweetHeading tweet={tweet} showProfileImg={true} style={{marginBottom: 5}}/>
+        <TweetText tweet={tweet}/>
+        <TweetMedia tweet={tweet}/>
     </div>;
 });
 
@@ -146,7 +143,6 @@ interface TweetDisplayProps {
 const TweetDisplay = memo((props: TweetDisplayProps) => {
     const tweet = props.tweet;
     const user = getTweetAuthor(tweet);
-    const [imageSrc, onError] = useErrorImage(user.profile_image_url_https);
     if(isPureRetweet(props.tweet)) {
         const retweet = addTimeData([tweet.retweeted_status!])[0];
         return <TweetDisplay tweet={retweet} retweeter={user.name} hasRepliesUnder={props.hasRepliesUnder} />;
@@ -167,17 +163,24 @@ const TweetDisplay = memo((props: TweetDisplayProps) => {
     return <div className={className}>
         {retweetIndicator}
         <div className="Tweet-inner">
-            {props.hasRepliesUnder && <div className="Tweet-thread-indicator" />}
+
             <div className="Tweet-profile">
-                <img onError={onError} className="img-fluid rounded-circle" src={imageSrc} alt="User profile"/>
+                <ImgWithFallback
+                    className="img-fluid rounded-circle"
+                    src={user.profile_image_url_https}
+                    alt="User profile"
+                    fallbackSrc={DEFAULT_PROFILE_PICTURE_URL}
+                />
             </div>
+            {props.hasRepliesUnder && <div className="Tweet-thread-indicator" />}
             <div>
                 <TweetHeading tweet={tweet}/>
                 <TweetText tweet={tweet}/>
                 <TweetMedia tweet={tweet}/>
-                {tweet.retweeted_status && <Retweet retweet={addTimeData([tweet.retweeted_status])[0]} />}
+                {tweet.retweeted_status && <InnerTweet tweet={addTimeData([tweet.retweeted_status])[0]} />}
                 <TweetStatistics tweet={tweet}/>
             </div>
+
         </div>
     </div>;
 });

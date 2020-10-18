@@ -23,7 +23,7 @@
 .Tweet-inner {
     display: flex;
     position: relative;
-    min-height: 140px;
+    min-height: 120px;
     padding-bottom: var(--Tweet-padding-bottom);
 }
 
@@ -47,8 +47,22 @@
     border: 1px solid gainsboro;
 }
 
+.Tweet-heading {
+    display: flex;
+    align-items: center;
+}
+
+.Tweet-heading img {
+    margin-right: 5px;
+    height: 20px;
+    width: 20px;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
 .Tweet-heading-author {
     font-weight: bold;
+    margin-right: 5px;
 }
 
 .Tweet-heading-screen-name {
@@ -73,27 +87,7 @@
     text-align: right;
 }
 
-.Tweet-heading-condensed-wrapper {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    margin-bottom: 5px;
-}
-
-.Tweet-heading-condensed-icon {
-    margin-right: 5px;
-    height: 20px;
-    width: 20px;
-    border-radius: 999px;
-    box-shadow: rgba(0, 0, 0, 0.02) 0 0 2px 0 inset;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-.Tweet-heading-condensed-display-name {
-    margin-right: 5px;
-}
-
-.Tweet-retweet-wrapper {
+.Tweet-inner-tweet {
     border: 1px solid var(--Tweet-border-color);
     border-radius: 10px;
     margin: 15px 0;
