@@ -8,6 +8,7 @@ import newsTweets from "../static_tweets/news.hydrated.json";
 import techTweets from "../static_tweets/technology.hydrated.json";
 import funnyTweets from "../static_tweets/funny_interesting.hydrated.json";
 import randomTweets from "../static_tweets/random.hydrated.json";
+import debugTweets from "../sampleTweets.json";
 
 const FEED_SIZE = 200;
 
@@ -19,6 +20,10 @@ const TWEETS_FOR_TOPIC: Record<string, Status[]> = {
     "Sports (no tweets yet)"   : [],
     "Art/Photography (no tweets yet)": []
 };
+if (process.env.REACT_APP_USE_DEBUG_QUERY_PARAMS === "true") {
+    TWEETS_FOR_TOPIC["Debug tweets"] = debugTweets as unknown as Status[];
+}
+
 const topicNames = Object.keys(TWEETS_FOR_TOPIC);
 const shuffledTopics = shuffle(topicNames);
 // Object mapping from each topic as a key to `false` as a value.
@@ -30,6 +35,9 @@ const topicsToFalse = topicNames.reduce<Record<string, boolean>>((obj, topic) =>
 function constructFeed(topics: string[]): Status[] {
     if (topics.length === 0) { // Only random tweets then...
         return sampleSize(randomTweets as unknown as Status[], FEED_SIZE);
+    }
+    if (topics.length === 1 && topics[0] === "Debug tweets") {
+        return TWEETS_FOR_TOPIC[topics[0]];
     }
 
     const randomProportion = 0.2;

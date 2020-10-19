@@ -5,7 +5,7 @@ import { faHeart, faRetweet } from "@fortawesome/free-solid-svg-icons";
 import { FullUser } from "twitter-d";
 
 import { ImgWithFallback } from "./ImgWithFallback";
-import { addTimeData, TimeParsedTweet } from "../../TimeParsedTweet";
+import { TimeParsedTweet } from "../../TimeParsedTweet";
 import { getTweetAuthor, isPureRetweet } from "../../tweetUtils";
 
 import "./Tweet.css";
@@ -27,7 +27,7 @@ interface TweetProps {
 export const Tweet = React.memo(function Tweet(props: TweetProps) {
     const { tweet, retweeter, hasRepliesUnder } = props;
     const user = getTweetAuthor(tweet, UNKNOWN_USER);
-    const retweetedStatus = tweet.retweeted_status ? addTimeData([tweet.retweeted_status])[0] : null;
+    const retweetedStatus = tweet.retweeted_status;
     if (isPureRetweet(props.tweet)) {
         return <Tweet tweet={retweetedStatus!} retweeter={user.name} hasRepliesUnder={props.hasRepliesUnder} />;
     }

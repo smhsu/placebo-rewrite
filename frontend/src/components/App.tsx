@@ -75,7 +75,7 @@ export function App() {
     const {timeLeftSeconds, startTimer} = useTimer(TWEET_VIEW_DURATION_SECONDS);
     const [topBarHeight, setTopBarHeight] = React.useState(0);
     const handleTweets = React.useCallback((tweets: Status[]) => {
-        setTweets(addTimeData(tweets));
+        setTweets(tweets.map(addTimeData));
         setAppState(AppState.LOADED);
         startTimer();
     }, [setTweets, startTimer]);
