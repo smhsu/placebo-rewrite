@@ -1,0 +1,15 @@
+.TopicPicker label {
+    margin-left: 0.5ch;
+}
+
+.TopicPicker button {
+    margin-top: 20px;
+}
+
+.TopicPicker-main-heading {
+    margin-top: 20px;
+}
+
+.TopicPicker-instructions {
+    font-style: italic;
+}

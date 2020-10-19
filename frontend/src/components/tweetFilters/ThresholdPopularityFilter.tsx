@@ -7,6 +7,8 @@ import { SliderContainer } from "./SliderContainer";
 import { TweetPopularityCalculator } from "../../TweetPopularityCalculator";
 import { TimeParsedTweet } from "../../TimeParsedTweet";
 
+import "./ThresholdPopularityFilter.css";
+
 export class ThresholdPopularityFilter implements ITweetFilter<number> {
     private _popularityCalculator: TweetPopularityCalculator;
     private _numStops: number;
@@ -29,16 +31,27 @@ export class ThresholdPopularityFilter implements ITweetFilter<number> {
             }
         };
 
+        let trackStyle: "normal" | "inverted" | false;
+        if (currentState === 0) {
+            trackStyle = false;
+        } else if (currentState < 0) {
+            trackStyle = "normal"
+        } else {
+            trackStyle = "inverted";
+        }
+
         return <SliderContainer
             mainLabel="Popularity"
             lowLabel="Only show least popular"
             highLabel="Only show most popular"
         >
+            <div className="ThresholdPopularityFilter-middle-label">Show all</div>
             <Slider
                 min={-halfRange}
                 max={halfRange}
                 step={1}
                 value={currentState}
+                track={trackStyle}
                 onChange={onChange}
             />
         </SliderContainer>;

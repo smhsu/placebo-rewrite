@@ -4,13 +4,13 @@
 /node_modules
 /.pnp
 .pnp.js
-/src/static_tweets
 
 # testing
 /coverage
 
 # production
-/build
+*.js.map
+/src
 
 # misc
 .DS_Store

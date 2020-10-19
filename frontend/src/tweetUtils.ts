@@ -23,7 +23,7 @@ export function isPureRetweet(tweet: Status): boolean {
         retweetText = retweetText.replace(/^RT @\w+:/, "").trim();
 
         // Whether the tweet's text is entirely contained in the retweeted status's text
-        return tweet.retweeted_status.full_text.indexOf(retweetText) >= 0; 
+        return retweetText.indexOf(retweetText) >= 0; 
     }
 
     return false;

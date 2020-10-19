@@ -90,7 +90,7 @@ function TweetHeading(props: TweetHeadingProps): JSX.Element {
 }
 
 function TweetText({ tweet }: TweetSubComponentProps): JSX.Element {
-    const tweetText = tweet.full_text;
+    const tweetText = tweet.full_text || "";
     const displayTextRange = tweet.display_text_range || [0, undefined];
     return <div>{he.decode(tweetText.substring(displayTextRange[0], displayTextRange[1]))}</div>;
 }
@@ -103,7 +103,25 @@ function TweetMedia({ tweet }: TweetSubComponentProps): JSX.Element | null {
     if (!firstMedia || firstMedia.source_status_id_str) { // No first media or the media is from another status
         return null;
     }
-    return <img className="img-fluid rounded" src={firstMedia.media_url_https} alt="Attachment"/>;
+
+    if (firstMedia.type === "video") {
+        const firstValidVariant = firstMedia.video_info?.variants?.find(
+            variant => variant.content_type.startsWith("video/")
+        );
+        if (!firstValidVariant) {
+            return null;
+        }
+
+        return <div className="embed-responsive embed-responsive-16by9">
+            <video className="embed-responsive-item" controls>
+                <source src={firstValidVariant.url} />
+            </video>
+        </div>;
+    } else if (firstMedia.type === "photo") {
+        return <img className="img-fluid rounded" src={firstMedia.media_url_https} alt="Attachment"/>;
+    }
+
+    return null;
 }
 
 function toReadableNumber(num: number): string {
