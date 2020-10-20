@@ -8,7 +8,7 @@ import newsTweets from "../static_tweets/news.hydrated.json";
 import techTweets from "../static_tweets/technology.hydrated.json";
 import funnyTweets from "../static_tweets/funny_interesting.hydrated.json";
 import randomTweets from "../static_tweets/random.hydrated.json";
-import debugTweets from "../sampleTweets.json";
+import debugTweets from "../static_tweets/debugTweets.json";
 
 const FEED_SIZE = 200;
 
