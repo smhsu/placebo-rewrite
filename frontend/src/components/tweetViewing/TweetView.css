@@ -1,68 +1,55 @@
-:root {
-    --tweets-max-width: 600px;
-    --tweet-setting-top-bottom-padding: 5px;
-    --tweet-setting-left-right-padding: 15px;
-    --tweet-setting-max-width: 300px;
-}
-
-.TweetView-settings {
-    border: 1px solid var(--Tweet-border-color);
-    display: block;
-    padding: var(--tweet-setting-top-bottom-padding) var(--tweet-setting-left-right-padding);
-    max-width: var(--tweet-setting-max-width);
-    position: sticky;
-}
-
 .TweetView-tweets-wrapper {
-    max-width: var(--tweets-max-width);
+    max-width: 600px;
     padding: 0;
     border-left: 1px solid var(--Tweet-border-color);
     border-right: 1px solid var(--Tweet-border-color);
 }
 
-@media (max-width: 717px) {
-    :root {
-        --tweet-settings-top: 56px;
-        --tweet-settings-margin-right: 20px;
-        --tweet-settings-width: 100vw;
-        --tweet-setting-max-width: 100vw;
-        --tweets-margin-top: 105px;
+.TweetView-settings-wrapper {
+    position: sticky;
+    background-color: white;
+}
 
-    }
-    .TweetView-wrapper {
-        display: flex;
-        flex-direction: column-reverse !important;
-        justify-content: center;
-        align-items: center;
+.TweetView-settings {
+    position: sticky;
+    border: 1px solid var(--Tweet-border-color);
+    padding: 5px 15px;
+    max-width: 300px;
+}
+
+@media (max-width: 642px) {
+    .TweetView-tweets-wrapper {
+        order: 2;
+        border: 0;
     }
 
     .TweetView-settings-wrapper {
-        position: fixed;
-        left: 0;
-        top: var(--tweet-settings-top);
-        background-color: white;
+        order: 1;
         padding: 0;
-        width: var(--tweet-settings-width);
-        max-width: var(--tweet-setting-max-width);
+
+        /* The next three values override Bootstrap's .col-sm-5 values which restrict the element's size. */
+        flex-grow: 1;
+        flex-basis: 100%;
+        max-width: 100%;
     }
 
     .TweetView-settings {
+        border: 0; /* Overrides border, padding, max-width */
+        border-bottom: 1px solid var(--Tweet-border-color);
+        padding-top: 10px;
+        padding-bottom: 10px;
+        max-width: 100%;
+
         display: flex;
         flex-direction: row;
-        width: var(--tweet-settings-width);
-        max-width: var(--tweet-setting-max-width);
         align-items: center;
     }
 
     .TweetView-settings-header {
-        margin-right: var(--tweet-settings-margin-right);
+        margin-right: 25px;
     }
 
-    .TweetView-tweets-wrapper {
-        margin-top: var(--tweets-margin-top);
-    }
-
-    .TweetView-settings-slider-wrapper {
-        width: 100%;
+    .TweetView-settings-content {
+        flex-grow: 1;
     }
 }
