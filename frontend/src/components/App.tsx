@@ -91,11 +91,8 @@ export function App() {
 
     React.useEffect(() => { // Upload participant log when time is up
         if (timeLeftSeconds <= 0) {
-            try {
-                log.current.uploadEnsuringOnce();
-            } catch (error) {
-                console.error(error);
-            }
+            log.current.uploadEnsuringOnce()
+                .catch(console.error);
         }
     }, [timeLeftSeconds]);
 
