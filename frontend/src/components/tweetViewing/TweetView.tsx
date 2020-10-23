@@ -36,19 +36,22 @@ export const TweetView = React.memo((props: Props) => {
     const sortedRootNodes = rootNodes.sort((n1, n2) => n2.tweet.created_at_unix - n1.tweet.created_at_unix);
 
     return <div className="container-fluid">
-        <div className="TweetView-wrapper row justify-content-center">
+        <div className="row justify-content-center">
 
             <div className="TweetView-tweets-wrapper col">
                 {sortedRootNodes.map(rootNode => <TweetTreeDisplay key={rootNode.tweet.id_str} node={rootNode} />)}
             </div>
 
-            <div className="TweetView-settings-wrapper col col-sm-5 col-md-4 col-xl-3">
+            <div
+                className="TweetView-settings-wrapper col col-sm-5 col-md-4 col-xl-3"
+                style={{ top: props.settingsYOffset }}
+            >
                 <div className="TweetView-settings" style={{ top: props.settingsYOffset }}>
                     <h4 className="TweetView-settings-header">Settings</h4>
-                    <div className="TweetView-settings-slider-wrapper">
+                    <div className="TweetView-settings-content">
                         {
-                            isShowingConditionChooser &&
-                                <ManualConditionChooser condition={manualCondition} onChange={setManualCondition} />
+                        isShowingConditionChooser &&
+                            <ManualConditionChooser condition={manualCondition} onChange={setManualCondition} />
                         }
                         {renderedSetting}
                     </div>

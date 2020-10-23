@@ -1,53 +1,55 @@
-.TweetView-settings {
-    border: 1px solid lightgray;
-    display: block;
-    padding: 5px 15px;
-    max-width: 300px;
-    position: sticky;
-}
-
 .TweetView-tweets-wrapper {
     max-width: 600px;
     padding: 0;
-    border-left: 1px solid lightgray;
-    border-right: 1px solid lightgray;
+    border-left: 1px solid var(--Tweet-border-color);
+    border-right: 1px solid var(--Tweet-border-color);
 }
 
-@media (max-width: 717px) {
-    .TweetView-wrapper {
-        display: flex;
-        flex-direction: column-reverse !important;
-        justify-content: center;
-        align-items: center;
+.TweetView-settings-wrapper {
+    position: sticky;
+    background-color: white;
+}
+
+.TweetView-settings {
+    position: sticky;
+    border: 1px solid var(--Tweet-border-color);
+    padding: 5px 15px;
+    max-width: 300px;
+}
+
+@media (max-width: 642px) {
+    .TweetView-tweets-wrapper {
+        order: 2;
+        border: 0;
     }
 
     .TweetView-settings-wrapper {
-        position: fixed;
-        left: 0;
-        top: 56px;
-        background-color: white;
+        order: 1;
         padding: 0;
-        width: 100vw;
-        max-width: 100vw;
+
+        /* The next three values override Bootstrap's .col-sm-5 values which restrict the element's size. */
+        flex-grow: 1;
+        flex-basis: 100%;
+        max-width: 100%;
     }
 
     .TweetView-settings {
+        border: 0; /* Overrides border, padding, max-width */
+        border-bottom: 1px solid var(--Tweet-border-color);
+        padding-top: 10px;
+        padding-bottom: 10px;
+        max-width: 100%;
+
         display: flex;
         flex-direction: row;
-        width: 100vw;
-        max-width: 100vw;
         align-items: center;
     }
 
     .TweetView-settings-header {
-        margin-right: 20px;
+        margin-right: 25px;
     }
 
-    .TweetView-tweets-wrapper {
-        margin-top: 90px;
-    }
-
-    .TweetView-settings-slider-wrapper {
-        width: 100%;
+    .TweetView-settings-content {
+        flex-grow: 1;
     }
 }

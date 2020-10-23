@@ -130,7 +130,7 @@ export function App() {
         default:
             mainContent = <TweetView
                 tweets={tweets}
-                settingsYOffset={topBarHeight + 10}
+                settingsYOffset={topBarHeight}
                 log={log.current}
             />;
     }
