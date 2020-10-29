@@ -9,7 +9,7 @@ const TWITTER_AUTH_URL = "https://api.twitter.com/oauth/authenticate";
 
 interface Props {
     /** Callback for errors that happen when trying to get a request token from the backend. */
-    onError: (error: any) => void;
+    onError?: (error: unknown) => void;
 }
 
 interface State {
@@ -18,7 +18,7 @@ interface State {
 }
 
 /**
- * Button for users to authorizie our app with Twitter.  Upon clicking, the user should be redirected to Twitter's
+ * Button for users to authorize our app with Twitter.  Upon clicking, the user should be redirected to Twitter's
  * external authorization page.  They will then be redirected to our page after they are done.  Query parameters of the
  * current location should be preserved when users return to our page.
  * 
@@ -49,7 +49,7 @@ export class TwitterLoginButton extends React.Component<Props, State> {
             window.location.href = TWITTER_AUTH_URL + "?oauth_token=" + response.data.oauth_token;
         } catch (error) {
             this.setState({isLoading: false});
-            this.props.onError(error);
+            this.props.onError && this.props.onError(error);
         }
     }
 
