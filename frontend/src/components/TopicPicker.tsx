@@ -20,7 +20,7 @@ const TWEETS_FOR_TOPIC: Record<string, Status[]> = {
     "Sports (no tweets yet)"   : [],
     "Art/Photography (no tweets yet)": []
 };
-if (process.env.REACT_APP_USE_DEBUG_QUERY_PARAMS === "true") {
+if (process.env.REACT_APP_DEBUG_MODE === "true") {
     TWEETS_FOR_TOPIC["Debug tweets"] = debugTweets as unknown as Status[];
 }
 

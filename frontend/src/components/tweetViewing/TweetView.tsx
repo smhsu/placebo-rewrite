@@ -6,11 +6,10 @@ import { useTweetFilter } from "../tweetFilters/useTweetFilter";
 import { TimeParsedTweet } from "../../TimeParsedTweet";
 import { ParticipantLog } from "../../ParticipantLog";
 import { ExperimentalCondition } from "../../common/getExperimentalConditionApi";
-import { getDebugOptions } from "../../getDebugOptions";
 
 import "./TweetView.css";
 
-const isShowingConditionChooser = getDebugOptions("show_setting_chooser") === "true";
+const isShowingConditionChooser = process.env.REACT_APP_DEBUG_MODE === "true";
 const MANUALLY_SELECTABLE_CONDITIONS: ExperimentalCondition[] = [
     ExperimentalCondition.RANDOM,
     ExperimentalCondition.RANGE,
