@@ -2,7 +2,19 @@ import { Server, ServerOptions } from "@hapi/hapi";
 import Inert from "@hapi/inert";
 import Boom from "@hapi/boom";
 import { MongoClient } from "mongodb";
-import { registerAllRoutes } from "./routes/registerAllRoutes";
+import experimentalConditionRoutes from "./routes/experimentalConditionRoutes";
+import logParticipantApiRoutes from "./routes/logParticipantApiRoutes";
+import publicRoute from "./routes/publicRoute";
+import twitterApiRoutes from "./routes/twitterApiRoutes";
+
+function registerAllRoutes(server: Server) {
+    [
+        experimentalConditionRoutes,
+        logParticipantApiRoutes,
+        publicRoute,
+        twitterApiRoutes,
+    ].forEach(route => route(server));
+}
 
 /**
  * Sets up a Hapi server, all configured and ready to go.  The only thing left to do is to start it.  For Hapi config

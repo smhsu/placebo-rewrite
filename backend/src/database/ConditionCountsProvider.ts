@@ -7,7 +7,7 @@ const COUNT_DOCUMENT_NAME = "counts";
 /**
  * Mapping from experimental condition to the number of participants assigned to that condition.
  */
-type ConditionCounts = Record<ExperimentalCondition, number>;
+export type ConditionCounts = Record<ExperimentalCondition, number>;
 
 /**
  * Database schema for storing counts of participants assigned to each experimental condition.
@@ -18,6 +18,15 @@ interface CountSchema extends Partial<ConditionCounts> {
 }
 
 /**
+ * Everything needed to connect to a collection from MongoDB.
+ */
+export interface CollectionConfig {
+    client: MongoClient;
+    dbName: string;
+    collectionName: string;
+}
+
+/**
  * Provides a high-level API for accessing the counts of how many participants have been assigned to experimental 
  * conditions.
  * 
@@ -25,27 +34,27 @@ interface CountSchema extends Partial<ConditionCounts> {
  */
 export class ConditionCountsProvider {
     /**
-     * @return all experimental conditions mapped to the number 0
+     * Makes a new instance.
+     * 
+     * @param config - mongoDB connection information
+     * @return a configured instance
      */
-    static makeZeroedCountDictionary(): ConditionCounts {
-        const allZeros: Partial<ConditionCounts> = {};
-        for (const condition of Object.values(ExperimentalCondition)) {
-            allZeros[condition] = 0;
-        }
-        return allZeros as ConditionCounts;
+    static defaultFactory(config: CollectionConfig): ConditionCountsProvider {
+        return new ConditionCountsProvider().withMongoConfig(config);
     }
 
     private _collection: Collection<CountSchema>;
 
     /**
-     * Makes a new instance.
+     * Configures this instance's MongoDB connection, allowing its other methods to work.
      * 
-     * @param client - database connection
-     * @param dbName - name of the database to read/write from
-     * @param collectionName - collection to read/write from
+     * @param config - mongoDB connection information
+     * @return this
      */
-    constructor(client: MongoClient, dbName: string, collectionName: string) {
+    withMongoConfig(config: CollectionConfig): this {
+        const { client, dbName, collectionName } = config;
         this._collection = client.db(dbName).collection<CountSchema>(collectionName);
+        return this;
     }
 
     /**

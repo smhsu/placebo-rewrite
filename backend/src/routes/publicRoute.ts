@@ -5,7 +5,7 @@ import { Server } from "@hapi/hapi";
  * 
  * @param server - the Hapi server to add the route to
  */
-export function registerRoutes(server: Server): void {
+export default function registerRoutes(server: Server): void {
     server.route({
         method: "GET",
         path: "/{any*}",

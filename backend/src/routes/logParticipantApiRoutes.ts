@@ -8,15 +8,23 @@ import { ParticipantLogProvider } from "../database/ParticipantLogProvider";
 /**
  * Registers APIs that relate to storing data received from front-end.
  * @param server
+ * @param makeParticipantLogProvider
  * @author hhhenrysss
  */
-export function registerRoutes(server: Server): void {
+export default function registerRoutes(
+    server: Server,
+    makeParticipantLogProvider = ParticipantLogProvider.defaultFactory
+): void {
     if (!(process.env.LOGS_COLLECTION_NAME && process.env.DATABASE_NAME)) {
         throw new Error("LOGS_COLLECTION_NAME and DATABASE_NAME must be specified in the environment variables.");
     }
 
     const client = server.app["mongoClient"] as MongoClient;
-    const logProvider = new ParticipantLogProvider(client, process.env.DATABASE_NAME, process.env.LOGS_COLLECTION_NAME);
+    const logProvider = makeParticipantLogProvider({
+        client,
+        dbName: process.env.DATABASE_NAME,
+        collectionName: process.env.LOGS_COLLECTION_NAME,
+    });
 
     server.route({
         method: StoreParticipantLogsApi.METHOD,
