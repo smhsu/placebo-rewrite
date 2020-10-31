@@ -3,7 +3,7 @@ import { TweetTreeDisplay, buildTweetTrees } from "./TweetTree";
 import { useExperimentalConditionFetch } from "../useExperimentalConditionFetch";
 import { useTweetFilter } from "../tweetFilters/useTweetFilter";
 
-import { TimeParsedTweet } from "../../TimeParsedTweet";
+import { AugmentedTweet } from "../../AugmentedTweet";
 import { ParticipantLog } from "../../ParticipantLog";
 import { ExperimentalCondition } from "../../common/getExperimentalConditionApi";
 
@@ -18,7 +18,7 @@ const MANUALLY_SELECTABLE_CONDITIONS: ExperimentalCondition[] = [
 ];
 
 interface Props {
-    tweets: TimeParsedTweet[];
+    tweets: AugmentedTweet[];
     log: ParticipantLog;
     settingsYOffset?: number;
 }

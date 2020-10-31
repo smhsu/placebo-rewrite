@@ -4,7 +4,7 @@ import { Slider } from "@material-ui/core";
 import { SliderContainer } from "./SliderContainer";
 import { ITweetFilter } from "./ITweetFilter";
 import { TweetPopularityCalculator } from "../../TweetPopularityCalculator";
-import { TimeParsedTweet } from "../../TimeParsedTweet";
+import { AugmentedTweet } from "../../AugmentedTweet";
 
 export class IntervalFilter implements ITweetFilter<number> {
     private _popularityCalculator: TweetPopularityCalculator;
@@ -45,7 +45,7 @@ export class IntervalFilter implements ITweetFilter<number> {
         </SliderContainer>;
     }
 
-    filter(tweets: TimeParsedTweet[], currentState: number): TimeParsedTweet[] {
+    filter(tweets: AugmentedTweet[], currentState: number): AugmentedTweet[] {
         if (tweets.length === 0) {
             return tweets;
         }

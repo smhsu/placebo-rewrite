@@ -4,7 +4,7 @@ import seedrandom from "seedrandom";
 
 import { ITweetFilter } from "./ITweetFilter";
 import { SliderContainer } from "./SliderContainer";
-import { TimeParsedTweet } from "../../TimeParsedTweet";
+import { AugmentedTweet } from "../../AugmentedTweet";
 
 const randomSeedPrefix = Date.now().toString();
 
@@ -34,13 +34,13 @@ export class RandomFilter implements ITweetFilter<number> {
         </SliderContainer>;
     }
 
-    filter(tweets: TimeParsedTweet[], currentState: number): TimeParsedTweet[] {
+    filter(tweets: AugmentedTweet[], currentState: number): AugmentedTweet[] {
         const shuffled = this.shuffled(tweets, currentState);
         const subsetSize = Math.ceil(tweets.length / this._numStops);
         return shuffled.slice(0, subsetSize);
     }
 
-    shuffled(tweets: TimeParsedTweet[], seed: number): TimeParsedTweet[] {
+    shuffled(tweets: AugmentedTweet[], seed: number): AugmentedTweet[] {
         const rng = seedrandom(randomSeedPrefix + seed);
         const shuffled = tweets.slice();
         for (let i = shuffled.length - 1; i > 0; i--) {

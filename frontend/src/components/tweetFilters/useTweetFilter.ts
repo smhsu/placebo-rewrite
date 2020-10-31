@@ -1,6 +1,6 @@
 import React from "react";
 
-import { TimeParsedTweet } from "../../TimeParsedTweet";
+import { AugmentedTweet } from "../../AugmentedTweet";
 import { TweetPopularityCalculator } from "../../TweetPopularityCalculator";
 import { ExperimentalCondition } from "../../common/getExperimentalConditionApi";
 
@@ -34,10 +34,10 @@ function getTweetFilterForCondition(condition: ExperimentalCondition): ITweetFil
 
 interface ReturnValue {
     renderedSetting: React.ReactElement | null;
-    filteredTweets: TimeParsedTweet[];
+    filteredTweets: AugmentedTweet[];
 }
 
-export function useTweetFilter(tweets: TimeParsedTweet[], condition: ExperimentalCondition, onChange?: () => void): ReturnValue {
+export function useTweetFilter(tweets: AugmentedTweet[], condition: ExperimentalCondition, onChange?: () => void): ReturnValue {
     const filterObj = getTweetFilterForCondition(condition);
     const [prevCondition, setPrevCondition] = React.useState<ExperimentalCondition | null>(null);
     const [settingState, setSettingState] = React.useState(filterObj.getInitialState());
@@ -45,7 +45,6 @@ export function useTweetFilter(tweets: TimeParsedTweet[], condition: Experimenta
     if (condition !== prevCondition) { // Setting type has changed.  We need to reset state.  Bail early.
         setSettingState(filterObj.getInitialState());
         setPrevCondition(condition);
-        console.warn('xxxxx', condition, settingState)
         return {
             renderedSetting: null,
             filteredTweets: tweets
@@ -57,17 +56,8 @@ export function useTweetFilter(tweets: TimeParsedTweet[], condition: Experimenta
         onChange && onChange();
     }
 
-    const filteredTweets = filterObj.filter(tweets, settingState);
-    let resultTweets: TimeParsedTweet[];
-    if (filterObj.isDisallowSortingByTime) {
-        resultTweets = filteredTweets;
-    } else {
-        resultTweets = filteredTweets.slice();
-        resultTweets.sort((tweet1, tweet2) => tweet2.created_at_unix - tweet1.created_at_unix);
-    }
-
     return {
         renderedSetting: filterObj.renderSetting(settingState, wrappedOnChange),
-        filteredTweets: resultTweets
+        filteredTweets: filterObj.filter(tweets, settingState)
     };
 }

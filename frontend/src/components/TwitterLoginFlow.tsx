@@ -1,11 +1,12 @@
 import React from "react";
 import axios from "axios";
-import { Status } from "twitter-d";
 
 import { AppState, ErrorInfo } from "./AppState";
-import * as GetTweetsApi from "../common/getTweetsApi";
 import { InstructionsAndButton } from "./InstructionsAndButton";
 import { TwitterLoginButton } from "./TwitterLoginButton";
+
+import { TweetAugmenter, AugmentedTweet } from "../AugmentedTweet";
+import * as GetTweetsApi from "../common/getTweetsApi";
 
 interface Props {
     /** Current state of the app. */
@@ -22,7 +23,7 @@ interface Props {
     queryParams?: Record<string, string | string[] | undefined>;
 
     /** Callback for when an attempt to fetch tweets starts. */
-    onTweetPromise: (tweetPromise: Promise<Status[]>) => void;
+    onTweetPromise: (tweetPromise: Promise<AugmentedTweet[]>) => void;
 
     /** Callback for errors that happen when trying to log in. */
     onLoginError: (error: unknown) => void;
@@ -52,7 +53,8 @@ export function TwitterLoginFlow(props: Props) {
                 method: GetTweetsApi.METHOD,
                 baseURL: GetTweetsApi.PATH,
                 params: fetchParams
-            }).then(response => response.data.tweets)
+            })
+            .then(response =>  new TweetAugmenter().augmentAll(response.data.tweets))
         );
 
         return () => { hasFetched.current = true };

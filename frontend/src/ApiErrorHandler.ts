@@ -7,18 +7,6 @@ import { isApiErrorPayload } from "./common/apiErrorPayload";
  * @author Silas Hsu
  */
 export class ApiErrorHandler {
-    /** Whether this instance is logging unexpected errors to the console. */
-    private readonly _isLoggingUnknownErrors: boolean;
-
-    /**
-     * Makes a new instance with desired configuration.
-     * 
-     * @param isLoggingUnknownErrors - whether to log unexpected errors to the console
-     */
-    constructor(isLoggingUnknownErrors=true) {
-        this._isLoggingUnknownErrors = isLoggingUnknownErrors
-    }
-
     _isAxiosError(error: unknown): error is AxiosError<unknown> {
         return typeof error === "object" &&
             error !== null &&
@@ -49,9 +37,12 @@ export class ApiErrorHandler {
             // Probably a bug, so we can't really return a user-friendly reason.
         }
 
-        if (this._isLoggingUnknownErrors) {
-            console.error(error);
+        console.error(error);
+
+        let reason = "Unknown reason."
+        if (process.env.REACT_APP_DEBUG_MODE === "true") {
+            reason += "  [Debug mode message: check the developer's console.]";
         }
-        return "Unknown reason.";
+        return reason;
     }
 }

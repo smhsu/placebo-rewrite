@@ -1,6 +1,5 @@
 import React from "react";
 import querystring from "querystring";
-import { Status } from "twitter-d";
 
 import { AppState, ErrorInfo, FailedAction } from "./AppState";
 import { useTimer } from "./useTimer";
@@ -8,9 +7,9 @@ import { TwitterLoginFlow } from "./TwitterLoginFlow";
 import { StaticTweetFlow } from "./StaticTweetFlow";
 import { TweetView } from "./tweetViewing/TweetView";
 
+import { AugmentedTweet } from "../AugmentedTweet";
 import { ApiErrorHandler } from "../ApiErrorHandler";
 import { ParticipantLog } from "../ParticipantLog";
-import { addTimeData, TimeParsedTweet } from "../TimeParsedTweet";
 
 import spinner from "../loading-small.gif";
 import "./App.css";
@@ -33,7 +32,7 @@ export function App() {
     // State and handlers //
     ////////////////////////
     const [appState, setAppState] = React.useState<AppState>(AppState.START);
-    const [tweets, setTweets] = React.useState<TimeParsedTweet[]>([]);
+    const [tweets, setTweets] = React.useState<AugmentedTweet[]>([]);
     const [errorInfo, setErrorInfo] = React.useState<ErrorInfo | undefined>(undefined);
     const {timeLeftSeconds, startTimer} = useTimer(TWEET_VIEW_DURATION_SECONDS);
     const [topBarHeight, setTopBarHeight] = React.useState(0);
@@ -46,11 +45,11 @@ export function App() {
     }
     const handleLoginError = makeErrorHandler(FailedAction.LOGIN);
     const handleFetchError = makeErrorHandler(FailedAction.FETCH);
-    async function handleTweetPromise(tweetPromise: Promise<Status[]>) {
+    async function handleTweetPromise(tweetPromise: Promise<AugmentedTweet[]>) {
         setAppState(AppState.LOADING);
         try {
             const tweets = await tweetPromise;
-            setTweets(tweets.map(addTimeData));
+            setTweets(tweets);
             setAppState(AppState.LOADED);
             startTimer();
         } catch (error) {

@@ -1,14 +1,14 @@
 import React from "react";
-import { Status } from "twitter-d";
 import { AppState, ErrorInfo } from "./AppState";
 import { InstructionsAndButton } from "./InstructionsAndButton";
-import { StaticFeedMaker } from "../StaticFeedMaker";
 import { TopicPicker, TopicSelectionStatuses } from "./TopicPicker";
+import { StaticFeedMaker } from "../StaticFeedMaker";
+import { AugmentedTweet } from "../AugmentedTweet";
 
 interface Props {
     appState: AppState;
     errorInfo?: ErrorInfo;
-    onTweetPromise: (tweetPromise: Promise<Status[]>) => void;
+    onTweetPromise: (tweetPromise: Promise<AugmentedTweet[]>) => void;
 }
 
 export function StaticTweetFlow(props: Props) {

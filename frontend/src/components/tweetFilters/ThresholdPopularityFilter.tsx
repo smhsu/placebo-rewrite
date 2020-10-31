@@ -5,7 +5,7 @@ import { flatten } from "lodash";
 import { ITweetFilter } from "./ITweetFilter";
 import { SliderContainer } from "./SliderContainer";
 import { TweetPopularityCalculator } from "../../TweetPopularityCalculator";
-import { TimeParsedTweet } from "../../TimeParsedTweet";
+import { AugmentedTweet } from "../../AugmentedTweet";
 
 import "./ThresholdPopularityFilter.css";
 
@@ -57,7 +57,7 @@ export class ThresholdPopularityFilter implements ITweetFilter<number> {
         </SliderContainer>;
     }
 
-    filter(tweets: TimeParsedTweet[], currentState: number): TimeParsedTweet[] {
+    filter(tweets: AugmentedTweet[], currentState: number): AugmentedTweet[] {
         if (currentState === 0) {
             return tweets;
         }
