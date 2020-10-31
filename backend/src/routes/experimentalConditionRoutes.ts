@@ -44,7 +44,7 @@ export function registerRoutes(server: Server): void {
                 for (const count of Object.values(counts)) {
                     totalAssignments += count;
                 }
-                proportionWithRandomizerSetting = counts[ExperimentalCondition.RANDOMIZER_SETTING] / totalAssignments;
+                proportionWithRandomizerSetting = counts[ExperimentalCondition.SWAP_SETTING] / totalAssignments;
             } catch (error) {
                 request.log("error", "Problem getting count of experimental condition assignments from database.  " +
                     "Participant will get a random assignment.");
@@ -53,7 +53,7 @@ export function registerRoutes(server: Server): void {
             }
 
             const assignment = proportionWithRandomizerSetting < desiredRandomSettingProportion ?
-                ExperimentalCondition.RANDOMIZER_SETTING : ExperimentalCondition.POPULARITY_SLIDER;
+                ExperimentalCondition.SWAP_SETTING : ExperimentalCondition.POPULARITY_SLIDER;
 
             try {
                 await conditionCountsProvider.incrementCount(assignment);

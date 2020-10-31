@@ -17,6 +17,16 @@
     max-width: 300px;
 }
 
+.TweetView-manual-condition-chooser {
+    position: sticky;
+    background-color: whitesmoke;
+    z-index: 1;
+    padding: 5px;
+    border-bottom: 1px solid var(--Tweet-border-color);
+    text-align: center;
+    font-size: small;
+}
+
 @media (max-width: 642px) {
     .TweetView-tweets-wrapper {
         order: 2;

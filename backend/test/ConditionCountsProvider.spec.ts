@@ -32,20 +32,20 @@ describe("ConditionCountsProvider testing -> ", () => {
         mockMongoClient.config.collectionConfig.findOne.notFind = true;
         const result = await provider.getCounts();
         expect(result[ExperimentalCondition.POPULARITY_SLIDER]).to.equal(0);
-        expect(result[ExperimentalCondition.RANDOMIZER_SETTING]).to.equal(0);
+        expect(result[ExperimentalCondition.SWAP_SETTING]).to.equal(0);
         expect(result["identifier"]).to.be.undefined();
     });
     it("should get correct counts without identifier", async () => {
         mockMongoClient.config.collectionConfig.conditionCounts.popularity_slider = 10;
-        mockMongoClient.config.collectionConfig.conditionCounts.random_setting = 20;
+        mockMongoClient.config.collectionConfig.conditionCounts.controlGroupPercentage = 20;
         const result = await provider.getCounts();
         expect(result[ExperimentalCondition.POPULARITY_SLIDER]).to.equal(10);
-        expect(result[ExperimentalCondition.RANDOMIZER_SETTING]).to.equal(20);
+        expect(result[ExperimentalCondition.SWAP_SETTING]).to.equal(20);
         expect(result["identifier"]).to.be.undefined();
     });
     it("should propagate incrementCount promise rejection", async () => {
         // incrementCount cannot be fully tested without connecting to an actual db
         mockMongoClient.config.collectionConfig.updateOne.throwError = true;
-        await expect(provider.incrementCount(ExperimentalCondition.RANDOMIZER_SETTING)).to.reject();
+        await expect(provider.incrementCount(ExperimentalCondition.SWAP_SETTING)).to.reject();
     });
 });
