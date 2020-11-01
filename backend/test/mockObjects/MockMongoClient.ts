@@ -1,90 +1,28 @@
-import {ExperimentalCondition} from "../../src/common/getExperimentalConditionApi";
-import {MongoError} from "mongodb";
+import {Collection, Db, MongoClient, Server} from "mongodb";
 
-interface MockCollectionConfig {
-    findOne: {
-        throwError: boolean,
-        notFind: boolean,
-    };
-    updateOne: {
-        throwError: boolean,
-    };
-    insertOne: {
-        throwError: boolean,
-    };
-    conditionCounts: Record<ExperimentalCondition, number> & { controlGroupPercentage: number }
-}
+export class MockMongoClient extends MongoClient {
+    private _testDb: Db;
+    private _mockCollection: Partial<Collection>; 
 
-class MockCollection {
-    private _config: MockCollectionConfig;
-
-    constructor(config: MockCollectionConfig) {
-        this._config = config;
-        process.env.CONTROL_GROUP_PERCENTAGE = config.conditionCounts.controlGroupPercentage.toString();
+    constructor() {
+        super("", undefined);
+        this._testDb = new Db("test", new Server("localhost", 0));
+        this._mockCollection = {};
+        this._testDb.collection = () => this._mockCollection as Collection;
+    }
+    
+    db(): Db {
+        return this._testDb;
     }
 
-    findOne = async () => {
-        if (this._config.findOne.throwError) {
-            throw new MongoError("findOne failed");
-        }
-        if (this._config.findOne.notFind) {
-            return undefined;
-        }
-        return {
-            ...this._config.conditionCounts,
-            identifier: "mock doc",
-        };
-    }
-    updateOne = async (...args) => {
-        if (this._config.updateOne.throwError) {
-            throw new MongoError("updateOne failed");
-        }
-        return args;
-    }
-    insertOne = async () => {
-        if (this._config.insertOne.throwError) {
-            throw new MongoError("insertOne failed");
-        }
-    }
-}
-
-export class MockMongoClient {
-    config = {
-        db: {
-            throwError: false,
-        },
-        collection: {
-            throwError: false,
-        },
-        collectionConfig: {
-            findOne: {
-                throwError: false,
-                notFind: false,
-            },
-            updateOne: {
-                throwError: false,
-            },
-            insertOne: {
-                throwError: false,
-            },
-            conditionCounts: {
-                [ExperimentalCondition.POPULARITY_SLIDER]: 30,
-                [ExperimentalCondition.RANDOMIZER_SETTING]: 70,
-                controlGroupPercentage: 0.3
-            }
-        }
-    };
-    db: () => { collection: () => MockCollection } = () => {
-        if (this.config.db.throwError) {
-            throw new Error("db connection failed");
-        }
-        return {
-            collection: (): MockCollection => {
-                if (this.config.collection.throwError) {
-                    throw new Error("collection connection failed");
-                }
-                return new MockCollection(this.config.collectionConfig);
-            }
-        };
+    /**
+     * Dynamically modifies whatever collection object has been retrieved from this instance, such that the collection's
+     * methods can be configured or stubbed to do whatever.  Accepts an object whose methods will be merged into the
+     * collection object.
+     * 
+     * @param collection - methods to merge into this instance's collection object
+     */
+    modifyCollection(collection: Partial<Collection>): void {
+        Object.assign(this._mockCollection, collection);
     }
 }

@@ -5,7 +5,7 @@ import { faHeart, faRetweet } from "@fortawesome/free-solid-svg-icons";
 import { FullUser } from "twitter-d";
 
 import { ImgWithFallback } from "./ImgWithFallback";
-import { TimeParsedTweet } from "../../TimeParsedTweet";
+import { AugmentedTweet } from "../../AugmentedTweet";
 import { getTweetAuthor, isPureRetweet } from "../../tweetUtils";
 
 import "./Tweet.css";
@@ -20,7 +20,7 @@ const UNKNOWN_USER: Pick<FullUser, "name" | "screen_name" | "profile_image_url_h
 };
 
 interface TweetProps {
-    tweet: TimeParsedTweet;
+    tweet: AugmentedTweet;
     retweeter?: string;
     hasRepliesUnder?: boolean;
 }
@@ -65,7 +65,7 @@ export const Tweet = React.memo(function Tweet(props: TweetProps) {
 });
 
 interface TweetSubComponentProps {
-    tweet: TimeParsedTweet;
+    tweet: AugmentedTweet;
 }
 
 interface TweetHeadingProps extends TweetSubComponentProps {

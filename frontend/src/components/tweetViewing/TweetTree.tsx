@@ -1,9 +1,9 @@
 import React from "react";
-import { TimeParsedTweet } from "../../TimeParsedTweet";
+import { AugmentedTweet } from "../../AugmentedTweet";
 import { Tweet } from "./Tweet";
 
 export interface TweetTreeNode {
-    tweet: TimeParsedTweet;
+    tweet: AugmentedTweet;
     children: TweetTreeNode[];
 }
 
@@ -12,7 +12,7 @@ export interface TweetTreeNode {
  * @param tweets 
  * @return list of root nodes in no particular order
  */
-export function buildTweetTrees(tweets: TimeParsedTweet[]): TweetTreeNode[] {
+export function buildTweetTrees(tweets: AugmentedTweet[]): TweetTreeNode[] {
     const rootNodes = [];
     const treeNodeForId = new Map<string, TweetTreeNode>();
     for (const tweet of tweets) {

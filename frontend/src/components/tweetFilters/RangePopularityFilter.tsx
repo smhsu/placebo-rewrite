@@ -5,7 +5,7 @@ import { flatten } from "lodash";
 import { ITweetFilter } from "./ITweetFilter";
 import { SliderContainer } from "./SliderContainer";
 import { TweetPopularityCalculator } from "../../TweetPopularityCalculator";
-import { TimeParsedTweet } from "../../TimeParsedTweet";
+import { AugmentedTweet } from "../../AugmentedTweet";
 
 export class RangePopularityFilter implements ITweetFilter<[number, number]> {
     private _popularityCalculator: TweetPopularityCalculator;
@@ -44,7 +44,7 @@ export class RangePopularityFilter implements ITweetFilter<[number, number]> {
         </SliderContainer>;
     }
 
-    filter(tweets: TimeParsedTweet[], currentState: [number, number]): TimeParsedTweet[] {
+    filter(tweets: AugmentedTweet[], currentState: [number, number]): AugmentedTweet[] {
         const chunks = this._popularityCalculator.sortAndChunk(tweets, this._numSliderStops);
         return flatten(chunks.slice(currentState[0] - 1, currentState[1]));
     }

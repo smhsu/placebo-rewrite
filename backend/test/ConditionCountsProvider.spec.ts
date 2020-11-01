@@ -1,51 +1,81 @@
 import * as Lab from "@hapi/lab";
-import {expect} from "@hapi/code";
-import {ConditionCountsProvider} from "../src/database/ConditionCountsProvider";
-import {ExperimentalCondition} from "../src/common/getExperimentalConditionApi";
-import {MockMongoClient} from "./mockObjects/MockMongoClient";
+import { expect } from "@hapi/code";
+import { stub } from "sinon";
+import { ConditionCountsProvider, ConditionCounts } from "../src/database/ConditionCountsProvider";
+import { ExperimentalCondition } from "../../common/getExperimentalConditionApi";
+import { MockMongoClient } from "./mockObjects/MockMongoClient";
 
 const { describe, it, beforeEach } = exports.lab = Lab.script();
-
-const dbName = "random db name";
-const collectionName = "random collection name";
 
 describe("ConditionCountsProvider testing -> ", () => {
     let mockMongoClient: MockMongoClient;
     let provider: ConditionCountsProvider;
+
     beforeEach(() => {
         mockMongoClient = new MockMongoClient();
-        provider = new ConditionCountsProvider(mockMongoClient as any, dbName, collectionName);
+        provider = ConditionCountsProvider.defaultFactory({
+            client: mockMongoClient,
+            dbName: "random db name",
+            collectionName: "random collection name"
+        });
     });
+
     it("should propagate getCounts promise rejection", async () => {
-        mockMongoClient.config.collectionConfig.findOne.throwError = true;
-        await expect(provider.getCounts()).to.reject();
+        mockMongoClient.modifyCollection({ findOne: stub().rejects() });
+        expect(provider.getCounts()).to.reject();
     });
-    it("should create empty counts object", () => {
-        const result = ConditionCountsProvider.makeZeroedCountDictionary();
-        const conditionValues = Object.values(ExperimentalCondition);
-        expect(Object.keys(result).length).to.equal(conditionValues.length);
-        for (const key of conditionValues) {
-            expect(result[key]).to.equal(0);
+
+    it("should get empty counts when no records found", async () => {
+        mockMongoClient.modifyCollection({ findOne: stub().resolves(null) });
+        const result = await provider.getCounts();
+        for (const val of Object.values(ExperimentalCondition)) {
+            expect(result[val]).to.equal(0);
         }
     });
-    it("should get empty counts when no records found", async () => {
-        mockMongoClient.config.collectionConfig.findOne.notFind = true;
+
+    it("should get correct counts even when not all counts are in the database", async () => {
+        const dbCounts: Partial<ConditionCounts> = {
+            [ExperimentalCondition.NO_SETTING]: 3,
+            [ExperimentalCondition.POPULARITY_SLIDER]: 5
+        };
+        mockMongoClient.modifyCollection({ findOne: stub().resolves(dbCounts) });
         const result = await provider.getCounts();
-        expect(result[ExperimentalCondition.POPULARITY_SLIDER]).to.equal(0);
-        expect(result[ExperimentalCondition.RANDOMIZER_SETTING]).to.equal(0);
-        expect(result["identifier"]).to.be.undefined();
+
+        expect(Object.keys(result)).to.have.length(Object.values(ExperimentalCondition).length);
+        for (const condition of Object.values(ExperimentalCondition)) {
+            if (condition in dbCounts) {
+                expect(result[condition]).to.equal(dbCounts[condition]);
+            } else {
+                expect(result[condition]).to.equal(0);
+            }
+        }
     });
-    it("should get correct counts without identifier", async () => {
-        mockMongoClient.config.collectionConfig.conditionCounts.popularity_slider = 10;
-        mockMongoClient.config.collectionConfig.conditionCounts.random_setting = 20;
+
+    it("should have correct counts if database has extraneous keys", async () => {
+        const dbCounts = {
+            [ExperimentalCondition.SWAP_SETTING]: 3,
+            [ExperimentalCondition.POPULARITY_SLIDER]: 5,
+            [ExperimentalCondition.NO_SETTING]: 90,
+            extraneousKey1: "str1",
+            extraneousKey2: "str2",
+            extraneousKey3: true,
+        };
+        mockMongoClient.modifyCollection({findOne: stub().returns(dbCounts)});
         const result = await provider.getCounts();
-        expect(result[ExperimentalCondition.POPULARITY_SLIDER]).to.equal(10);
-        expect(result[ExperimentalCondition.RANDOMIZER_SETTING]).to.equal(20);
-        expect(result["identifier"]).to.be.undefined();
+        const allowedKeys = new Set(Object.values(ExperimentalCondition) as string[]);
+        for (const key of Object.keys(result)) {
+            expect(allowedKeys.has(key)).to.be.true();
+            if (Object.prototype.hasOwnProperty.call(dbCounts, key)) {
+                expect(result[key]).to.equal(dbCounts[key]);
+            } else {
+                expect(result[key]).to.equal(0);
+            }
+        }
     });
+
     it("should propagate incrementCount promise rejection", async () => {
         // incrementCount cannot be fully tested without connecting to an actual db
-        mockMongoClient.config.collectionConfig.updateOne.throwError = true;
-        await expect(provider.incrementCount(ExperimentalCondition.RANDOMIZER_SETTING)).to.reject();
+        mockMongoClient.modifyCollection({ updateOne: stub().rejects() });
+        expect(provider.incrementCount(ExperimentalCondition.NO_SETTING_RANDOM)).to.reject();
     });
 });

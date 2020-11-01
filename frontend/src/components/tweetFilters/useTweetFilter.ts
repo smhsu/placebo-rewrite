@@ -1,43 +1,37 @@
 import React from "react";
 
-import { TimeParsedTweet } from "../../TimeParsedTweet";
+import { AugmentedTweet } from "../../AugmentedTweet";
 import { TweetPopularityCalculator } from "../../TweetPopularityCalculator";
 import { ExperimentalCondition } from "../../common/getExperimentalConditionApi";
 
 import { ITweetFilter } from "./ITweetFilter";
 import { RangePopularityFilter } from "./RangePopularityFilter";
-import { RandomFilter } from "./RandomFilter";
-import { LoadingFilter } from "./LoadingFilter";
-import { ThresholdPopularityFilter } from "./ThresholdPopularityFilter";
-import { IntervalFilter } from "./IntervalFilter";
+import { NoopFilter } from "./NoopFilter";
 
 const NUM_SLIDER_STOPS = 9;
 const POPULARITY_CALCULATOR = new TweetPopularityCalculator();
 
 function getTweetFilterForCondition(condition: ExperimentalCondition): ITweetFilter<unknown> {
     switch (condition) {
-        case ExperimentalCondition.UNKNOWN:
-            return new LoadingFilter();
-        case ExperimentalCondition.RANDOMIZER_SETTING:
-        case ExperimentalCondition.RANDOM:
-            return new RandomFilter(NUM_SLIDER_STOPS);
-        case ExperimentalCondition.INTERVAL:
-            return new IntervalFilter(POPULARITY_CALCULATOR, NUM_SLIDER_STOPS);
-        case ExperimentalCondition.THRESHOLD:
-            return new ThresholdPopularityFilter(POPULARITY_CALCULATOR, NUM_SLIDER_STOPS)
+        case ExperimentalCondition.SWAP_SETTING:
+            return new NoopFilter();
         case ExperimentalCondition.POPULARITY_SLIDER:
-        case ExperimentalCondition.RANGE:
-        default:
+        case ExperimentalCondition.NOT_WORKING_POPULARITY_SLIDER:
             return new RangePopularityFilter(POPULARITY_CALCULATOR, NUM_SLIDER_STOPS);
+        case ExperimentalCondition.NO_SETTING:
+        case ExperimentalCondition.NO_SETTING_RANDOM:
+        case ExperimentalCondition.UNKNOWN:
+        default:
+            return new NoopFilter();
     }
 }
 
 interface ReturnValue {
-    renderedSetting: React.ReactElement | null;
-    filteredTweets: TimeParsedTweet[];
+    renderedSetting: React.ReactNode;
+    filteredTweets: AugmentedTweet[];
 }
 
-export function useTweetFilter(tweets: TimeParsedTweet[], condition: ExperimentalCondition, onChange?: () => void): ReturnValue {
+export function useTweetFilter(tweets: AugmentedTweet[], condition: ExperimentalCondition, onChange?: () => void): ReturnValue {
     const filterObj = getTweetFilterForCondition(condition);
     const [prevCondition, setPrevCondition] = React.useState<ExperimentalCondition | null>(null);
     const [settingState, setSettingState] = React.useState(filterObj.getInitialState());
@@ -45,7 +39,6 @@ export function useTweetFilter(tweets: TimeParsedTweet[], condition: Experimenta
     if (condition !== prevCondition) { // Setting type has changed.  We need to reset state.  Bail early.
         setSettingState(filterObj.getInitialState());
         setPrevCondition(condition);
-        console.warn('xxxxx', condition, settingState)
         return {
             renderedSetting: null,
             filteredTweets: tweets
@@ -57,17 +50,8 @@ export function useTweetFilter(tweets: TimeParsedTweet[], condition: Experimenta
         onChange && onChange();
     }
 
-    const filteredTweets = filterObj.filter(tweets, settingState);
-    let resultTweets: TimeParsedTweet[];
-    if (filterObj.isDisallowSortingByTime) {
-        resultTweets = filteredTweets;
-    } else {
-        resultTweets = filteredTweets.slice();
-        resultTweets.sort((tweet1, tweet2) => tweet2.created_at_unix - tweet1.created_at_unix);
-    }
-
     return {
         renderedSetting: filterObj.renderSetting(settingState, wrappedOnChange),
-        filteredTweets: resultTweets
+        filteredTweets: filterObj.filter(tweets, settingState)
     };
 }
