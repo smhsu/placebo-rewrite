@@ -1,5 +1,5 @@
-import React from "react";
-import { TweetTreeDisplay, buildTweetTrees } from "./TweetTree";
+import React, {useCallback, useEffect, useState} from "react";
+import {TweetTree} from "./TweetTree";
 import { useExperimentalConditionFetch } from "../useExperimentalConditionFetch";
 import { useTweetFilter } from "../tweetFilters/useTweetFilter";
 
@@ -8,6 +8,7 @@ import { ParticipantLog } from "../../ParticipantLog";
 import { ExperimentalCondition } from "../../common/getExperimentalConditionApi";
 
 import "./TweetView.css";
+import {ITweetFilterDataConfig} from "../tweetFilters/ITweetFilter";
 
 const isShowingConditionChooser = process.env.REACT_APP_DEBUG_MODE === "true";
 
@@ -21,13 +22,29 @@ export const TweetView = React.memo(function TweetView(props: Props) {
     const {tweets, log, settingsYOffset} = props;
     const condition = useExperimentalConditionFetch();
     log.experimentalCondition = condition;
-    const [manualCondition, setManualCondition] = React.useState<ExperimentalCondition | "">("");
-    const { renderedSetting, filteredTweets } = useTweetFilter(tweets, manualCondition || condition, () => {
-        log.didInteractWithSetting = true;
-    });
+    const [manualCondition, setManualCondition] = useState<ExperimentalCondition | "">("");
+    const [updatedTweets, setUpdatedTweets] = useState<AugmentedTweet[]>([]);
+    const [dataConfig, setDataConfig] = useState<ITweetFilterDataConfig | null>(null);
 
-    const rootNodes = buildTweetTrees(filteredTweets);
-    const sortedRootNodes = rootNodes.sort((n1, n2) => n2.tweet.created_at_unix - n1.tweet.created_at_unix);
+    useEffect(() => {
+        setUpdatedTweets(tweets);
+    }, [tweets]);
+
+    const Filter = useTweetFilter(updatedTweets, manualCondition || condition);
+    const filterData = useCallback((newData: AugmentedTweet[], config?: ITweetFilterDataConfig) => {
+        if (config) {
+            setDataConfig(config);
+        } else {
+            setDataConfig(null);
+        }
+        setUpdatedTweets(newData);
+        log.didInteractWithSetting = true;
+    }, [log]);
+
+    const updateManualCondition = useCallback((newCondition: ExperimentalCondition | '') => {
+        setManualCondition(newCondition);
+        setUpdatedTweets(tweets);
+    }, [tweets])
 
     return <div className="container-fluid">
         <div className="row justify-content-center">
@@ -36,15 +53,15 @@ export const TweetView = React.memo(function TweetView(props: Props) {
                 {isShowingConditionChooser &&
                     <ManualConditionChooser
                         condition={manualCondition}
-                        onChange={setManualCondition}
+                        onChange={updateManualCondition}
                         style={{ top: props.settingsYOffset }}
                     />
                 }
-
-                {sortedRootNodes.map(rootNode => <TweetTreeDisplay key={rootNode.tweet.id_str} node={rootNode} />)}
+                <TweetTree tweets={updatedTweets} config={dataConfig}/>
             </div>
-
-            {renderedSetting && <SettingsPanel top={settingsYOffset}>{renderedSetting}</SettingsPanel>}
+            {Filter && <SettingsPanel top={settingsYOffset}>
+                <Filter originalData={tweets} onDataUpdated={filterData}/>
+            </SettingsPanel>}
         </div>
     </div>;
 });

@@ -1,17 +1,11 @@
-import React from "react";
+import React, {useState} from "react";
 import { ITweetFilter } from "./ITweetFilter";
-import { AugmentedTweet } from "../../AugmentedTweet";
 
-export class NoopFilter implements ITweetFilter<undefined> {
-    getInitialState() {
-        return undefined;
+export function NoopFilter({ onDataUpdated, originalData }: ITweetFilter) {
+    const [isEvenClick, setIsEvenClick] = useState(false);
+    const callback = () => {
+        setIsEvenClick(!isEvenClick);
+        onDataUpdated(originalData, {shouldFlip: !isEvenClick, shouldAnimate: true});
     }
-
-    renderSetting(): React.ReactNode {
-        return null;
-    }
-
-    filter(tweets: AugmentedTweet[]) {
-        return tweets;
-    }
+    return <button onClick={callback}>Update Slider</button>
 }

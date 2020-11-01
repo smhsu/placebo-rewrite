@@ -1,12 +1,11 @@
-import React from "react";
 import { AugmentedTweet } from "../../AugmentedTweet";
 
-export interface ITweetFilter<S> {
-    getInitialState(): S;
+export interface ITweetFilterDataConfig {
+    shouldFlip: boolean;
+    shouldAnimate: boolean;
+}
 
-    renderSetting(currentState: S, updateState: (newState: S) => void): React.ReactNode;
-
-    filter(tweets: AugmentedTweet[], currentState: S): AugmentedTweet[];
-
-    isDisallowSortingByTime?: boolean;
+export interface ITweetFilter {
+    originalData: AugmentedTweet[];
+    onDataUpdated(tweets: AugmentedTweet[], config?: ITweetFilterDataConfig): void;
 }

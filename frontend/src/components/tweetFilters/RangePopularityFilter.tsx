@@ -1,51 +1,41 @@
-import React from "react";
+import React, {useState} from "react";
 import { Slider } from "@material-ui/core";
 import { flatten } from "lodash";
 
 import { ITweetFilter } from "./ITweetFilter";
 import { SliderContainer } from "./SliderContainer";
 import { TweetPopularityCalculator } from "../../TweetPopularityCalculator";
-import { AugmentedTweet } from "../../AugmentedTweet";
 
-export class RangePopularityFilter implements ITweetFilter<[number, number]> {
-    private _popularityCalculator: TweetPopularityCalculator;
-    private _numSliderStops: number;
-    constructor(popularityCalculator: TweetPopularityCalculator, numStops: number) {
-        this._popularityCalculator = popularityCalculator;
-        this._numSliderStops = numStops;
-    }
-    
-    getInitialState(): [number, number] {
-        return [1, this._numSliderStops];
-    }
+const NUM_SLIDER_STOPS = 9;
+const POPULARITY_CALCULATOR = new TweetPopularityCalculator();
 
-    renderSetting(currentState: [number, number], updateState: (newState: [number, number]) => void): JSX.Element {
-        const onChange = (_event: React.ChangeEvent<{}>, value: number | number[]) => {
-            if (typeof value === "number") {
-                updateState([value, value]);
-            } else {
-                updateState(value as [number, number]);
-            }
-        };
+export function RangePopularityFilter({ originalData, onDataUpdated }: ITweetFilter) {
+    const [state, setState] = useState([1, NUM_SLIDER_STOPS]);
 
-        return <SliderContainer
-            mainLabel="Popularity range"
-            instructions="Move the circles to customize Tweets. "
-            lowLabel="Least popular"
-            highLabel="Most popular"
-        >
-            <Slider
-                min={1}
-                max={this._numSliderStops}
-                step={1}
-                value={currentState}
-                onChange={onChange}
-            />
-        </SliderContainer>;
-    }
+    const onChange = (_event: React.ChangeEvent<{}>, value: number | number[]) => {
+        let newState: [number, number];
+        if (typeof value === "number") {
+            newState = [value, value];
+        } else {
+            newState = value as [number, number];
+        }
+        setState(newState);
+        const chunks = POPULARITY_CALCULATOR.sortAndChunk(originalData, NUM_SLIDER_STOPS);
+        onDataUpdated(flatten(chunks.slice(newState[0] - 1, newState[1])));
+    };
 
-    filter(tweets: AugmentedTweet[], currentState: [number, number]): AugmentedTweet[] {
-        const chunks = this._popularityCalculator.sortAndChunk(tweets, this._numSliderStops);
-        return flatten(chunks.slice(currentState[0] - 1, currentState[1]));
-    }
+    return <SliderContainer
+        mainLabel="Popularity range"
+        instructions="Move the circles to customize Tweets. "
+        lowLabel="Least popular"
+        highLabel="Most popular"
+    >
+        <Slider
+            min={1}
+            max={NUM_SLIDER_STOPS}
+            step={1}
+            value={state}
+            onChange={onChange}
+        />
+    </SliderContainer>;
 }
