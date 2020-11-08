@@ -1,35 +1,29 @@
 import React, {FunctionComponent, useEffect} from "react";
 
-import {AugmentedTweet} from "../../AugmentedTweet";
 import {ExperimentalCondition} from "../../common/getExperimentalConditionApi";
 
 import {ITweetFilter} from "./ITweetFilter";
 import {RangePopularityFilter} from "./RangePopularityFilter";
-import {NoopFilter} from "./NoopFilter";
+import {SwapFilter} from "./SwapFilter";
+import {RandomizeFilter} from "./RandomizeFilter";
 
 
-function getTweetFilterForCondition(condition: ExperimentalCondition): FunctionComponent<ITweetFilter> {
-    switch (condition) {
+export function useTweetFilter(condition: ExperimentalCondition): FunctionComponent<ITweetFilter> | null {
+    const [prevCondition, setPrevCondition] = React.useState(ExperimentalCondition.UNKNOWN);
+    useEffect(() => {
+        setPrevCondition(condition);
+    }, [condition]);
+    switch (prevCondition) {
         case ExperimentalCondition.POPULARITY_SLIDER:
         case ExperimentalCondition.NOT_WORKING_POPULARITY_SLIDER:
             return RangePopularityFilter;
         case ExperimentalCondition.SWAP_SETTING:
-        case ExperimentalCondition.NO_SETTING:
+            return SwapFilter;
         case ExperimentalCondition.NO_SETTING_RANDOM:
+            return RandomizeFilter
+        case ExperimentalCondition.NO_SETTING:
         case ExperimentalCondition.UNKNOWN:
         default:
-            return NoopFilter;
+            return null;
     }
-}
-
-export function useTweetFilter(tweets: AugmentedTweet[], condition: ExperimentalCondition): FunctionComponent<ITweetFilter> | null {
-    const [prevCondition, setPrevCondition] = React.useState<ExperimentalCondition>(ExperimentalCondition.UNKNOWN);
-    // if (condition !== prevCondition) { // Setting type has changed.  We need to reset state.  Bail early.
-    //     setPrevCondition(condition);
-    //     return null;
-    // }
-    useEffect(() => {
-        setPrevCondition(condition);
-    }, [condition]);
-    return getTweetFilterForCondition(prevCondition);
 }

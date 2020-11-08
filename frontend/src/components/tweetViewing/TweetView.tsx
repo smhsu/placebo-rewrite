@@ -1,5 +1,4 @@
-import React, {useCallback, useEffect, useState} from "react";
-import {TweetTree} from "./TweetTree";
+import React, {forwardRef, useCallback, useEffect, useState} from "react";
 import { useExperimentalConditionFetch } from "../useExperimentalConditionFetch";
 import { useTweetFilter } from "../tweetFilters/useTweetFilter";
 
@@ -8,7 +7,9 @@ import { ParticipantLog } from "../../ParticipantLog";
 import { ExperimentalCondition } from "../../common/getExperimentalConditionApi";
 
 import "./TweetView.css";
-import {ITweetFilterDataConfig} from "../tweetFilters/ITweetFilter";
+import {FlatTweetTreeBranch, RequestedRenderConfig} from "../tweetFilters/ITweetFilter";
+import {Tweet} from "./Tweet";
+import FlipMove from "react-flip-move";
 
 const isShowingConditionChooser = process.env.REACT_APP_DEBUG_MODE === "true";
 
@@ -18,37 +19,41 @@ interface Props {
     settingsYOffset?: number;
 }
 
+const TweetBranchDisplay = forwardRef<HTMLDivElement, {branch: FlatTweetTreeBranch}>(function TweetBranchDisplay ({branch}, ref) {
+    return <div ref={ref}>
+        {branch.tweets.map((tweet, idx) => {
+            if (idx + 1 !== branch.tweets.length) {
+                return <Tweet key={tweet.id_str} tweet={tweet} hasRepliesUnder={true} />
+            }
+            return <Tweet key={tweet.id_str} tweet={tweet} hasRepliesUnder={false} />
+        })}
+    </div>;
+});
+
 export const TweetView = React.memo(function TweetView(props: Props) {
     const {tweets, log, settingsYOffset} = props;
     const condition = useExperimentalConditionFetch();
     log.experimentalCondition = condition;
     const [manualCondition, setManualCondition] = useState<ExperimentalCondition | "">("");
-    const [updatedTweets, setUpdatedTweets] = useState<AugmentedTweet[]>([]);
-    const [dataConfig, setDataConfig] = useState<ITweetFilterDataConfig | null>(null);
+    const [data, setData] = useState(new RequestedRenderConfig());
 
     useEffect(() => {
-        setUpdatedTweets(tweets);
+        setData(new RequestedRenderConfig(tweets));
     }, [tweets]);
 
-    const Filter = useTweetFilter(updatedTweets, manualCondition || condition);
-    const filterData = useCallback((newData: AugmentedTweet[], config?: ITweetFilterDataConfig) => {
-        if (config) {
-            setDataConfig(config);
-        } else {
-            setDataConfig(null);
-        }
-        setUpdatedTweets(newData);
+    const Filter = useTweetFilter(manualCondition || condition);
+    const filterData = useCallback((data: RequestedRenderConfig) => {
+        setData(data);
         log.didInteractWithSetting = true;
     }, [log]);
 
     const updateManualCondition = useCallback((newCondition: ExperimentalCondition | '') => {
         setManualCondition(newCondition);
-        setUpdatedTweets(tweets);
+        setData(new RequestedRenderConfig(tweets));
     }, [tweets])
 
     return <div className="container-fluid">
         <div className="row justify-content-center">
-
             <div className="TweetView-tweets-wrapper col">
                 {isShowingConditionChooser &&
                     <ManualConditionChooser
@@ -57,10 +62,12 @@ export const TweetView = React.memo(function TweetView(props: Props) {
                         style={{ top: props.settingsYOffset }}
                     />
                 }
-                <TweetTree tweets={updatedTweets} config={dataConfig}/>
+                <FlipMove enterAnimation={false} disableAllAnimations={!data.shouldAnimate}>
+                    {data.flattenedTweetTree.map(branch => <TweetBranchDisplay key={branch.rootId} branch={branch} />)}
+                </FlipMove>
             </div>
             {Filter && <SettingsPanel top={settingsYOffset}>
-                <Filter originalData={tweets} onDataUpdated={filterData}/>
+                <Filter data={tweets} onUpdate={filterData}/>
             </SettingsPanel>}
         </div>
     </div>;
