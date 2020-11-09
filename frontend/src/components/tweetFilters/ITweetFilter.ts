@@ -1,14 +1,7 @@
 import { AugmentedTweet } from "../../AugmentedTweet";
 
-export class FlatTweetTreeBranch {
-    constructor(
-        public tweets: AugmentedTweet[] = []
-    ) {}
-    get rootId() {
-        return this.tweets[0].id_str;
-    }
-}
-export type FlatTweetTree = FlatTweetTreeBranch[];
+export const TWEETS_COLLAPSE_THRESHOLD = 3;
+export type TweetTreeBranch = AugmentedTweet[];
 
 class TweetTree {
     constructor(
@@ -16,13 +9,13 @@ class TweetTree {
         public children: TweetTree[] = []
     ) {}
 
-    flatten(): FlatTweetTree {
-        const result: FlatTweetTree = [];
+    flatten(): TweetTreeBranch[] {
+        const result: TweetTreeBranch[] = [];
         let temp: AugmentedTweet[] = [];
         (function dfs(currentTree: TweetTree) {
             temp.push(currentTree.tweet);
             if (currentTree.children.length === 0) {
-                result.push(new FlatTweetTreeBranch(temp));
+                result.push(temp);
                 temp = [];
             } else {
                 for (const child of currentTree.children) {
@@ -55,7 +48,7 @@ class TweetTree {
 }
 
 export class RequestedRenderConfig {
-    public flattenedTweetTree: FlatTweetTree = [];
+    public flattenedTweetTree: TweetTreeBranch[] = [];
     constructor(
         tweets: AugmentedTweet[] = [],
         public shouldAnimate = false

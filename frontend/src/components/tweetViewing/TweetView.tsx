@@ -7,9 +7,11 @@ import { ParticipantLog } from "../../ParticipantLog";
 import { ExperimentalCondition } from "../../common/getExperimentalConditionApi";
 
 import "./TweetView.css";
-import {FlatTweetTreeBranch, RequestedRenderConfig} from "../tweetFilters/ITweetFilter";
+import {TweetTreeBranch, RequestedRenderConfig, TWEETS_COLLAPSE_THRESHOLD} from "../tweetFilters/ITweetFilter";
 import {Tweet} from "./Tweet";
 import FlipMove from "react-flip-move";
+import {getTweetAuthor} from "../../tweetUtils";
+import {TweetsCollapsedIndicator} from "./TweetsCollapsedIndicator";
 
 const isShowingConditionChooser = process.env.REACT_APP_DEBUG_MODE === "true";
 
@@ -19,14 +21,25 @@ interface Props {
     settingsYOffset?: number;
 }
 
-const TweetBranchDisplay = forwardRef<HTMLDivElement, {branch: FlatTweetTreeBranch}>(function TweetBranchDisplay ({branch}, ref) {
+const TweetBranchDisplay = forwardRef<HTMLDivElement, {branch: TweetTreeBranch}>(function TweetBranchDisplay ({branch}, ref) {
+    const canCurrentBranchCollapse = branch.length > TWEETS_COLLAPSE_THRESHOLD;
+    const [isShowingFullBranch, setIsShowingFullBranch] = useState(!canCurrentBranchCollapse);
+    useEffect(() => {
+        setIsShowingFullBranch(branch.length <= TWEETS_COLLAPSE_THRESHOLD);
+    }, [branch]);
+
+    const shouldCurrentBranchCollapse = !isShowingFullBranch && canCurrentBranchCollapse;
+    const tweets = shouldCurrentBranchCollapse ? branch.slice(0, TWEETS_COLLAPSE_THRESHOLD) : branch;
     return <div ref={ref}>
-        {branch.tweets.map((tweet, idx) => {
-            if (idx + 1 !== branch.tweets.length) {
-                return <Tweet key={tweet.id_str} tweet={tweet} hasRepliesUnder={true} />
-            }
-            return <Tweet key={tweet.id_str} tweet={tweet} hasRepliesUnder={false} />
+        {tweets.map((tweet, idx) => {
+            const isLastTweet = idx + 1 === tweets.length;
+            return <Tweet key={tweet.id_str} tweet={tweet} hasRepliesUnder={isLastTweet ? shouldCurrentBranchCollapse : true}/>
         })}
+        {shouldCurrentBranchCollapse && <TweetsCollapsedIndicator
+            profileImage={getTweetAuthor(branch[TWEETS_COLLAPSE_THRESHOLD]).profile_image_url_https}
+            tweetsLeft={branch.length - TWEETS_COLLAPSE_THRESHOLD}
+            onExpand={() => setIsShowingFullBranch(true)}
+        />}
     </div>;
 });
 
@@ -63,7 +76,7 @@ export const TweetView = React.memo(function TweetView(props: Props) {
                     />
                 }
                 <FlipMove enterAnimation={false} disableAllAnimations={!data.shouldAnimate}>
-                    {data.flattenedTweetTree.map(branch => <TweetBranchDisplay key={branch.rootId} branch={branch} />)}
+                    {data.flattenedTweetTree.map(branch => <TweetBranchDisplay key={branch[0].id_str} branch={branch} />)}
                 </FlipMove>
             </div>
             {Filter && <SettingsPanel top={settingsYOffset}>

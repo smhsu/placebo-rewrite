@@ -1,5 +1,9 @@
+:root {
+    --Tweet-color-emphasis: #1DA1F2;
+}
+
 .navbar {
-    background-color: #1DA1F2;
+    background-color: var(--Tweet-color-emphasis);
 }
 
 .navbar-brand {

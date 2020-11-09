@@ -1,23 +1,14 @@
 import React from "react";
 import he from "he";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faHeart, faRetweet } from "@fortawesome/free-solid-svg-icons";
-import { FullUser } from "twitter-d";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome"
+import {faHeart, faRetweet} from "@fortawesome/free-solid-svg-icons";
 
-import { ImgWithFallback } from "./ImgWithFallback";
-import { AugmentedTweet } from "../../AugmentedTweet";
-import { getTweetAuthor, isPureRetweet } from "../../tweetUtils";
+import {ImgWithFallback} from "./ImgWithFallback";
+import {AugmentedTweet} from "../../AugmentedTweet";
+import {DEFAULT_PROFILE_PICTURE_URL, getTweetAuthor, isPureRetweet} from "../../tweetUtils";
 
 import "./Tweet.css";
 
-const DEFAULT_PROFILE_PICTURE_URL =
-    "https://abs.twimg.com/sticky/default_profile_images/default_profile_reasonably_small.png";
-
-const UNKNOWN_USER: Pick<FullUser, "name" | "screen_name" | "profile_image_url_https"> = {
-    name: "(Unknown user)",
-    screen_name: "",
-    profile_image_url_https: DEFAULT_PROFILE_PICTURE_URL,
-};
 
 interface TweetProps {
     tweet: AugmentedTweet;
@@ -26,7 +17,7 @@ interface TweetProps {
 }
 export const Tweet = React.memo(function Tweet(props: TweetProps) {
     const { tweet, retweeter, hasRepliesUnder } = props;
-    const user = getTweetAuthor(tweet, UNKNOWN_USER);
+    const user = getTweetAuthor(tweet);
     const retweetedStatus = tweet.retweeted_status;
     if (isPureRetweet(props.tweet)) {
         return <Tweet tweet={retweetedStatus!} retweeter={user.name} hasRepliesUnder={props.hasRepliesUnder} />;
@@ -74,7 +65,7 @@ interface TweetHeadingProps extends TweetSubComponentProps {
 }
 function TweetHeading(props: TweetHeadingProps): JSX.Element {
     const { tweet, showProfileImg, style } = props;
-    const user = getTweetAuthor(tweet, UNKNOWN_USER);
+    const user = getTweetAuthor(tweet);
     return <div className="Tweet-heading" style={style}>
         {
         showProfileImg &&

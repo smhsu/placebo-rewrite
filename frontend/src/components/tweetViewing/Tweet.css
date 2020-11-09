@@ -5,7 +5,7 @@
     --Tweet-profile-right-margin: 10px;
     --Tweet-profile-height: calc(var(--Tweet-profile-width) + var(--Tweet-profile-top-margin));
     --Tweet-margin-top: 10px;
-    --Tweet-padding-bottom: 20px;
+    --Tweet-padding-bottom: 10px;
 }
 
 .Tweet-outer {
@@ -27,6 +27,14 @@
     padding-bottom: var(--Tweet-padding-bottom);
 }
 
+.Tweet-inner-thread-minimized {
+    min-height: 0;
+    padding-bottom: calc(var(--Tweet-padding-bottom) / 2);
+    flex-direction: row;
+    align-items: center;
+    cursor: pointer;
+}
+
 .Tweet-vertical-spaced-children > * { /* Adds margin-top to every direct child. */
     margin-top: 1em;
 }
@@ -36,6 +44,11 @@
     margin-right: var(--Tweet-profile-right-margin);
     width: var(--Tweet-profile-width);
     flex-shrink: 0;
+}
+
+.Tweet-profile-thread-minimized {
+    width: calc(var(--Tweet-profile-width) * 3 / 4);
+    margin-left: calc(var(--Tweet-profile-width) / 8);
 }
 
 .Tweet-thread-indicator {
