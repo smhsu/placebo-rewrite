@@ -1,5 +1,5 @@
 import { MongoClient, Collection } from "mongodb";
-import { ExperimentalCondition } from "../common/getExperimentalConditionApi";
+import { ExperimentalCondition } from "../common/ExperimentalCondition";
 
 /** Identifier of the one document we plan to store. */
 const COUNT_DOCUMENT_NAME = "counts";

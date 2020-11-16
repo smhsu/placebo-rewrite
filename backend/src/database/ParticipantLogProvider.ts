@@ -1,9 +1,8 @@
 import { Collection } from "mongodb";
 import { IParticipantLog } from "../common/logParticipantApi";
-import {CollectionConfig} from "./ConditionCountsProvider";
+import { CollectionConfig } from "./ConditionCountsProvider";
 
 export class ParticipantLogProvider {
-
     static defaultFactory(config: CollectionConfig): ParticipantLogProvider {
         return new ParticipantLogProvider().withMongoConfig(config);
     }

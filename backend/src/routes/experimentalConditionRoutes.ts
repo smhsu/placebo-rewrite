@@ -1,35 +1,28 @@
 import { Server } from "@hapi/hapi";
+import { sum, maxBy } from "lodash";
 import * as ExperimentalConditionApi from "../common/getExperimentalConditionApi";
-import { ExperimentalCondition } from "../common/getExperimentalConditionApi";
-import { ConditionCountsProvider } from "../database/ConditionCountsProvider";
+import { ExperimentalCondition, DesiredProportions, getRandomCondition } from "../common/ExperimentalCondition";
+import { ConditionCountsProvider, ConditionCounts } from "../database/ConditionCountsProvider";
 
 /**
  * Registers APIs that relate to generating random group assignments.
  *
- * @param server
- * @param makeConditionCountsProvider
+ * @param server - the Server object to register the routes with
+ * @param makeConditionCountsProvider - factory function that returns a database connection
+ * @param desiredConditionProportions - desired proportion of experiment conditions to return from the API.
  * @author hhhenrysss
  */
 export default function registerRoutes(
     server: Server,
-    makeConditionCountsProvider = ConditionCountsProvider.defaultFactory
+    makeConditionCountsProvider = ConditionCountsProvider.defaultFactory,
+    desiredConditionProportions = DesiredProportions
 ): void {
-    if (
-        !process.env.COUNT_COLLECTION_NAME ||
-        !process.env.DATABASE_NAME ||
-        !process.env.RANDOMIZER_SETTING_PROPORTION
-    ) {
-        throw new Error(
-            "COUNT_COLLECTION_NAME, DATABASE_NAME, and RANDOMIZER_SETTING_PROPORTION must be specified in the " + 
-            "environment variables."
-        );
+    if (!process.env.COUNT_COLLECTION_NAME || !process.env.DATABASE_NAME) {
+        throw new Error("COUNT_COLLECTION_NAME and RANDOMIZER_SETTING_PROPORTION must be specified in the " +
+            "environment variables.");
     }
-
-    const desiredRandomSettingProportion = parseFloat(process.env.RANDOMIZER_SETTING_PROPORTION);
-    if (Number.isNaN(desiredRandomSettingProportion)) {
-        throw new Error("RANDOMIZER_SETTING_PROPORTION environment variable must be a number.");
-    } else if (desiredRandomSettingProportion < 0 || desiredRandomSettingProportion > 1) {
-        throw new Error("RANDOMIZER_SETTING_PROPORTION must within the range [0, 1].");
+    if (sum(Object.values(desiredConditionProportions)) != 1) {
+        throw new Error("Desired experiment condition proportions must sum to 1.");
     }
 
     const conditionCountsProvider = makeConditionCountsProvider({
@@ -42,24 +35,17 @@ export default function registerRoutes(
         method: ExperimentalConditionApi.METHOD,
         path: ExperimentalConditionApi.PATH,
         handler: async (request) => {
-            let proportionWithRandomizerSetting: number;
+            let counts: ConditionCounts | null = null;
             try {
-                const counts = await conditionCountsProvider.getCounts();
-                let totalAssignments = 0;
-                for (const count of Object.values(counts)) {
-                    totalAssignments += count;
-                }
-                proportionWithRandomizerSetting = counts[ExperimentalCondition.SWAP_SETTING] / totalAssignments;
+                counts = await conditionCountsProvider.getCounts();
             } catch (error) {
                 request.log("error", "Problem getting count of experimental condition assignments from database.  " +
                     "Participant will get a random assignment.");
                 request.log("error", error);
-                proportionWithRandomizerSetting = Math.random();
             }
 
-            const assignment = proportionWithRandomizerSetting < desiredRandomSettingProportion ?
-                ExperimentalCondition.SWAP_SETTING : ExperimentalCondition.POPULARITY_SLIDER;
-
+            const assignment = counts ?
+                assignLeastSatisfiedCondition(counts, desiredConditionProportions) : getRandomCondition();
             try {
                 await conditionCountsProvider.incrementCount(assignment);
             } catch (error) {
@@ -71,4 +57,16 @@ export default function registerRoutes(
             return payload;
         }
     });
+}
+
+function assignLeastSatisfiedCondition(
+    counts: ConditionCounts,
+    desiredProportions: Record<ExperimentalCondition, number>
+): ExperimentalCondition {
+    const totalAssignments = sum(Object.values(counts));
+    const differencesFromDesired: [ExperimentalCondition, number][] = Object.entries(counts).map(([condition, count]) =>
+        [condition as ExperimentalCondition, desiredProportions[condition] - (count / totalAssignments)]
+    );
+    const largestDifferencePair = maxBy(differencesFromDesired, 1);
+    return largestDifferencePair ? largestDifferencePair[0] : getRandomCondition();
 }

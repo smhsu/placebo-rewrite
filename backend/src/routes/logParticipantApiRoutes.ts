@@ -2,7 +2,7 @@ import { Server } from "@hapi/hapi";
 import Boom from "@hapi/boom";
 import { MongoClient, MongoError } from "mongodb";
 
-import * as StoreParticipantLogsApi from "../common/logParticipantApi";
+import * as LogParticipantApi from "../common/logParticipantApi";
 import { ParticipantLogProvider } from "../database/ParticipantLogProvider";
 
 /**
@@ -27,10 +27,10 @@ export default function registerRoutes(
     });
 
     server.route({
-        method: StoreParticipantLogsApi.METHOD,
-        path: StoreParticipantLogsApi.PATH,
+        method: LogParticipantApi.METHOD,
+        path: LogParticipantApi.PATH,
         handler: async request => {
-            if (!StoreParticipantLogsApi.isRequestPayload(request.payload)) {
+            if (!LogParticipantApi.isRequestPayload(request.payload)) {
                 return Boom.badRequest();
             }
 

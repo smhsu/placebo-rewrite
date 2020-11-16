@@ -1,4 +1,4 @@
-import { ExperimentalCondition } from "./getExperimentalConditionApi";
+import { ExperimentalCondition } from "./ExperimentalCondition";
 
 export const METHOD = "POST";
 export const PATH = "/api/store_log";

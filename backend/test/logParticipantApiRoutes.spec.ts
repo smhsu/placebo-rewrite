@@ -1,14 +1,13 @@
 import * as Lab from "@hapi/lab";
-import {expect} from "@hapi/code";
-import {Server, ServerInjectResponse} from "@hapi/hapi";
+import { expect } from "@hapi/code";
+import { Server, ServerInjectResponse } from "@hapi/hapi";
 import { stub } from "sinon";
+
 import { createTestServer } from "./createTestServer";
 import {MockMongoClient} from "./mockObjects/MockMongoClient";
-import * as StoreParticipantLogsApi from "../../common/logParticipantApi";
+import * as StoreParticipantLogsApi from "../src/common/logParticipantApi";
 import registerLogParticipantApiRoutes from "../src/routes/logParticipantApiRoutes";
-import {ParticipantLogProvider} from "../src/database/ParticipantLogProvider";
-
-
+import { ParticipantLogProvider } from "../src/database/ParticipantLogProvider";
 
 const { describe, it, beforeEach, afterEach } = exports.lab = Lab.script();
 

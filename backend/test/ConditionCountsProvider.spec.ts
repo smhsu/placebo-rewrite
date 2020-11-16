@@ -2,7 +2,7 @@ import * as Lab from "@hapi/lab";
 import { expect } from "@hapi/code";
 import { stub } from "sinon";
 import { ConditionCountsProvider, ConditionCounts } from "../src/database/ConditionCountsProvider";
-import { ExperimentalCondition } from "../../common/getExperimentalConditionApi";
+import { ExperimentalCondition } from "../src/common/ExperimentalCondition";
 import { MockMongoClient } from "./mockObjects/MockMongoClient";
 
 const { describe, it, beforeEach } = exports.lab = Lab.script();

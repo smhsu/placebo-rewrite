@@ -1,15 +1,17 @@
 import * as Lab from "@hapi/lab";
 import { expect } from "@hapi/code";
 import { Server } from "@hapi/hapi";
-import * as RequestTokenApi from "../../common/requestTokenApi";
-import * as GetTweetsApi from "../../common/getTweetsApi";
+import * as querystring from "querystring";
+import { stub } from "sinon";
+
 import { createTestServer } from "./createTestServer";
 import { MockMongoClient } from "./mockObjects/MockMongoClient";
 import { TwitterErrorResponseCodes } from "./mockObjects/MockTwitterClient";
-import * as querystring from "querystring";
+
 import twitterApiRoutes from "../src/routes/twitterApiRoutes";
-import {TwitterClient} from "../src/TwitterClient";
-import { stub } from "sinon";
+import { TwitterClient } from "../src/TwitterClient";
+import * as RequestTokenApi from "../src/common/requestTokenApi";
+import * as GetTweetsApi from "../src/common/getTweetsApi";
 
 const { describe, it, beforeEach, afterEach } = exports.lab = Lab.script();
 
