@@ -1,9 +1,11 @@
-import React, {useState} from "react";
-import {ITweetFilter, RequestedRenderConfig} from "./ITweetFilter";
+import React from "react";
+import { ITweetFilter, SettingComponentProps } from "./ITweetFilter";
+import { TweetThread, organizeIntoThreads } from "../../TweetThread";
+import { AugmentedTweet } from "../../AugmentedTweet";
 
-function swapFirstTwoElement<S>(data: S[]) {
+function swapFirstTwo<S>(data: S[]) {
     if (data.length <= 1) {
-        throw RangeError('data too short');
+        return data;
     }
     const firstElement = data[0];
     data[0] = data[1];
@@ -11,15 +13,22 @@ function swapFirstTwoElement<S>(data: S[]) {
     return data;
 }
 
-export function SwapFilter({ onUpdate, data }: ITweetFilter) {
-    const [isEvenClick, setIsEvenClick] = useState(false);
-    const callback = () => {
-        setIsEvenClick(!isEvenClick);
-        const config = new RequestedRenderConfig(data, true);
-        if (!isEvenClick) {
-            config.flattenedTweetTree = swapFirstTwoElement(config.flattenedTweetTree);
-        }
-        onUpdate(config);
-    }
-    return <button onClick={callback}>Swap tweets</button>
-}
+export const swapFilter: ITweetFilter<boolean> = {
+    initialState: false,
+
+    SettingComponent({currentState, onStateUpdated}: SettingComponentProps<boolean>) {
+        return <button
+            className="btn btn-primary"
+            onClick={() => onStateUpdated(!currentState)}
+        >
+            Swap first two threads
+        </button>;
+    },
+
+    doFilter(tweets: AugmentedTweet[], isSwapping: boolean): TweetThread[] {
+        const threads = organizeIntoThreads(tweets);
+        return isSwapping ? swapFirstTwo(threads) : threads;
+    },
+
+    shouldAnimateTweetChanges: true,
+};

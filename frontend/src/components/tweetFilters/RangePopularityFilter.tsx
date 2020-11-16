@@ -1,42 +1,52 @@
-import React, {useState} from "react";
+import React from "react";
 import { Slider } from "@material-ui/core";
 import { flatten } from "lodash";
 
-import {ITweetFilter, RequestedRenderConfig} from "./ITweetFilter";
+import { ITweetFilter, SettingComponentProps } from "./ITweetFilter";
 import { SliderContainer } from "./SliderContainer";
+import { TweetThread, organizeIntoThreads } from "../../TweetThread";
 import { TweetPopularityCalculator } from "../../TweetPopularityCalculator";
+import { AugmentedTweet } from "../../AugmentedTweet";
 
 const NUM_SLIDER_STOPS = 9;
 const POPULARITY_CALCULATOR = new TweetPopularityCalculator();
 
-export function RangePopularityFilter({ data, onUpdate }: ITweetFilter) {
-    const [state, setState] = useState([1, NUM_SLIDER_STOPS]);
+type Interval = [number, number];
 
-    const onChange = (_event: React.ChangeEvent<{}>, value: number | number[]) => {
-        let newState: [number, number];
-        if (typeof value === "number") {
-            newState = [value, value];
-        } else {
-            newState = value as [number, number];
-        }
-        setState(newState);
-        const chunks = POPULARITY_CALCULATOR.sortAndChunk(data, NUM_SLIDER_STOPS);
-        const tweets = flatten(chunks.slice(newState[0] - 1, newState[1]));
-        onUpdate(new RequestedRenderConfig(tweets));
-    };
+export const rangePopularityFilter: ITweetFilter<Interval> = {
+    initialState: [1, NUM_SLIDER_STOPS],
 
-    return <SliderContainer
-        mainLabel="Popularity range"
-        instructions="Move the circles to customize Tweets. "
-        lowLabel="Least popular"
-        highLabel="Most popular"
-    >
-        <Slider
-            min={1}
-            max={NUM_SLIDER_STOPS}
-            step={1}
-            value={state}
-            onChange={onChange}
-        />
-    </SliderContainer>;
-}
+    SettingComponent(props: SettingComponentProps<Interval>) {
+        const {currentState, onStateUpdated} = props;
+        const handleChange = (_event: React.ChangeEvent<{}>, value: number | number[]) => {
+            if (typeof value === "number") {
+                onStateUpdated([value, value]);
+            } else {
+                onStateUpdated(value as Interval);
+            }
+        };
+
+        return <SliderContainer
+            mainLabel="Popularity range"
+            instructions="Move the circles to customize Tweets. "
+            lowLabel="Least popular"
+            highLabel="Most popular"
+        >
+            <Slider
+                min={1}
+                max={NUM_SLIDER_STOPS}
+                step={1}
+                value={currentState}
+                onChange={handleChange}
+            />
+        </SliderContainer>;
+    },
+
+    doFilter(tweets: AugmentedTweet[], currentState: Interval): TweetThread[] {
+        const chunks = POPULARITY_CALCULATOR.sortAndChunk(tweets, NUM_SLIDER_STOPS);
+        const processedTweets = flatten(chunks.slice(currentState[0] - 1, currentState[1]));
+        return organizeIntoThreads(processedTweets);
+    },
+
+    shouldAnimateTweetChanges: false,
+};
