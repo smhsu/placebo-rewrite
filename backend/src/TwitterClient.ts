@@ -1,11 +1,14 @@
 import crypto from "crypto";
 import OAuth from "oauth-1.0a";
-import axios, {AxiosError} from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 import querystring from "querystring";
-import {Status} from "twitter-d";
+import { Status } from "twitter-d";
+import { minBy, uniqBy } from "lodash";
 
 const AUTH_BASE_URL = "https://api.twitter.com/oauth";
 const API_BASE_URL = "https://api.twitter.com/1.1";
+const MAX_HOME_TIMELINE_SIZE = 800;
+const MAX_HOME_TIMELINE_BATCH_SIZE = 200;
 
 /**
  * OAuth tokens config.
@@ -37,15 +40,6 @@ export interface AccessToken {
     oauth_token_secret: string;
     user_id: string;
     screen_name: string;
-}
-
-/**
- * Parameters for Twitter's home_timeline API as described in
- * https://developer.twitter.com/en/docs/tweets/timelines/api-reference/get-statuses-home_timeline
- */
-interface GetTweetsOptions {
-    /** Number of Tweets to get. */
-    count: number;
 }
 
 /**
@@ -114,7 +108,7 @@ export class TwitterClient {
      *
      * @param error - an Axios error to reformat and throw
      */
-    _reformatAndThrowError(error: AxiosError): void {
+    _reformatAndThrowError(error: AxiosError): never {
         if (error.response) { // Response from server available
             const data = error.response.data;
             const messagePrefix = `${error.request.path} HTTP ${error.response.status}: `;
@@ -147,7 +141,7 @@ export class TwitterClient {
     async getRequestToken(callbackUrl: string): Promise<RequestToken> {
         const url = `${AUTH_BASE_URL}/request_token?${querystring.stringify({ oauth_callback: callbackUrl })}`;
 
-        let response;
+        let response: AxiosResponse<string>;
         try {
             response = await axios.post<string>(url, undefined, {
                 headers: this._makeOAuthHeaders(url, "POST"),
@@ -169,7 +163,7 @@ export class TwitterClient {
     async getAccessToken(token: { oauth_token: string, oauth_verifier: string }): Promise<AccessToken> {
         const url = `${AUTH_BASE_URL}/access_token?${querystring.stringify(token)}`;
 
-        let response;
+        let response: AxiosResponse<string>;
         try {
             response = await axios.post<string>(url, undefined, {
                 headers: this._makeOAuthHeaders(url, "POST"),
@@ -183,34 +177,60 @@ export class TwitterClient {
     }
 
     /**
-     * Gets a user's home timeline Tweets.  An access token must have been configured in the constructor, i.e. a user
+     * Gets a user's home timeline tweets.  An access token must have been configured in the constructor, i.e. a user
      * must be authenticated, otherwise this method will not work.
      *
-     * The `options` parameter corresponds to Twitter's API parameters as described in
-     * https://developer.twitter.com/en/docs/tweets/timelines/api-reference/get-statuses-home_timeline
-     *
-     * @param options - parameters to pass to Twitter's API
+     * @param howMany - the number of tweets to get.
      * @return promise for a list of Tweets on the authenticated user's home timeline.
      */
-    async getTweets(options: GetTweetsOptions): Promise<Status[]> {
+    async getTweets(howMany: number): Promise<Status[]> {
         if (!this.hasAccessToken) {
             throw new Error("No access token configured -- cannot use this API without one.");
         }
+        howMany = Math.min(howMany, MAX_HOME_TIMELINE_SIZE);
 
-        // Always get extended tweets.  It makes "full_text" instead of "text" show up in Tweet data.  For more, see
-        // https://developer.twitter.com/en/docs/tweets/tweet-updates
-        const extendedOptions = {...options, tweet_mode: "extended"};
-        const url = `${API_BASE_URL}/statuses/home_timeline.json?${querystring.stringify(extendedOptions)}`;
-        let response;
-        try {
-            response = await axios.get<Status[]>(url, {
-                headers: this._makeOAuthHeaders(url, "GET"),
-                responseType: "json"
-            });
-        } catch (error) {
-            this._reformatAndThrowError(error);
+        // We have to keep track of tweet ids due to the reasons described here:
+        // https://developer.twitter.com/en/docs/twitter-api/v1/tweets/timelines/guides/working-with-timelines
+        let maxIdToFetch = -1;
+        const tweets: Status[] = [];
+        let tweetsRemaining = howMany;
+        while (tweetsRemaining > 0) {
+            const batchSize = Math.min(tweetsRemaining, MAX_HOME_TIMELINE_BATCH_SIZE);
+            // Docs for valid API options:
+            // eslint-disable-next-line max-len
+            // https://developer.twitter.com/en/docs/twitter-api/v1/tweets/timelines/api-reference/get-statuses-home_timeline
+            const apiOptions = { count: batchSize, tweet_mode: "extended" };
+            if (maxIdToFetch > 0) {
+                apiOptions["max_id"] = maxIdToFetch;
+            }
+
+            const url = `${API_BASE_URL}/statuses/home_timeline.json?${querystring.stringify(apiOptions)}`;
+            let response: AxiosResponse<Status[]>;
+            try {
+                response = await axios.get<Status[]>(url, {
+                    headers: this._makeOAuthHeaders(url, "GET"),
+                    responseType: "json"
+                });
+            } catch (error) {
+                this._reformatAndThrowError(error);
+            }
+
+            tweets.push(...response.data);
+            if (response.data.length <= 1) {  // Stop if there are no more results.
+                break;
+            }
+
+            /*
+             * Why do we subtract the max batch size instead of the number of tweets fetched?  The API could return
+             * fewer tweets than requested, or even none at all, and we want to ensure the loop terminates.
+             */
+            tweetsRemaining -= MAX_HOME_TIMELINE_BATCH_SIZE;
+            if (tweetsRemaining > 0) {
+                maxIdToFetch = minBy(response.data, "id")?.id || -1;
+            }
         }
-        return response.data;
+
+        return uniqBy(tweets, "id");
     }
 }
 

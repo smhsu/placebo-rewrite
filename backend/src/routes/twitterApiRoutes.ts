@@ -3,8 +3,9 @@ import { Server } from "@hapi/hapi";
 import Boom from "@hapi/boom";
 import * as RequestTokenApi from "../common/requestTokenApi";
 import * as GetTweetsApi from "../common/getTweetsApi";
-import {TwitterClient, TwitterError} from "../TwitterClient";
+import { TwitterClient, TwitterError } from "../TwitterClient";
 
+const NUM_TWEETS_TO_GET = 600;
 
 /**
  * Registers APIs that relate to authenticating and fetching data from Twitter.
@@ -68,7 +69,7 @@ export default function registerRoutes(
                     access_token_secret: accessToken.oauth_token_secret
                 });
 
-                const tweets = await authedTwitterClient.getTweets({ count: 200 });
+                const tweets = await authedTwitterClient.getTweets(NUM_TWEETS_TO_GET);
                 const response: GetTweetsApi.ResponsePayload = { tweets };
                 return response;
             } catch (error) {
