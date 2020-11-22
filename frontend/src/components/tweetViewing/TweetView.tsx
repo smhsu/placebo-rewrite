@@ -1,12 +1,11 @@
 import React from "react";
 import FlipMove from "react-flip-move";
 import { TweetBranchDisplay } from "./TweetBranchDisplay";
-import { useExperimentalConditionFetch } from "../useExperimentalConditionFetch";
 import { useTweetFilter } from "../tweetFilters/useTweetFilter";
 
-import {AugmentedTweet} from "../../AugmentedTweet";
-import {ParticipantLog} from "../../ParticipantLog";
-import {ExperimentalCondition} from "../../common/getExperimentalConditionApi";
+import { AugmentedTweet } from "../../AugmentedTweet";
+import { ParticipantLog } from "../../ParticipantLog";
+import { ExperimentalCondition } from "../../common/ExperimentalCondition";
 
 import "./TweetView.css";
 
@@ -14,17 +13,16 @@ const isShowingConditionChooser = process.env.REACT_APP_DEBUG_MODE === "true";
 
 interface Props {
     tweets: AugmentedTweet[];
+    experimentCondition: ExperimentalCondition;
     log: ParticipantLog;
     settingsYOffset?: number;
 }
 
 export const TweetView = React.memo(function TweetView(props: Props) {
-    const {tweets, log, settingsYOffset} = props;
-    const condition = useExperimentalConditionFetch();
-    log.experimentalCondition = condition;
+    const {tweets, experimentCondition, log, settingsYOffset} = props;
     const [manualCondition, setManualCondition] = React.useState<ExperimentalCondition | "">("");
     const {threads, shouldAnimateChanges, settingElement} = useTweetFilter(
-        tweets, manualCondition || condition, () => log.didInteractWithSetting = true
+        tweets, manualCondition || experimentCondition, () => log.didInteractWithSetting = true
     );
 
     return <div className="container-fluid">

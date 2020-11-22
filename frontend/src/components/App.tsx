@@ -1,18 +1,20 @@
 import React from "react";
 import querystring from "querystring";
 
-import { AppState, ErrorInfo, FailedAction } from "./AppState";
-import { useTimer } from "./useTimer";
-import { TwitterLoginFlow } from "./TwitterLoginFlow";
-import { StaticTweetFlow } from "./StaticTweetFlow";
-import { TweetView } from "./tweetViewing/TweetView";
+import {AppState, ErrorInfo, FailedAction} from "./AppState";
+import {useTimer} from "./useTimer";
+import {TwitterLoginFlow} from "./TwitterLoginFlow";
+import {StaticTweetFlow} from "./StaticTweetFlow";
+import {TweetView} from "./tweetViewing/TweetView";
 
-import { AugmentedTweet } from "../AugmentedTweet";
-import { ApiErrorHandler } from "../ApiErrorHandler";
-import { ParticipantLog } from "../ParticipantLog";
+import {AugmentedTweet} from "../AugmentedTweet";
+import {fetchExperimentalCondition} from "../fetchExperimentalCondition";
+import {ApiErrorHandler} from "../ApiErrorHandler";
+import {ParticipantLog} from "../ParticipantLog";
 
 import spinner from "../loading-small.gif";
 import "./App.css";
+import {ExperimentalCondition} from "../common/ExperimentalCondition";
 
 /** How much time users have to view their Tweets before they disappear. */
 const TWEET_VIEW_DURATION_SECONDS = Number.POSITIVE_INFINITY;
@@ -33,6 +35,9 @@ export function App() {
     ////////////////////////
     const [appState, setAppState] = React.useState<AppState>(AppState.START);
     const [tweets, setTweets] = React.useState<AugmentedTweet[]>([]);
+    const [experimentCondition, setExperimentCondition] = React.useState<ExperimentalCondition>(
+        ExperimentalCondition.UNKNOWN
+    );
     const [errorInfo, setErrorInfo] = React.useState<ErrorInfo | undefined>(undefined);
     const {timeLeftSeconds, startTimer} = useTimer(TWEET_VIEW_DURATION_SECONDS);
     const [topBarHeight, setTopBarHeight] = React.useState(0);
@@ -49,7 +54,10 @@ export function App() {
         setAppState(AppState.LOADING);
         try {
             const tweets = await tweetPromise;
+            const fetchedCondition = await fetchExperimentalCondition();
+            log.current.experimentalCondition = fetchedCondition;
             setTweets(tweets);
+            setExperimentCondition(fetchedCondition);
             setAppState(AppState.LOADED);
             startTimer();
         } catch (error) {
@@ -101,6 +109,7 @@ export function App() {
         case AppState.LOADED:
             mainContent = <TweetView
                 tweets={tweets}
+                experimentCondition={experimentCondition}
                 settingsYOffset={topBarHeight}
                 log={log.current}
             />;

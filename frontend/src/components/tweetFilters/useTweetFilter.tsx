@@ -1,8 +1,8 @@
 import React from "react";
 import { ITweetFilter } from "./ITweetFilter";
-import {organizeIntoThreads, TweetThread} from "../../TweetThread";
+import { organizeIntoThreads, TweetThread } from "../../TweetThread";
 import { AugmentedTweet } from "../../AugmentedTweet";
-import { ExperimentalCondition } from "../../common/getExperimentalConditionApi";
+import { ExperimentalCondition } from "../../common/ExperimentalCondition";
 
 import { TweetPopularityCalculator, RandomPopularityCalculator } from "../../TweetPopularityCalculator";
 import { RangePopularityFilter } from "./RangePopularityFilter";

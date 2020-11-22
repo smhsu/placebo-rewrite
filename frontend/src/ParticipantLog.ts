@@ -2,7 +2,7 @@ import axios from "axios";
 
 import * as LogParticipantApi from "./common/logParticipantApi";
 import { IParticipantLog } from "./common/logParticipantApi";
-import { ExperimentalCondition } from "./common/getExperimentalConditionApi";
+import { ExperimentalCondition } from "./common/ExperimentalCondition";
 
 const QUALTRICS_QUERY_PARAM_NAME = "qualtricsID";
 
