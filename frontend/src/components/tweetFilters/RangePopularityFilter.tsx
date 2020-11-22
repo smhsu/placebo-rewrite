@@ -1,20 +1,28 @@
 import React from "react";
+import memoizeOne from "memoize-one";
 import { Slider } from "@material-ui/core";
-import { flatten } from "lodash";
 
 import { ITweetFilter, SettingComponentProps } from "./ITweetFilter";
 import { SliderContainer } from "./SliderContainer";
-import { TweetThread, organizeIntoThreads } from "../../TweetThread";
+import { TweetThread, sortThreadsByOriginalOrder } from "../../TweetThread";
 import { TweetPopularityCalculator } from "../../TweetPopularityCalculator";
 import { AugmentedTweet } from "../../AugmentedTweet";
 
 const NUM_SLIDER_STOPS = 9;
-const POPULARITY_CALCULATOR = new TweetPopularityCalculator();
-
 type Interval = [number, number];
 
-export const rangePopularityFilter: ITweetFilter<Interval> = {
-    initialState: [1, NUM_SLIDER_STOPS],
+export class RangePopularityFilter implements ITweetFilter<Interval> {
+    initialState = [1, NUM_SLIDER_STOPS] as Interval;
+    shouldAnimateChanges = false;
+
+    constructor(private _popularityCalculator: TweetPopularityCalculator) {
+        this._partitionThreadStartsByPopularity = memoizeOne(this._partitionThreadStartsByPopularity);
+    }
+
+    private _partitionThreadStartsByPopularity(threads: TweetThread[]) {
+        const threadStarts = threads.map(thread => thread[0]);
+        return this._popularityCalculator.partitionByPopularity(threadStarts, NUM_SLIDER_STOPS);
+    }
 
     SettingComponent(props: SettingComponentProps<Interval>) {
         const {currentState, onStateUpdated} = props;
@@ -40,13 +48,22 @@ export const rangePopularityFilter: ITweetFilter<Interval> = {
                 onChange={handleChange}
             />
         </SliderContainer>;
-    },
+    }
 
-    doFilter(tweets: AugmentedTweet[], currentState: Interval): TweetThread[] {
-        const chunks = POPULARITY_CALCULATOR.sortAndChunk(tweets, NUM_SLIDER_STOPS);
-        const processedTweets = flatten(chunks.slice(currentState[0] - 1, currentState[1]));
-        return organizeIntoThreads(processedTweets);
-    },
+    doFilter(threads: TweetThread[], currentState: Interval): TweetThread[] {
+        const threadForThreadStart = new Map<AugmentedTweet, TweetThread>();
+        for (const thread of threads) {
+            threadForThreadStart.set(thread[0], thread);
+        }
 
-    shouldAnimateTweetChanges: false,
-};
+        const partitions = this._partitionThreadStartsByPopularity(threads);
+        // currentState[0] - 1 because the slider starts at 1, but the partition indexing starts at 0.
+        const desiredPartitions = partitions.slice(currentState[0] - 1, currentState[1]);
+        const desiredThreads = desiredPartitions.flat(1).map(threadStart =>
+            // threadForThreadStart.get is marked as possibly returning undefined, but it never will because every
+            // thread's start tweet should be in the map.
+            threadForThreadStart.get(threadStart) || []
+        );
+        return sortThreadsByOriginalOrder(desiredThreads);
+    }
+}

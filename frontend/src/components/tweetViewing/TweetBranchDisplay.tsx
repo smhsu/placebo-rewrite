@@ -1,4 +1,4 @@
-import React, {forwardRef, useEffect, useState} from "react";
+import React, { forwardRef, useEffect, useState } from "react";
 import { Tweet } from "./Tweet";
 import { TweetsCollapsedIndicator } from "./TweetsCollapsedIndicator";
 import { TweetThread } from "../../TweetThread";

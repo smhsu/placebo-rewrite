@@ -23,7 +23,7 @@ export const TweetView = React.memo(function TweetView(props: Props) {
     const condition = useExperimentalConditionFetch();
     log.experimentalCondition = condition;
     const [manualCondition, setManualCondition] = React.useState<ExperimentalCondition | "">("");
-    const {branches, shouldAnimateTweetChanges, settingElement} = useTweetFilter(
+    const {threads, shouldAnimateChanges, settingElement} = useTweetFilter(
         tweets, manualCondition || condition, () => log.didInteractWithSetting = true
     );
 
@@ -37,8 +37,8 @@ export const TweetView = React.memo(function TweetView(props: Props) {
                         style={{ top: props.settingsYOffset }}
                     />
                 }
-                <FlipMove enterAnimation={false} disableAllAnimations={!shouldAnimateTweetChanges}>
-                    {branches.map(branch => <TweetBranchDisplay key={branch[0].id_str} branch={branch} />)}
+                <FlipMove enterAnimation={false} disableAllAnimations={!shouldAnimateChanges}>
+                    {threads.map(branch => <TweetBranchDisplay key={branch[0].id_str} branch={branch} />)}
                 </FlipMove>
             </div>
             {settingElement && <SettingsPanel top={settingsYOffset}>{settingElement}</SettingsPanel>}

@@ -3,19 +3,20 @@ import { FullUser, Status, User } from "twitter-d";
 export const DEFAULT_PROFILE_PICTURE_URL =
     "https://abs.twimg.com/sticky/default_profile_images/default_profile_reasonably_small.png";
 
-const UNKNOWN_USER: Pick<FullUser, "name" | "screen_name" | "profile_image_url_https"> = {
+type PartialUser = Pick<FullUser, "name" | "screen_name" | "profile_image_url_https">
+const UNKNOWN_USER: PartialUser = {
     name: "(Unknown user)",
     screen_name: "",
     profile_image_url_https: DEFAULT_PROFILE_PICTURE_URL,
 };
 
 function isFullUser(user: User): user is FullUser {
-    return Object.prototype.hasOwnProperty.call(user, 'name');
+    return Object.prototype.hasOwnProperty.call(user, "name");
 }
 
-export function getTweetAuthor(tweet: Status, fallbackValue = UNKNOWN_USER): FullUser {
+export function getTweetAuthor(tweet: Status, fallbackValue = UNKNOWN_USER): PartialUser {
     const user = tweet.user;
-    return isFullUser(user) ? user : (fallbackValue as FullUser);
+    return isFullUser(user) ? user : fallbackValue;
 }
 
 export function isPureRetweet(tweet: Status): boolean {

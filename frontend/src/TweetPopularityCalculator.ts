@@ -6,9 +6,18 @@ export class TweetPopularityCalculator {
         return tweet.retweeted_status ? tweet.retweeted_status.favorite_count : tweet.favorite_count;
     }
 
-    sortAndChunk<T extends Status>(tweets: T[], numChunks: number): T[][] {
+    partitionByPopularity<T extends Status>(tweets: T[], numChunks: number): T[][] {
         const sorted = sortBy(tweets, this.getPopularity);
         const chunkSize = Math.ceil(tweets.length / numChunks);
         return chunk(sorted, chunkSize);
+    }
+}
+
+export class RandomPopularityCalculator extends TweetPopularityCalculator {
+    /**
+     * @override
+     */
+    getPopularity(_tweet: Status): number {
+        return Math.random();
     }
 }

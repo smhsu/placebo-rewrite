@@ -1,14 +1,13 @@
 import React from "react";
 import he from "he";
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome"
-import {faHeart, faRetweet} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faHeart, faRetweet } from "@fortawesome/free-solid-svg-icons";
 
-import {ImgWithFallback} from "./ImgWithFallback";
-import {AugmentedTweet} from "../../AugmentedTweet";
-import {DEFAULT_PROFILE_PICTURE_URL, getTweetAuthor, isPureRetweet} from "../../tweetUtils";
+import { ImgWithFallback } from "./ImgWithFallback";
+import { AugmentedTweet } from "../../AugmentedTweet";
+import { DEFAULT_PROFILE_PICTURE_URL, getTweetAuthor, isPureRetweet } from "../../tweetUtils";
 
 import "./Tweet.css";
-
 
 interface TweetProps {
     tweet: AugmentedTweet;

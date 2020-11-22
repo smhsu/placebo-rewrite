@@ -1,9 +1,9 @@
 import { ITweetFilter } from "./ITweetFilter";
-import { organizeIntoThreads } from "../../TweetThread";
+import { sortThreadsByOriginalOrder } from "../../TweetThread";
 
 export const noopFilter: ITweetFilter<undefined> = {
     initialState: undefined,
     SettingComponent: null,
-    doFilter: tweets => organizeIntoThreads(tweets),
-    shouldAnimateTweetChanges: false
+    doFilter: sortThreadsByOriginalOrder,
+    shouldAnimateChanges: false
 }

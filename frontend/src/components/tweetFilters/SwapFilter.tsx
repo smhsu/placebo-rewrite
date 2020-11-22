@@ -1,7 +1,26 @@
 import React from "react";
 import { ITweetFilter, SettingComponentProps } from "./ITweetFilter";
-import { TweetThread, organizeIntoThreads } from "../../TweetThread";
-import { AugmentedTweet } from "../../AugmentedTweet";
+import { TweetThread, sortThreadsByOriginalOrder } from "../../TweetThread";
+
+export const swapFilter: ITweetFilter<boolean> = {
+    /** Whether we are swapping the first two threads. */
+    initialState: false,
+
+    SettingComponent({currentState, onStateUpdated}: SettingComponentProps<boolean>) {
+        const handleClick = () => {
+            window.scrollTo({top: 0, behavior: "smooth"});
+            onStateUpdated(!currentState);
+        };
+        return <button className="btn btn-primary" onClick={handleClick}>Swap first two threads</button>;
+    },
+
+    doFilter(threads: TweetThread[], isSwapping: boolean): TweetThread[] {
+        const sortedThreads = sortThreadsByOriginalOrder(threads);
+        return isSwapping ? swapFirstTwo(sortedThreads) : sortedThreads;
+    },
+
+    shouldAnimateChanges: true,
+};
 
 function swapFirstTwo<S>(data: S[]) {
     if (data.length <= 1) {
@@ -12,23 +31,3 @@ function swapFirstTwo<S>(data: S[]) {
     data[1] = firstElement;
     return data;
 }
-
-export const swapFilter: ITweetFilter<boolean> = {
-    initialState: false,
-
-    SettingComponent({currentState, onStateUpdated}: SettingComponentProps<boolean>) {
-        return <button
-            className="btn btn-primary"
-            onClick={() => onStateUpdated(!currentState)}
-        >
-            Swap first two threads
-        </button>;
-    },
-
-    doFilter(tweets: AugmentedTweet[], isSwapping: boolean): TweetThread[] {
-        const threads = organizeIntoThreads(tweets);
-        return isSwapping ? swapFirstTwo(threads) : threads;
-    },
-
-    shouldAnimateTweetChanges: true,
-};

@@ -1,5 +1,4 @@
 import React from "react";
-import { AugmentedTweet } from "../../AugmentedTweet";
 import { TweetThread } from "../../TweetThread";
 
 /**
@@ -13,10 +12,10 @@ export interface ITweetFilter<S> {
     SettingComponent: React.ComponentType<SettingComponentProps<S>> | null;
 
     /** Function that filters or reorders tweets based on the current state of the setting. */
-    doFilter(tweets: AugmentedTweet[], currentState: S): TweetThread[];
+    doFilter(tweets: TweetThread[], currentState: S): TweetThread[];
 
     /** Whether changes to tweets or tweet order should trigger an animation. */
-    shouldAnimateTweetChanges: boolean;
+    shouldAnimateChanges: boolean;
 }
 
 export interface SettingComponentProps<S> {
