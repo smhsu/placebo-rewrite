@@ -1,8 +1,8 @@
 import React from "react";
 import { ITweetFilter } from "./ITweetFilter";
 import { organizeIntoThreads, TweetThread } from "../../TweetThread";
-import { AugmentedTweet } from "../../AugmentedTweet";
 import { ExperimentalCondition } from "../../common/ExperimentalCondition";
+import { Tweet } from "../../Tweet";
 
 import { TweetPopularityCalculator, RandomPopularityCalculator } from "../../TweetPopularityCalculator";
 import { RangePopularityFilter } from "./RangePopularityFilter";
@@ -26,7 +26,7 @@ interface TweetsRenderConfig {
 }
 
 export function useTweetFilter(
-    tweets: AugmentedTweet[],
+    tweets: Tweet[],
     condition: ExperimentalCondition,
     onChange?: () => void
 ): TweetsRenderConfig {

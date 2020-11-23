@@ -1,6 +1,6 @@
 import React from "react";
 import { ImgWithFallback } from "./ImgWithFallback";
-import { DEFAULT_PROFILE_PICTURE_URL } from "../../tweetUtils";
+import { Tweet } from "../../Tweet";
 
 import "./Tweet.css";
 
@@ -19,7 +19,7 @@ export const TweetsCollapsedIndicator = React.memo(function TweetsCollapsedIndic
                 <ImgWithFallback
                     className="img-fluid rounded-circle"
                     src={profileImageSrc}
-                    fallbackSrc={DEFAULT_PROFILE_PICTURE_URL}
+                    fallbackSrc={Tweet.DEFAULT_PROFILE_PICTURE_URL}
                     alt="User profile"
                 />
             </div>

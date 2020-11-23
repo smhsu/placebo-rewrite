@@ -2,24 +2,22 @@ import React from "react";
 import he from "he";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faHeart, faRetweet } from "@fortawesome/free-solid-svg-icons";
-
 import { ImgWithFallback } from "./ImgWithFallback";
-import { AugmentedTweet } from "../../AugmentedTweet";
-import { DEFAULT_PROFILE_PICTURE_URL, getTweetAuthor, isPureRetweet } from "../../tweetUtils";
+import { Tweet, MediaType } from "../../Tweet";
 
 import "./Tweet.css";
 
-interface TweetProps {
-    tweet: AugmentedTweet;
+interface TweetDisplayProps {
+    tweet: Tweet;
     retweeter?: string;
     hasRepliesUnder?: boolean;
 }
-export const Tweet = React.memo(function Tweet(props: TweetProps) {
+export const TweetDisplay = React.memo(function TweetDisplay(props: TweetDisplayProps) {
     const { tweet, retweeter, hasRepliesUnder } = props;
-    const user = getTweetAuthor(tweet);
-    const retweetedStatus = tweet.retweeted_status;
-    if (isPureRetweet(props.tweet)) {
-        return <Tweet tweet={retweetedStatus!} retweeter={user.name} hasRepliesUnder={props.hasRepliesUnder} />;
+    const user = tweet.author;
+    const retweetedStatus = tweet.retweet;
+    if (props.tweet.isPureRetweet) {
+        return <TweetDisplay tweet={retweetedStatus!} retweeter={user.name} hasRepliesUnder={props.hasRepliesUnder} />;
     }
 
     let className = "Tweet-outer";
@@ -35,7 +33,7 @@ export const Tweet = React.memo(function Tweet(props: TweetProps) {
                 <ImgWithFallback
                     className="img-fluid rounded-circle"
                     src={user.profile_image_url_https}
-                    fallbackSrc={DEFAULT_PROFILE_PICTURE_URL}
+                    fallbackSrc={Tweet.DEFAULT_PROFILE_PICTURE_URL}
                     alt="User profile"
                 />
             </div>
@@ -55,7 +53,7 @@ export const Tweet = React.memo(function Tweet(props: TweetProps) {
 });
 
 interface TweetSubComponentProps {
-    tweet: AugmentedTweet;
+    tweet: Tweet;
 }
 
 interface TweetHeadingProps extends TweetSubComponentProps {
@@ -64,53 +62,41 @@ interface TweetHeadingProps extends TweetSubComponentProps {
 }
 function TweetHeading(props: TweetHeadingProps): JSX.Element {
     const { tweet, showProfileImg, style } = props;
-    const user = getTweetAuthor(tweet);
+    const user = tweet.author;
     return <div className="Tweet-heading" style={style}>
         {
         showProfileImg &&
             <ImgWithFallback
                 src={user.profile_image_url_https}
-                fallbackSrc={DEFAULT_PROFILE_PICTURE_URL}
+                fallbackSrc={Tweet.DEFAULT_PROFILE_PICTURE_URL}
                 alt="User profile"
             />
         }
         <span className="Tweet-heading-author">{user.name}</span>
-        <span className="Tweet-heading-screen-name">@{user.screen_name} • {tweet.created_at_description}</span>
+        <span className="Tweet-heading-screen-name">@{user.screen_name} • {tweet.createdAtDescription}</span>
     </div>;
 }
 
 function TweetText({ tweet }: TweetSubComponentProps): JSX.Element {
-    const tweetText = tweet.full_text || "";
-    const displayTextRange = tweet.display_text_range || [0, undefined];
-    return <div>{he.decode(tweetText.substring(displayTextRange[0], displayTextRange[1]))}</div>;
+    const [lo, hi] = tweet.display_text_range;
+    return <div>{he.decode(tweet.text.substring(lo, hi))}</div>;
 }
 
 function TweetMedia({ tweet }: TweetSubComponentProps): JSX.Element | null {
-    if (!tweet.entities.media) {
-        return null;
-    }
-    const firstMedia = tweet.entities.media[0];
-    if (!firstMedia || firstMedia.source_status_id_str) { // No first media or the media is from another status
+    const mediaInfo = tweet.findFirstMedia();
+    if (!mediaInfo) {
         return null;
     }
 
-    if (firstMedia.type === "video") {
-        const firstValidVariant = firstMedia.video_info?.variants?.find(
-            variant => variant.content_type.startsWith("video/")
-        );
-        if (!firstValidVariant) {
-            return null;
-        }
-
+    if (mediaInfo.type === MediaType.VIDEO) {
         return <div className="embed-responsive embed-responsive-16by9">
             <video className="embed-responsive-item" controls>
-                <source src={firstValidVariant.url} />
+                <source src={mediaInfo.url} />
             </video>
         </div>;
-    } else if (firstMedia.type === "photo") {
-        return <img className="img-fluid rounded" src={firstMedia.media_url_https} alt="Attachment"/>;
+    } else if (mediaInfo.type === MediaType.PHOTO) {
+        return <img className="img-fluid rounded" src={mediaInfo.url} alt="Attachment"/>;
     }
-
     return null;
 }
 
@@ -138,7 +124,7 @@ function TweetStatistics({ tweet }: TweetSubComponentProps): JSX.Element {
             <FontAwesomeIcon icon={faHeart}/> {toReadableNumber(tweet.favorite_count)}
         </div>
     </div>;
-};
+}
 
 function RetweetIndicator(props: { retweeter: string }): JSX.Element {
     return <div className="Tweet-retweet-indicator">

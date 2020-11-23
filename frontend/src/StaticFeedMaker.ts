@@ -1,8 +1,8 @@
 import axios from "axios";
 import { Status } from "twitter-d";
 import { sampleSize } from "lodash";
-import { AugmentedTweet, TweetAugmenter } from "./AugmentedTweet";
 import debugTweets from "./debugTweets.json";
+import { Tweet } from "./Tweet";
 
 const DEFAULT_SAMPLED_TWEETS_PROPORTION = 0.15;
 const DEFAULT_FEED_SIZE = 300;
@@ -34,9 +34,9 @@ export class StaticFeedMaker {
         this._feedSize = feedSize;
     }
 
-    async downloadAndBuildFeed(topics: string[]): Promise<AugmentedTweet[]> {
+    async downloadAndBuildFeed(topics: string[]): Promise<Tweet[]> {
         if (topics.includes(DEBUG_TWEETS_TOPIC_NAME)) {
-            const augmentedTweets = new TweetAugmenter().augmentAll(debugTweets as unknown as Status[]);
+            const augmentedTweets = Tweet.fromStatuses(debugTweets as unknown as Status[]);
             return Promise.resolve(augmentedTweets);
         }
 
@@ -68,12 +68,10 @@ export class StaticFeedMaker {
             feed.push(...sampleSize(tweets, numToSample));
         }
 
-        const augmenter = new TweetAugmenter();
-        const augmentedFeed = augmenter.augmentAll(feed);
-        augmenter.sortNewestToOldest(augmentedFeed);
-        for (let i = 0; i < augmentedFeed.length; i++) { // Reindex
-            augmentedFeed[i].originalIndex = i;
+        const tweets = Tweet.sortNewestToOldest(Tweet.fromStatuses(feed));
+        for (let i = 0; i < tweets.length; i++) { // Reindex
+            tweets[i].originalIndex = i;
         }
-        return augmentedFeed;
+        return tweets;
     }
 }

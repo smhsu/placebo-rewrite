@@ -1,20 +1,21 @@
 import React from "react";
 import querystring from "querystring";
 
-import {AppState, ErrorInfo, FailedAction} from "./AppState";
-import {useTimer} from "./useTimer";
-import {TwitterLoginFlow} from "./TwitterLoginFlow";
-import {StaticTweetFlow} from "./StaticTweetFlow";
-import {TweetView} from "./tweetViewing/TweetView";
+import { AppState, ErrorInfo, FailedAction } from "./AppState";
+import { useTimer } from "./useTimer";
+import { TwitterLoginFlow } from "./TwitterLoginFlow";
+import { StaticTweetFlow } from "./StaticTweetFlow";
+import { TweetView } from "./tweetViewing/TweetView";
 
-import {AugmentedTweet} from "../AugmentedTweet";
-import {fetchExperimentalCondition} from "../fetchExperimentalCondition";
-import {ApiErrorHandler} from "../ApiErrorHandler";
-import {ParticipantLog} from "../ParticipantLog";
+import { ExperimentalCondition } from "../common/ExperimentalCondition";
+import { fetchExperimentalCondition } from "../fetchExperimentalCondition";
+import { ApiErrorHandler } from "../ApiErrorHandler";
+import { ParticipantLog } from "../ParticipantLog";
+
+import { Tweet } from "../Tweet";
 
 import spinner from "../loading-small.gif";
 import "./App.css";
-import {ExperimentalCondition} from "../common/ExperimentalCondition";
 
 /** How much time users have to view their Tweets before they disappear. */
 const TWEET_VIEW_DURATION_SECONDS = Number.POSITIVE_INFINITY;
@@ -34,7 +35,7 @@ export function App() {
     // State and handlers //
     ////////////////////////
     const [appState, setAppState] = React.useState<AppState>(AppState.START);
-    const [tweets, setTweets] = React.useState<AugmentedTweet[]>([]);
+    const [tweets, setTweets] = React.useState<Tweet[]>([]);
     const [experimentCondition, setExperimentCondition] = React.useState<ExperimentalCondition>(
         ExperimentalCondition.UNKNOWN
     );
@@ -50,7 +51,7 @@ export function App() {
     }
     const handleLoginError = makeErrorHandler(FailedAction.LOGIN);
     const handleFetchError = makeErrorHandler(FailedAction.FETCH);
-    async function handleTweetPromise(tweetPromise: Promise<AugmentedTweet[]>) {
+    async function handleTweetPromise(tweetPromise: Promise<Tweet[]>) {
         setAppState(AppState.LOADING);
         try {
             const tweets = await tweetPromise;

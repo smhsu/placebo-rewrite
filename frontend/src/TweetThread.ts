@@ -1,8 +1,8 @@
-import { AugmentedTweet } from "./AugmentedTweet";
+import { Tweet } from "./Tweet";
 
-export type TweetThread = AugmentedTweet[];
+export type TweetThread = Tweet[];
 
-export function organizeIntoThreads(tweets: AugmentedTweet[]): TweetThread[] {
+export function organizeIntoThreads(tweets: Tweet[]): TweetThread[] {
     return makeTrees(tweets).map(flattenTreeIntoThreads).flat(1);
 }
 
@@ -11,11 +11,11 @@ export function sortThreadsByOriginalOrder(threads: TweetThread[]) {
 }
 
 interface TweetTreeNode {
-    tweet: AugmentedTweet;
+    tweet: Tweet;
     children: TweetTreeNode[];
 }
 
-function makeTrees(tweets: AugmentedTweet[]): TweetTreeNode[] {
+function makeTrees(tweets: Tweet[]): TweetTreeNode[] {
     const rootNodes = [];
     const treeNodeForId = new Map<string, TweetTreeNode>();
     for (const tweet of tweets) {
@@ -24,7 +24,7 @@ function makeTrees(tweets: AugmentedTweet[]): TweetTreeNode[] {
     }
 
     for (const node of treeNodeForId.values()) {
-        const parentTweetId = node.tweet.in_reply_to_status_id_str || "";
+        const parentTweetId = node.tweet.parent_id_str || "";
         const parentNode = treeNodeForId.get(parentTweetId);
         if (parentNode) {
             parentNode.children.push(node);
@@ -37,7 +37,7 @@ function makeTrees(tweets: AugmentedTweet[]): TweetTreeNode[] {
 
 function flattenTreeIntoThreads(root: TweetTreeNode): TweetThread[] {
     const branches: TweetThread[] = [];
-    let currentBranch: AugmentedTweet[] = [];
+    let currentBranch: Tweet[] = [];
     function dfs(tree: TweetTreeNode) {
         currentBranch.push(tree.tweet);
         if (tree.children.length === 0) { // Leaf: end of branch.

@@ -1,8 +1,7 @@
 import React, { forwardRef, useEffect, useState } from "react";
-import { Tweet } from "./Tweet";
+import { TweetDisplay } from "./TweetDisplay";
 import { TweetsCollapsedIndicator } from "./TweetsCollapsedIndicator";
 import { TweetThread } from "../../TweetThread";
-import { getTweetAuthor } from "../../tweetUtils";
 
 const TWEETS_COLLAPSE_THRESHOLD = 3;
 
@@ -22,14 +21,14 @@ export const TweetBranchDisplay = forwardRef<HTMLDivElement, Props>(function Twe
     return <div ref={ref}>
         {tweets.map((tweet, idx) => {
             const isLastTweet = idx + 1 === tweets.length;
-            return <Tweet
+            return <TweetDisplay
                 key={tweet.id_str}
                 tweet={tweet}
                 hasRepliesUnder={isLastTweet ? isCollapsed : true}
             />;
         })}
         {isCollapsed && <TweetsCollapsedIndicator
-            profileImageSrc={getTweetAuthor(branch[TWEETS_COLLAPSE_THRESHOLD]).profile_image_url_https}
+            profileImageSrc={branch[TWEETS_COLLAPSE_THRESHOLD].author.profile_image_url_https}
             numTweetsHidden={branch.length - TWEETS_COLLAPSE_THRESHOLD}
             onExpand={() => setIsShowingFullBranch(true)}
         />}
