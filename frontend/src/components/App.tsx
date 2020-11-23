@@ -1,20 +1,20 @@
 import React from "react";
 import querystring from "querystring";
 
-import {AppState, ErrorInfo, FailedAction} from "./AppState";
-import {useTimer} from "./useTimer";
-import {TwitterLoginFlow} from "./TwitterLoginFlow";
-import {StaticTweetFlow} from "./StaticTweetFlow";
-import {TweetView} from "./tweetViewing/TweetView";
+import { AppState, ErrorInfo, FailedAction } from "./AppState";
+import { useTimer } from "./useTimer";
+import { TwitterLoginFlow } from "./TwitterLoginFlow";
+import { StaticTweetFlow } from "./StaticTweetFlow";
+import { TweetView } from "./tweetViewing/TweetView";
 
-import {AugmentedTweet} from "../AugmentedTweet";
-import {fetchExperimentalCondition} from "../fetchExperimentalCondition";
-import {ApiErrorHandler} from "../ApiErrorHandler";
-import {ParticipantLog} from "../ParticipantLog";
+import { AugmentedTweet } from "../AugmentedTweet";
+import { fetchExperimentalCondition } from "../fetchExperimentalCondition";
+import { ApiErrorHandler } from "../ApiErrorHandler";
+import { ParticipantLog } from "../ParticipantLog";
+import { ExperimentalCondition } from "../common/ExperimentalCondition";
 
 import spinner from "../loading-small.gif";
 import "./App.css";
-import {ExperimentalCondition} from "../common/ExperimentalCondition";
 
 /** How much time users have to view their Tweets before they disappear. */
 const TWEET_VIEW_DURATION_SECONDS = Number.POSITIVE_INFINITY;

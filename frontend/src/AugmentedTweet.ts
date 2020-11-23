@@ -28,7 +28,7 @@ export class TweetAugmenter {
     }
 
     augmentAll(tweets: Status[]): AugmentedTweet[] {
-        return tweets.map(this.augment)
+        return tweets.map(this.augment);
     }
 
     sortNewestToOldest(tweets: AugmentedTweet[]): AugmentedTweet[] {
