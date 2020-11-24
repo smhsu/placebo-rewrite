@@ -7,7 +7,7 @@ import { SliderContainer } from "./SliderContainer";
 import { TweetThread } from "../../TweetThread";
 import { ITweetPopularityCalculator } from "../../TweetPopularityCalculator";
 import { IThreadSorter } from "../../ThreadSorter";
-import { AugmentedTweet } from "../../AugmentedTweet";
+import { Tweet } from "../../Tweet";
 
 const NUM_SLIDER_STOPS = 9;
 type Interval = [number, number];
@@ -52,7 +52,7 @@ export class RangePopularityFilter implements ITweetFilter<Interval> {
     }
 
     doFilter(threads: TweetThread[], currentState: Interval): TweetThread[] {
-        const threadForThreadStart = new Map<AugmentedTweet, TweetThread>();
+        const threadForThreadStart = new Map<Tweet, TweetThread>();
         for (const thread of threads) {
             threadForThreadStart.set(thread[0], thread);
         }

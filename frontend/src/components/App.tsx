@@ -7,11 +7,11 @@ import { TwitterLoginFlow } from "./TwitterLoginFlow";
 import { StaticTweetFlow } from "./StaticTweetFlow";
 import { TweetView } from "./tweetViewing/TweetView";
 
-import { AugmentedTweet } from "../AugmentedTweet";
+import { ExperimentalCondition } from "../common/ExperimentalCondition";
 import { fetchExperimentalCondition } from "../fetchExperimentalCondition";
 import { ApiErrorHandler } from "../ApiErrorHandler";
 import { ParticipantLog } from "../ParticipantLog";
-import { ExperimentalCondition } from "../common/ExperimentalCondition";
+import { Tweet } from "../Tweet";
 
 import spinner from "../loading-small.gif";
 import "./App.css";
@@ -34,7 +34,7 @@ export function App() {
     // State and handlers //
     ////////////////////////
     const [appState, setAppState] = React.useState<AppState>(AppState.START);
-    const [tweets, setTweets] = React.useState<AugmentedTweet[]>([]);
+    const [tweets, setTweets] = React.useState<Tweet[]>([]);
     const [experimentCondition, setExperimentCondition] = React.useState<ExperimentalCondition>(
         ExperimentalCondition.UNKNOWN
     );
@@ -50,7 +50,7 @@ export function App() {
     }
     const handleLoginError = makeErrorHandler(FailedAction.LOGIN);
     const handleFetchError = makeErrorHandler(FailedAction.FETCH);
-    async function handleTweetPromise(tweetPromise: Promise<AugmentedTweet[]>) {
+    async function handleTweetPromise(tweetPromise: Promise<Tweet[]>) {
         setAppState(AppState.LOADING);
         try {
             const tweets = await tweetPromise;

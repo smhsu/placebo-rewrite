@@ -1,7 +1,7 @@
 import React from "react";
 
+import { Tweet } from "../../Tweet";
 import { organizeIntoThreads, TweetThread } from "../../TweetThread";
-import { AugmentedTweet } from "../../AugmentedTweet";
 import { ExperimentalCondition } from "../../common/ExperimentalCondition";
 import { TweetPopularityCalculator, RandomPopularityCalculator } from "../../TweetPopularityCalculator";
 import { OriginalOrderSorter, ThreadShuffler } from "../../ThreadSorter";
@@ -11,7 +11,6 @@ import { RangePopularityFilter } from "./RangePopularityFilter";
 import { swapFilter } from "./SwapFilter";
 import { randomFilter } from "./RandomFilter";
 import { noopFilter } from "./NoopFilter";
-
 
 const TWEET_FILTER_FOR_CONDITION: Record<ExperimentalCondition, ITweetFilter<any>> = {
     [ExperimentalCondition.POPULARITY_SLIDER]: new RangePopularityFilter(
@@ -33,7 +32,7 @@ interface TweetsRenderConfig {
 }
 
 export function useTweetFilter(
-    tweets: AugmentedTweet[],
+    tweets: Tweet[],
     condition: ExperimentalCondition,
     onChange?: () => void
 ): TweetsRenderConfig {

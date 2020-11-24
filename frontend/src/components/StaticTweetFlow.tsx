@@ -3,12 +3,12 @@ import { AppState, ErrorInfo } from "./AppState";
 import { InstructionsAndButton } from "./InstructionsAndButton";
 import { TopicPicker, TopicSelectionStatuses } from "./TopicPicker";
 import { StaticFeedMaker } from "../StaticFeedMaker";
-import { AugmentedTweet } from "../AugmentedTweet";
+import { Tweet } from "../Tweet";
 
 interface Props {
     appState: AppState;
     errorInfo?: ErrorInfo;
-    onTweetPromise: (tweetPromise: Promise<AugmentedTweet[]>) => void;
+    onTweetPromise: (tweetPromise: Promise<Tweet[]>) => void;
 }
 
 export function StaticTweetFlow(props: Props) {

@@ -5,8 +5,8 @@ import { AppState, ErrorInfo } from "./AppState";
 import { InstructionsAndButton } from "./InstructionsAndButton";
 import { TwitterLoginButton } from "./TwitterLoginButton";
 
-import { TweetAugmenter, AugmentedTweet } from "../AugmentedTweet";
 import * as GetTweetsApi from "../common/getTweetsApi";
+import { Tweet } from "../Tweet";
 
 interface Props {
     /** Current state of the app. */
@@ -23,7 +23,7 @@ interface Props {
     queryParams?: Record<string, string | string[] | undefined>;
 
     /** Callback for when an attempt to fetch tweets starts. */
-    onTweetPromise: (tweetPromise: Promise<AugmentedTweet[]>) => void;
+    onTweetPromise: (tweetPromise: Promise<Tweet[]>) => void;
 
     /** Callback for errors that happen when trying to log in. */
     onLoginError: (error: unknown) => void;
@@ -54,7 +54,7 @@ export function TwitterLoginFlow(props: Props) {
                 baseURL: GetTweetsApi.PATH,
                 params: fetchParams
             })
-            .then(response =>  new TweetAugmenter().augmentAll(response.data.tweets))
+            .then(response => Tweet.fromStatuses(response.data.tweets))
         );
 
         return () => { hasFetched.current = true };

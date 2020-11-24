@@ -3,7 +3,7 @@ import FlipMove from "react-flip-move";
 import { TweetBranchDisplay } from "./TweetBranchDisplay";
 import { useTweetFilter } from "../tweetFilters/useTweetFilter";
 
-import { AugmentedTweet } from "../../AugmentedTweet";
+import { Tweet } from "../../Tweet";
 import { ParticipantLog } from "../../ParticipantLog";
 import { ExperimentalCondition } from "../../common/ExperimentalCondition";
 
@@ -12,7 +12,7 @@ import "./TweetView.css";
 const isShowingConditionChooser = process.env.REACT_APP_DEBUG_MODE === "true";
 
 interface Props {
-    tweets: AugmentedTweet[];
+    tweets: Tweet[];
     experimentCondition: ExperimentalCondition;
     log: ParticipantLog;
     settingsYOffset?: number;

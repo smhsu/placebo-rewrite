@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Status } from "twitter-d";
 import { sampleSize, range, difference, zip } from "lodash";
-import { AugmentedTweet, TweetAugmenter } from "./AugmentedTweet";
+import { Tweet } from "./Tweet";
 
 const DEFAULT_UNTHEMATIC_TWEETS_PROPORTION = 0.15;
 const DEFAULT_FEED_SIZE = 600;
@@ -33,10 +33,10 @@ export class StaticFeedMaker {
         this._feedSize = feedSize;
     }
 
-    async downloadAndBuildFeed(topics: string[]): Promise<AugmentedTweet[]> {
+    async downloadAndBuildFeed(topics: string[]): Promise<Tweet[]> {
         if (topics.includes(DEBUG_TWEETS_TOPIC_NAME)) {
-            const debugTweets = await import("./debugTweets.json");
-            return new TweetAugmenter().augmentAll(debugTweets as unknown as Status[]);
+            const debugTweetImport = await import("./debugTweets.json");
+            return Tweet.fromStatuses(debugTweetImport.default as unknown as Status[]);
         }
 
         const [tweetsByTopic, unthematicTweets] = await Promise.all([
@@ -59,12 +59,11 @@ export class StaticFeedMaker {
         const sampledUnthematicTweets = sampleSize(unthematicTweets, numUnthematicTweetsToSample);
 
         // Sort the thematic tweets by time.
-        const augmenter = new TweetAugmenter();
-        let feed = augmenter.augmentAll(topicalTweets);
-        feed = augmenter.sortNewestToOldest(feed);
+        let feed = Tweet.fromStatuses(topicalTweets);
+        feed = Tweet.sortNewestToOldest(feed);
 
         // Randomly insert the unthematic tweets.
-        feed = this._insertRandomly(feed, augmenter.augmentAll(sampledUnthematicTweets));
+        feed = this._insertRandomly(feed, Tweet.fromStatuses(sampledUnthematicTweets));
         for (let i = 0; i < feed.length; i++) { // Reindex
             feed[i].originalIndex = i;
         }
