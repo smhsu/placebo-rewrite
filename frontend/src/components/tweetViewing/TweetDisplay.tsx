@@ -3,7 +3,7 @@ import he from "he";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faHeart, faRetweet } from "@fortawesome/free-solid-svg-icons";
 import { ImgWithFallback } from "./ImgWithFallback";
-import { Tweet, MediaType } from "../../Tweet";
+import { Tweet, MediaType } from "../../tweetModels/Tweet";
 
 import "./Tweet.css";
 

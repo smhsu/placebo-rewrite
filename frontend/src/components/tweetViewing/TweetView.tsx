@@ -3,7 +3,7 @@ import FlipMove from "react-flip-move";
 import { TweetBranchDisplay } from "./TweetBranchDisplay";
 import { useTweetFilter } from "../tweetFilters/useTweetFilter";
 
-import { Tweet } from "../../Tweet";
+import { Tweet } from "../../tweetModels/Tweet";
 import { ParticipantLog } from "../../ParticipantLog";
 import { ExperimentalCondition } from "../../common/ExperimentalCondition";
 

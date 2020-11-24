@@ -1,6 +1,6 @@
 import { chunk, sortBy } from "lodash";
 import { Tweet } from "./Tweet";
-import { RandomNumberGenerator } from "./RandomNumberGenerator";
+import { RandomNumberGenerator } from "../RandomNumberGenerator";
 
 export interface ITweetPopularityCalculator {
     partitionByPopularity<T extends Tweet>(tweets: T[], numChunks: number): T[][];

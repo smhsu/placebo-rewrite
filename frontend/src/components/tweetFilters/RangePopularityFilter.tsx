@@ -4,10 +4,10 @@ import { Slider } from "@material-ui/core";
 
 import { ITweetFilter, SettingComponentProps } from "./ITweetFilter";
 import { SliderContainer } from "./SliderContainer";
-import { TweetThread } from "../../TweetThread";
-import { ITweetPopularityCalculator } from "../../TweetPopularityCalculator";
-import { IThreadSorter } from "../../ThreadSorter";
-import { Tweet } from "../../Tweet";
+import { TweetThread } from "../../tweetModels/TweetThread";
+import { ITweetPopularityCalculator } from "../../tweetModels/TweetPopularityCalculator";
+import { IThreadSorter } from "../../tweetModels/ThreadSorter";
+import { Tweet } from "../../tweetModels/Tweet";
 
 const NUM_SLIDER_STOPS = 9;
 type Interval = [number, number];

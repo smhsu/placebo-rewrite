@@ -1,5 +1,5 @@
 import { ITweetFilter } from "./ITweetFilter";
-import { OriginalOrderSorter } from "../../ThreadSorter";
+import { OriginalOrderSorter } from "../../tweetModels/ThreadSorter";
 
 const THREAD_SORTER = new OriginalOrderSorter();
 

@@ -1,7 +1,7 @@
 import React from "react";
 import { ITweetFilter, SettingComponentProps } from "./ITweetFilter";
-import { TweetThread } from "../../TweetThread";
-import { OriginalOrderSorter } from "../../ThreadSorter";
+import { TweetThread } from "../../tweetModels/TweetThread";
+import { OriginalOrderSorter } from "../../tweetModels/ThreadSorter";
 
 const THREAD_SORTER = new OriginalOrderSorter();
 

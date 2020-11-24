@@ -2,8 +2,8 @@ import React from "react";
 import { AppState, ErrorInfo } from "./AppState";
 import { InstructionsAndButton } from "./InstructionsAndButton";
 import { TopicPicker, TopicSelectionStatuses } from "./TopicPicker";
-import { StaticFeedMaker } from "../StaticFeedMaker";
-import { Tweet } from "../Tweet";
+import { StaticFeedMaker } from "../tweetModels/StaticFeedMaker";
+import { Tweet } from "../tweetModels/Tweet";
 
 interface Props {
     appState: AppState;

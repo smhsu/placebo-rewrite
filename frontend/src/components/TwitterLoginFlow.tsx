@@ -6,7 +6,7 @@ import { InstructionsAndButton } from "./InstructionsAndButton";
 import { TwitterLoginButton } from "./TwitterLoginButton";
 
 import * as GetTweetsApi from "../common/getTweetsApi";
-import { Tweet } from "../Tweet";
+import { Tweet } from "../tweetModels/Tweet";
 
 interface Props {
     /** Current state of the app. */

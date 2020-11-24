@@ -1,7 +1,7 @@
 import React, { forwardRef, useEffect, useState } from "react";
 import { TweetDisplay } from "./TweetDisplay";
 import { TweetsCollapsedIndicator } from "./TweetsCollapsedIndicator";
-import { TweetThread } from "../../TweetThread";
+import { TweetThread } from "../../tweetModels/TweetThread";
 
 const TWEETS_COLLAPSE_THRESHOLD = 3;
 

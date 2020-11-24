@@ -1,5 +1,5 @@
 import React from "react";
-import { TweetThread } from "../../TweetThread";
+import { TweetThread } from "../../tweetModels/TweetThread";
 
 /**
  * Configuration for rendering settings that filter and/or reorder tweets.

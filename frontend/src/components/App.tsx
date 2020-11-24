@@ -11,7 +11,7 @@ import { ExperimentalCondition } from "../common/ExperimentalCondition";
 import { fetchExperimentalCondition } from "../fetchExperimentalCondition";
 import { ApiErrorHandler } from "../ApiErrorHandler";
 import { ParticipantLog } from "../ParticipantLog";
-import { Tweet } from "../Tweet";
+import { Tweet } from "../tweetModels/Tweet";
 
 import spinner from "../loading-small.gif";
 import "./App.css";

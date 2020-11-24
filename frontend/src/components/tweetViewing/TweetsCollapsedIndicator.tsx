@@ -1,6 +1,6 @@
 import React from "react";
 import { ImgWithFallback } from "./ImgWithFallback";
-import { Tweet } from "../../Tweet";
+import { Tweet } from "../../tweetModels/Tweet";
 
 import "./Tweet.css";
 

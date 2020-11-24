@@ -1,5 +1,5 @@
 import { TweetThread } from "./TweetThread";
-import { RandomNumberGenerator } from "./RandomNumberGenerator";
+import { RandomNumberGenerator } from "../RandomNumberGenerator";
 
 export interface IThreadSorter {
     sort(threads: TweetThread[]): TweetThread[];

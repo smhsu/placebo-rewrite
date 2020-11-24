@@ -1,10 +1,10 @@
 import React from "react";
 
-import { Tweet } from "../../Tweet";
-import { organizeIntoThreads, TweetThread } from "../../TweetThread";
+import { Tweet } from "../../tweetModels/Tweet";
+import { organizeIntoThreads, TweetThread } from "../../tweetModels/TweetThread";
 import { ExperimentalCondition } from "../../common/ExperimentalCondition";
-import { TweetPopularityCalculator, RandomPopularityCalculator } from "../../TweetPopularityCalculator";
-import { OriginalOrderSorter, ThreadShuffler } from "../../ThreadSorter";
+import { TweetPopularityCalculator, RandomPopularityCalculator } from "../../tweetModels/TweetPopularityCalculator";
+import { OriginalOrderSorter, ThreadShuffler } from "../../tweetModels/ThreadSorter";
 
 import { ITweetFilter } from "./ITweetFilter";
 import { RangePopularityFilter } from "./RangePopularityFilter";
