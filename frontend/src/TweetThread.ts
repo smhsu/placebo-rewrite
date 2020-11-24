@@ -6,10 +6,6 @@ export function organizeIntoThreads(tweets: AugmentedTweet[]): TweetThread[] {
     return makeTrees(tweets).map(flattenTreeIntoThreads).flat(1);
 }
 
-export function sortThreadsByOriginalOrder(threads: TweetThread[]) {
-    return threads.sort((a, b) => a[0].originalIndex - b[0].originalIndex);
-}
-
 interface TweetTreeNode {
     tweet: AugmentedTweet;
     children: TweetTreeNode[];

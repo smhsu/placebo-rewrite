@@ -4,8 +4,9 @@ import { Slider } from "@material-ui/core";
 
 import { ITweetFilter, SettingComponentProps } from "./ITweetFilter";
 import { SliderContainer } from "./SliderContainer";
-import { TweetThread, sortThreadsByOriginalOrder } from "../../TweetThread";
-import { TweetPopularityCalculator } from "../../TweetPopularityCalculator";
+import { TweetThread } from "../../TweetThread";
+import { ITweetPopularityCalculator } from "../../TweetPopularityCalculator";
+import { IThreadSorter } from "../../ThreadSorter";
 import { AugmentedTweet } from "../../AugmentedTweet";
 
 const NUM_SLIDER_STOPS = 9;
@@ -15,7 +16,7 @@ export class RangePopularityFilter implements ITweetFilter<Interval> {
     initialState = [1, NUM_SLIDER_STOPS] as Interval;
     shouldAnimateChanges = false;
 
-    constructor(private _popularityCalculator: TweetPopularityCalculator) {
+    constructor(private _popularityCalculator: ITweetPopularityCalculator, private _threadSorter: IThreadSorter) {
         this._partitionThreadStartsByPopularity = memoizeOne(this._partitionThreadStartsByPopularity);
     }
 
@@ -64,6 +65,6 @@ export class RangePopularityFilter implements ITweetFilter<Interval> {
             // thread's start tweet should be in the map.
             threadForThreadStart.get(threadStart) || []
         );
-        return sortThreadsByOriginalOrder(desiredThreads);
+        return this._threadSorter.sort(desiredThreads);
     }
 }

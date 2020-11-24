@@ -1,18 +1,25 @@
 import React from "react";
-import { ITweetFilter } from "./ITweetFilter";
+
 import { organizeIntoThreads, TweetThread } from "../../TweetThread";
 import { AugmentedTweet } from "../../AugmentedTweet";
 import { ExperimentalCondition } from "../../common/ExperimentalCondition";
-
 import { TweetPopularityCalculator, RandomPopularityCalculator } from "../../TweetPopularityCalculator";
+import { OriginalOrderSorter, ThreadShuffler } from "../../ThreadSorter";
+
+import { ITweetFilter } from "./ITweetFilter";
 import { RangePopularityFilter } from "./RangePopularityFilter";
 import { swapFilter } from "./SwapFilter";
 import { randomFilter } from "./RandomFilter";
 import { noopFilter } from "./NoopFilter";
 
+
 const TWEET_FILTER_FOR_CONDITION: Record<ExperimentalCondition, ITweetFilter<any>> = {
-    [ExperimentalCondition.POPULARITY_SLIDER]: new RangePopularityFilter(new TweetPopularityCalculator()),
-    [ExperimentalCondition.NOT_WORKING_POPULARITY_SLIDER]: new RangePopularityFilter(new RandomPopularityCalculator()),
+    [ExperimentalCondition.POPULARITY_SLIDER]: new RangePopularityFilter(
+        new TweetPopularityCalculator(), new OriginalOrderSorter()
+    ),
+    [ExperimentalCondition.NOT_WORKING_POPULARITY_SLIDER]: new RangePopularityFilter(
+        new RandomPopularityCalculator(), new ThreadShuffler()
+    ),
     [ExperimentalCondition.SWAP_SETTING]: swapFilter,
     [ExperimentalCondition.NO_SETTING_RANDOM]: randomFilter,
     [ExperimentalCondition.NO_SETTING]: noopFilter,

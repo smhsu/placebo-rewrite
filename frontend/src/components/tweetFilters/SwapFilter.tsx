@@ -1,6 +1,9 @@
 import React from "react";
 import { ITweetFilter, SettingComponentProps } from "./ITweetFilter";
-import { TweetThread, sortThreadsByOriginalOrder } from "../../TweetThread";
+import { TweetThread } from "../../TweetThread";
+import { OriginalOrderSorter } from "../../ThreadSorter";
+
+const THREAD_SORTER = new OriginalOrderSorter();
 
 export const swapFilter: ITweetFilter<boolean> = {
     /** Whether we are swapping the first two threads. */
@@ -15,7 +18,7 @@ export const swapFilter: ITweetFilter<boolean> = {
     },
 
     doFilter(threads: TweetThread[], isSwapping: boolean): TweetThread[] {
-        const sortedThreads = sortThreadsByOriginalOrder(threads);
+        const sortedThreads = THREAD_SORTER.sort(threads);
         return isSwapping ? swapFirstTwo(sortedThreads) : sortedThreads;
     },
 
