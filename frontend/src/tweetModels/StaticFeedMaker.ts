@@ -39,31 +39,29 @@ export class StaticFeedMaker {
             return Tweet.fromStatuses(debugTweetImport.default as unknown as Status[]);
         }
 
+        // Download all the tweets we need.
         const [tweetsByTopic, unthematicTweets] = await Promise.all([
             this._downloadTopics(topics), this._downloadUnthematicTweets()
         ]);
 
         // Select the thematic tweets to use.
         // Equally divide the part of the feed dedicated to thematic tweets among the topics.
-        const desiredProportionForEachTopic = (1 - this._unthematicTweetsProportion) / tweetsByTopic.length;
-        const topicalTweets = [];
-        for (const tweetsInTopic of tweetsByTopic) {
-            const numToSample = Math.min(this._feedSize * desiredProportionForEachTopic, tweetsInTopic.length);
-            topicalTweets.push(...sampleSize(tweetsInTopic, numToSample));
-        }
+        const singleTopicProportion = (1 - this._unthematicTweetsProportion) / tweetsByTopic.length;
+        const topicalTweetsToUse = tweetsByTopic.map(tweetsInTopic =>
+            this._sampleToFulfillProportion(tweetsInTopic, singleTopicProportion)
+        ).flat(1);
 
         // Select the unthematic tweets to use.
-        const numUnthematicTweetsToSample = Math.min(
-            this._feedSize * this._unthematicTweetsProportion, unthematicTweets.length
+        const unthematicTweetsToUse = this._sampleToFulfillProportion(
+            unthematicTweets, this._unthematicTweetsProportion
         );
-        const sampledUnthematicTweets = sampleSize(unthematicTweets, numUnthematicTweetsToSample);
 
         // Sort the thematic tweets by time.
-        let feed = Tweet.fromStatuses(topicalTweets);
+        let feed = Tweet.fromStatuses(topicalTweetsToUse);
         feed = Tweet.sortNewestToOldest(feed);
 
         // Randomly insert the unthematic tweets.
-        feed = this._insertRandomly(feed, Tweet.fromStatuses(sampledUnthematicTweets));
+        feed = this._insertRandomly(feed, Tweet.fromStatuses(unthematicTweetsToUse));
         for (let i = 0; i < feed.length; i++) { // Reindex
             feed[i].originalIndex = i;
         }
@@ -83,6 +81,11 @@ export class StaticFeedMaker {
 
     private _downloadUnthematicTweets(): Promise<Status[]> {
         return axios.get<Status[]>(UNTHEMATIC_TWEETS_URL).then(response => response.data);
+    }
+
+    private _sampleToFulfillProportion<T>(items: T[], feedProportion: number): T[] {
+        const numToSample = Math.min(this._feedSize * feedProportion, items.length);
+        return sampleSize(items, numToSample);
     }
 
     /**
