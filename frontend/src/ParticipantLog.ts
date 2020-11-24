@@ -19,23 +19,14 @@ function getAndStoreQualtricsID(): string {
 
 export class ParticipantLog implements IParticipantLog {
     qualtricsID: string;
-    experimentalCondition: ExperimentalCondition;
-    didInteractWithSetting: boolean;
-    private _hasBeenUploaded: boolean;
+    experimentalCondition = ExperimentalCondition.UNKNOWN;
+    didInteractWithSetting = false;
+    pixelsScrolledDown = 0;
+    pixelsScrolledUp = 0;
+    private _hasBeenUploaded = false;
 
     constructor() {
         this.qualtricsID = getAndStoreQualtricsID();
-        this.experimentalCondition = ExperimentalCondition.UNKNOWN;
-        this.didInteractWithSetting = false;
-        this._hasBeenUploaded = false;
-    }
-
-    serialize(): IParticipantLog {
-        return {
-            qualtricsID: this.qualtricsID,
-            experimentalCondition: this.experimentalCondition,
-            didInteractWithSetting: this.didInteractWithSetting
-        };
     }
 
     async uploadEnsuringOnce(): Promise<void> {
@@ -45,9 +36,7 @@ export class ParticipantLog implements IParticipantLog {
 
         this._hasBeenUploaded = true;
         try {
-            const requestPayload: LogParticipantApi.RequestPayload = {
-                data: this.serialize()
-            };
+            const requestPayload: LogParticipantApi.RequestPayload = { data: this };
             await axios.request({
                 method: LogParticipantApi.METHOD,
                 url: LogParticipantApi.PATH,

@@ -7,6 +7,8 @@ export interface IParticipantLog {
     qualtricsID: string;
     experimentalCondition: ExperimentalCondition;
     didInteractWithSetting: boolean;
+    pixelsScrolledDown: number;
+    pixelsScrolledUp: number;
 }
 
 export interface RequestPayload {

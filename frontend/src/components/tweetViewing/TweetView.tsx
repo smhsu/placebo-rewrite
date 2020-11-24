@@ -1,5 +1,6 @@
 import React from "react";
 import FlipMove from "react-flip-move";
+import { useScrollLogging } from "./useScrollLogging";
 import { TweetBranchDisplay } from "./TweetBranchDisplay";
 import { useTweetFilter } from "../tweetFilters/useTweetFilter";
 
@@ -24,6 +25,7 @@ export const TweetView = React.memo(function TweetView(props: Props) {
     const {threads, shouldAnimateChanges, settingElement} = useTweetFilter(
         tweets, manualCondition || experimentCondition, () => log.didInteractWithSetting = true
     );
+    useScrollLogging(log);
 
     return <div className="container-fluid">
         <div className="row justify-content-center">
