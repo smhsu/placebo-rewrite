@@ -14,8 +14,8 @@ const FILE_NAME_FOR_TOPIC: Record<string, string> = {
     "Technology"               : "technology.json",
     "News"                     : "news.json",
     "Funny/Interesting"        : "funny_interesting.json",
-    "Sports (no tweets yet)"   : "",
-    "Art/Photography (no tweets yet)": ""
+    "Sports"                   : "sports.json",
+    "Cute/beautiful photos"    : "cute_beautiful.json"
 };
 const DEBUG_TWEETS_TOPIC_NAME = "Debug tweets (will override all other topics!)";
 if (process.env.REACT_APP_DEBUG_MODE === "true") {

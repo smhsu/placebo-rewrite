@@ -87,6 +87,7 @@ export function App() {
         tweetFetchFlow = <StaticTweetFlow
             appState={appState}
             errorInfo={errorInfo}
+            log={log.current}
             onTweetPromise={handleTweetPromise}
         />;
     } else {

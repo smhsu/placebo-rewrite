@@ -19,6 +19,7 @@ function getAndStoreQualtricsID(): string {
 
 export class ParticipantLog implements IParticipantLog {
     qualtricsID: string;
+    chosenTopics: string[] = [];
     experimentalCondition = ExperimentalCondition.UNKNOWN;
     didInteractWithSetting = false;
     pixelsScrolledDown = 0;

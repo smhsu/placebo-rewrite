@@ -5,6 +5,7 @@ export const PATH = "/api/store_log";
 
 export interface IParticipantLog {
     qualtricsID: string;
+    chosenTopics: string[];
     experimentalCondition: ExperimentalCondition;
     didInteractWithSetting: boolean;
     pixelsScrolledDown: number;
