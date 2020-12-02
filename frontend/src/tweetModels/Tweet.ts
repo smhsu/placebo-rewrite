@@ -93,11 +93,12 @@ export class Tweet {
     }
 
     findFirstMedia(): {type: MediaType, url: string} | null {
-        if (!this.raw.entities.media) {
+        const media = this.raw.extended_entities?.media || this.raw.entities.media;
+        if (!media) {
             return null;
         }
 
-        const firstMedia = this.raw.entities.media[0];
+        const firstMedia = media[0];
         if (!firstMedia || firstMedia.source_status_id_str) { // No first media or the media is from another status
             return null;
         }

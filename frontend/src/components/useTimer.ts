@@ -5,6 +5,7 @@ export function useTimer(durationSeconds: number) {
     const timerID = React.useRef<number | undefined>(undefined);
 
     function startTimer() {
+        stopTimer(); // Ensure only one setInterval runs at a time.
         timerID.current = window.setInterval(() => {
             setTimeLeft(currentTimeLeft => {
                 const nextTimeLeft = currentTimeLeft - 1;

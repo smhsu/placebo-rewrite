@@ -6,6 +6,7 @@ export const PATH = "/api/store_log";
 export interface IParticipantLog {
     qualtricsID: string;
     chosenTopics: string[];
+    totalTweets: number;
     experimentalCondition: ExperimentalCondition;
     didInteractWithSetting: boolean;
     pixelsScrolledDown: number;

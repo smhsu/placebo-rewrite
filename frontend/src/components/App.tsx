@@ -17,7 +17,10 @@ import spinner from "../loading-small.gif";
 import "./App.css";
 
 /** How much time users have to view their Tweets before they disappear. */
-const TWEET_VIEW_DURATION_SECONDS = Number.POSITIVE_INFINITY;
+const TWEET_VIEW_DURATION_SECONDS = Number.parseInt(process.env.REACT_APP_FEED_VIEWING_SECONDS || "", 10);
+if (!isFinite(TWEET_VIEW_DURATION_SECONDS)) {
+    throw new Error("Invalid value for REACT_APP_FEED_VIEWING_SECONDS environment variable.");
+}
 
 /** How long of a warning users will get that their Tweets will be disappearing. */
 const TWEET_DISAPPEAR_WARNING_SECONDS = 10;
@@ -55,6 +58,7 @@ export function App() {
         try {
             const tweets = await tweetPromise;
             const fetchedCondition = await fetchExperimentalCondition();
+            log.current.totalTweets = tweets.length;
             log.current.experimentalCondition = fetchedCondition;
             setTweets(tweets);
             setExperimentCondition(fetchedCondition);
@@ -144,7 +148,9 @@ function EndScreen() {
     return <div className="App-hide-tweet-overlay vertical-center">
         <div className="container">
             <h1>Thanks for browsing!</h1>
-            <p>Please enter this code to continue inside Qualtrics: <code>lots of tweets</code></p>
+            <p>
+                Please enter this code to continue inside Qualtrics: <code>{process.env.REACT_APP_CONTINUE_CODE}</code>
+            </p>
         </div>
     </div>;
 }

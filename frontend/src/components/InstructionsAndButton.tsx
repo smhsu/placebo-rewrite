@@ -19,7 +19,7 @@ export function InstructionsAndButton(props: Props): JSX.Element {
                 Click the below button to try again, or if the problem persists, enter the following code to continue in
                 Qualtrics:
             </p>
-            <code>TBD</code>
+            <code>{process.env.REACT_APP_ERROR_CONTINUE_CODE}</code>
         </div>
     } else {
         instructions = <p style={{fontSize: "x-large"}}>
