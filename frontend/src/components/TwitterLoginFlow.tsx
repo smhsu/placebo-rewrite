@@ -15,13 +15,6 @@ interface Props {
     /** Error info to render if the app is in an error state. */
     errorInfo?: ErrorInfo;
 
-    /**
-     * Object that may optionally contain the authentication information to fetch tweets.  The *first* time valid
-     * authentication information is detected inside this object, fetching will automatically happen, and it will not
-     * happen again for the lifetime of the component.
-     */
-    queryParams?: Record<string, string | string[] | undefined>;
-
     /** Callback for when an attempt to fetch tweets starts. */
     onTweetPromise: (tweetPromise: Promise<Tweet[]>) => void;
 
@@ -36,31 +29,17 @@ interface Props {
  * @author Silas Hsu
  */
 export function TwitterLoginFlow(props: Props) {
-    const {appState, errorInfo, queryParams, onTweetPromise, onLoginError} = props;
-    const hasFetched = React.useRef(false);
-    React.useEffect(() => { // Fetch tweets if valid info in the query params is detected.
-        if (hasFetched.current || !queryParams) {
-            return;
-        }
+    const {appState, errorInfo, onTweetPromise, onLoginError} = props;
+    const handleAuthToken = (token: GetTweetsApi.RequestQueryParams) => {
+        const tweetPromise = axios.request<GetTweetsApi.ResponsePayload>({
+            method: GetTweetsApi.METHOD,
+            baseURL: GetTweetsApi.PATH,
+            params: token
+        }).then(response => Tweet.fromStatuses(response.data.tweets))
+        onTweetPromise(tweetPromise);
+    }
 
-        const fetchParams = GetTweetsApi.extractQueryParams(queryParams);
-        if (!fetchParams) {
-            return;
-        }
-
-        onTweetPromise(
-            axios.request<GetTweetsApi.ResponsePayload>({
-                method: GetTweetsApi.METHOD,
-                baseURL: GetTweetsApi.PATH,
-                params: fetchParams
-            })
-            .then(response => Tweet.fromStatuses(response.data.tweets))
-        );
-
-        return () => { hasFetched.current = true };
-    }, [queryParams, onTweetPromise]);
-
-    const loginButton = <TwitterLoginButton onError={onLoginError} />;
+    const loginButton = <TwitterLoginButton onAuthToken={handleAuthToken} onError={onLoginError} />;
     switch (appState) {
         case AppState.START:
             return <InstructionsAndButton buttonElement={loginButton} />;

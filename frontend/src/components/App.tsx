@@ -53,6 +53,7 @@ export function App() {
     }
     const handleLoginError = makeErrorHandler(FailedAction.LOGIN);
     const handleFetchError = makeErrorHandler(FailedAction.FETCH);
+    // This is a pretty important callback; it's called for both the Twitter login flow and the static tweet flow.
     async function handleTweetPromise(tweetPromise: Promise<Tweet[]>) {
         setAppState(AppState.LOADING);
         try {
@@ -63,6 +64,10 @@ export function App() {
             setTweets(tweets);
             setExperimentCondition(fetchedCondition);
             setAppState(AppState.LOADED);
+            window.addEventListener("beforeunload", e => { // Prompt user before leaving page
+                e.preventDefault();
+                e.returnValue = "";
+            });
             startTimer();
         } catch (error) {
             handleFetchError(error);
@@ -98,7 +103,6 @@ export function App() {
         tweetFetchFlow = <TwitterLoginFlow
             appState={appState}
             errorInfo={errorInfo}
-            queryParams={parsedQueryParams}
             onTweetPromise={handleTweetPromise}
             onLoginError={handleLoginError}
         />;

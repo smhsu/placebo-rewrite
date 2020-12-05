@@ -32,6 +32,7 @@ export const TweetView = React.memo(function TweetView(props: Props) {
             <div className="TweetView-tweets-wrapper col">
                 {isShowingConditionChooser &&
                     <ManualConditionChooser
+                        serverSelectedCondition={experimentCondition}
                         condition={manualCondition}
                         onChange={setManualCondition}
                         style={{ top: props.settingsYOffset }}
@@ -59,13 +60,14 @@ function SettingsPanel(props: React.PropsWithChildren<{top?: number}>): JSX.Elem
 }
 
 interface ManualConditionChooserProps {
+    serverSelectedCondition: ExperimentalCondition;
     condition: ExperimentalCondition | "";
     onChange: (condition: ExperimentalCondition | "") => void
     style?: React.CSSProperties;
 }
 
 function ManualConditionChooser(props: ManualConditionChooserProps): JSX.Element {
-    const options = [<option key="" value="">(server-chosen)</option>];
+    const options = [<option key="" value="">(server-chosen) {props.serverSelectedCondition}</option>];
     for (const condition of Object.values(ExperimentalCondition)) {
         options.push(<option key={condition} value={condition}>{condition}</option>);
     }
