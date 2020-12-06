@@ -2,9 +2,8 @@ set -e # Exit the script if there's an error
 
 HEROKU_APP_NAME=twitter-timeline-study # Adjust this as needed
 
-echo "Compiling frontend..."
 cd frontend
-npm run build > /dev/null # A lot of output from the create-react-app build script, suppress it.
+npm run build
 
 # Move the frontend's compiled files to ../backend/public
 rm -rf ../backend/public # Remove anything that might be there already

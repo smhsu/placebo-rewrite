@@ -24,7 +24,13 @@ export class TwitterAuthPopup {
 
     async openAndWaitForAuthToken(width=500, height=400): Promise<GetTweetsApi.RequestQueryParams> {
         this._open(width, height);
-        await this._setLocationToTwitter();
+        try {
+            await this._setLocationToTwitter();
+        } catch (error) {
+            this.close();
+            throw error;
+        }
+
         return new Promise<GetTweetsApi.RequestQueryParams>((resolve, reject) => {
             // We have to constantly poll the window for changes in its state.
             this._pollingID = window.setInterval(() => {
