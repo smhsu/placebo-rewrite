@@ -12,7 +12,7 @@ export interface ITweetFilter<S> {
     SettingComponent: React.ComponentType<SettingComponentProps<S>> | null;
 
     /** Function that filters or reorders tweets based on the current state of the setting. */
-    doFilter(tweets: TweetThread[], currentState: S): TweetThread[];
+    doFilter(threads: TweetThread[], currentState: S): TweetThread[];
 
     /** Whether changes to tweets or tweet order should trigger an animation. */
     shouldAnimateChanges: boolean;

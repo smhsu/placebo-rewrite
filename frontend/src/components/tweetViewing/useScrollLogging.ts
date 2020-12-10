@@ -19,6 +19,9 @@ export function useScrollLogging(log: ParticipantLog) {
                 log.pixelsScrolledUp -= pixelsScrolledDown;
             }
             lastScrollY.current = window.scrollY;
+            if (window.scrollY > log.maxScrollY) {
+                log.maxScrollY = window.scrollY;
+            }
         };
 
         window.addEventListener("scroll", logScrollDistance);

@@ -33,6 +33,7 @@ export class ParticipantLog implements IParticipantLog {
     didInteractWithSetting = false;
     pixelsScrolledDown = 0;
     pixelsScrolledUp = 0;
+    maxScrollY = 0;
 
     private _hasBeenUploaded = false;
 
@@ -40,7 +41,7 @@ export class ParticipantLog implements IParticipantLog {
         this.qualtricsID = getAndStoreQualtricsID();
     }
 
-    logTwitterStatistics(tweets: Tweet[]) {
+    logTweetStatistics(tweets: Tweet[]) {
         const createdAtMean = meanBy(tweets, "createdAtUnix") || 0;
         this.tweetStats = {
             count: tweets.length,

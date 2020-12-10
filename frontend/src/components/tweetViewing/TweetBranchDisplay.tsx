@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useState } from "react";
+import React, { memo, forwardRef, useEffect, useState } from "react";
 import { TweetDisplay } from "./TweetDisplay";
 import { TweetsCollapsedIndicator } from "./TweetsCollapsedIndicator";
 import { TweetThread } from "../../tweetModels/TweetThread";
@@ -9,7 +9,7 @@ interface Props {
     branch: TweetThread;
 }
 
-export const TweetBranchDisplay = forwardRef<HTMLDivElement, Props>(function TweetBranchDisplay(props, ref) {
+export const TweetBranchDisplay = memo(forwardRef<HTMLDivElement, Props>(function TweetBranchDisplay(props, ref) {
     const branch = props.branch;
     const [isShowingFullBranch, setIsShowingFullBranch] = useState(false);
     useEffect(() => {
@@ -33,4 +33,4 @@ export const TweetBranchDisplay = forwardRef<HTMLDivElement, Props>(function Twe
             onExpand={() => setIsShowingFullBranch(true)}
         />}
     </div>;
-});
+}));

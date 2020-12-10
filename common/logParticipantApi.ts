@@ -17,6 +17,7 @@ export interface IParticipantLog {
     didInteractWithSetting: boolean;
     pixelsScrolledDown: number;
     pixelsScrolledUp: number;
+    maxScrollY: number;
 }
 
 export interface RequestPayload {

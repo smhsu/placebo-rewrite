@@ -4,25 +4,24 @@ import { Tweet } from "../../tweetModels/Tweet";
 import { organizeIntoThreads, TweetThread } from "../../tweetModels/TweetThread";
 import { ExperimentalCondition } from "../../common/ExperimentalCondition";
 import { TweetPopularityCalculator, RandomPopularityCalculator } from "../../tweetModels/TweetPopularityCalculator";
-import { OriginalOrderSorter, ThreadShuffler } from "../../tweetModels/ThreadSorter";
+import { OriginalOrderSorter, ConsistentShuffleSorter } from "../../tweetModels/ThreadSorter";
 
 import { ITweetFilter } from "./ITweetFilter";
-import { RangePopularityFilter } from "./RangePopularityFilter";
+import { BucketPopularityFilter } from "./BucketPopularityFilter";
 import { swapFilter } from "./SwapFilter";
-import { randomFilter } from "./RandomFilter";
-import { noopFilter } from "./NoopFilter";
+import { NoSettingFilter } from "./NoSettingFilter";
 
 const TWEET_FILTER_FOR_CONDITION: Record<ExperimentalCondition, ITweetFilter<any>> = {
-    [ExperimentalCondition.POPULARITY_SLIDER]: new RangePopularityFilter(
+    [ExperimentalCondition.POPULARITY_SLIDER]: new BucketPopularityFilter(
         new TweetPopularityCalculator(), new OriginalOrderSorter()
     ),
-    [ExperimentalCondition.NOT_WORKING_POPULARITY_SLIDER]: new RangePopularityFilter(
-        new RandomPopularityCalculator(), new ThreadShuffler()
+    [ExperimentalCondition.NOT_WORKING_POPULARITY_SLIDER]: new BucketPopularityFilter(
+        new RandomPopularityCalculator(), new ConsistentShuffleSorter()
     ),
     [ExperimentalCondition.SWAP_SETTING]: swapFilter,
-    [ExperimentalCondition.NO_SETTING_RANDOM]: randomFilter,
-    [ExperimentalCondition.NO_SETTING]: noopFilter,
-    [ExperimentalCondition.UNKNOWN]: noopFilter
+    [ExperimentalCondition.NO_SETTING_RANDOM]: new NoSettingFilter(new ConsistentShuffleSorter()),
+    [ExperimentalCondition.NO_SETTING]: new NoSettingFilter(new OriginalOrderSorter()),
+    [ExperimentalCondition.UNKNOWN]: new NoSettingFilter(new OriginalOrderSorter())
 };
 
 interface TweetsRenderConfig {

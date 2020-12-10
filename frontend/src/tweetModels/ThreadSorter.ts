@@ -11,7 +11,7 @@ export class OriginalOrderSorter implements IThreadSorter {
     }
 }
 
-export class ThreadShuffler implements IThreadSorter {
+export class ConsistentShuffleSorter implements IThreadSorter {
     sort(threads: TweetThread[]): TweetThread[] {
         return threads.sort((a, b) => {
             // Seed the RNGs with the id_str so the sort is consistent

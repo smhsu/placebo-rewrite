@@ -9,11 +9,10 @@ import { ITweetPopularityCalculator } from "../../tweetModels/TweetPopularityCal
 import { IThreadSorter } from "../../tweetModels/ThreadSorter";
 import { Tweet } from "../../tweetModels/Tweet";
 
-const NUM_SLIDER_STOPS = 9;
-type Interval = [number, number];
+const NUM_SLIDER_STOPS = 7;
 
-export class RangePopularityFilter implements ITweetFilter<Interval> {
-    initialState = [1, NUM_SLIDER_STOPS] as Interval;
+export class BucketPopularityFilter implements ITweetFilter<number> {
+    initialState = Math.ceil(NUM_SLIDER_STOPS * 0.5);
     shouldAnimateChanges = false;
 
     constructor(private _popularityCalculator: ITweetPopularityCalculator, private _threadSorter: IThreadSorter) {
@@ -25,19 +24,16 @@ export class RangePopularityFilter implements ITweetFilter<Interval> {
         return this._popularityCalculator.partitionByPopularity(threadStarts, NUM_SLIDER_STOPS);
     }
 
-    SettingComponent(props: SettingComponentProps<Interval>) {
+    SettingComponent(props: SettingComponentProps<number>) {
         const {currentState, onStateUpdated} = props;
         const handleChange = (_event: React.ChangeEvent<{}>, value: number | number[]) => {
-            if (typeof value === "number") {
-                onStateUpdated([value, value]);
-            } else {
-                onStateUpdated(value as Interval);
-            }
-        };
+            onStateUpdated(typeof value === "number" ? value : value[0]);
+            window.scrollTo({top: 0, behavior: "smooth"});
+        }
 
         return <SliderContainer
-            mainLabel="Popularity range"
-            instructions="Move the circles to customize Tweets."
+            mainLabel="Popularity"
+            instructions="Display tweets of a certain popularity level first"
             lowLabel="Least popular"
             highLabel="Most popular"
         >
@@ -45,26 +41,30 @@ export class RangePopularityFilter implements ITweetFilter<Interval> {
                 min={1}
                 max={NUM_SLIDER_STOPS}
                 step={1}
+                marks={true}
                 value={currentState}
                 onChange={handleChange}
             />
         </SliderContainer>;
     }
 
-    doFilter(threads: TweetThread[], currentState: Interval): TweetThread[] {
+    doFilter(threads: TweetThread[], currentState: number): TweetThread[] {
         const threadForThreadStart = new Map<Tweet, TweetThread>();
         for (const thread of threads) {
             threadForThreadStart.set(thread[0], thread);
         }
 
         const partitions = this._partitionThreadStartsByPopularity(threads);
-        // currentState[0] - 1 because the slider starts at 1, but the partition indexing starts at 0.
-        const desiredPartitions = partitions.slice(currentState[0] - 1, currentState[1]);
-        const desiredThreads = desiredPartitions.flat(1).map(threadStart =>
+        // Minus 1 because the slider starts at 1, but the partition indexing starts at 0.
+        const priorityIndex = currentState - 1;
+        const priorityThreads = toThreads(partitions[priorityIndex] || []);
+        const otherThreads = toThreads(partitions.filter((_tweets, i) => i !== priorityIndex).flat(1));
+        return [...this._threadSorter.sort(priorityThreads), ...this._threadSorter.sort(otherThreads)];
+
+        function toThreads(tweets: Tweet[]): TweetThread[] {
             // threadForThreadStart.get is marked as possibly returning undefined, but it never will because every
             // thread's start tweet should be in the map.
-            threadForThreadStart.get(threadStart) || []
-        );
-        return this._threadSorter.sort(desiredThreads);
+            return tweets.map(threadStart => threadForThreadStart.get(threadStart) || []);
+        }
     }
 }

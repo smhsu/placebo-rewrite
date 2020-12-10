@@ -59,15 +59,11 @@ export function App() {
         try {
             const tweets = await tweetPromise;
             const fetchedCondition = await fetchExperimentalCondition();
-            log.current.logTwitterStatistics(tweets);
+            log.current.logTweetStatistics(tweets);
             log.current.experimentalCondition = fetchedCondition;
             setTweets(tweets);
             setExperimentCondition(fetchedCondition);
             setAppState(AppState.LOADED);
-            window.addEventListener("beforeunload", e => { // Prompt user before leaving page
-                e.preventDefault();
-                e.returnValue = "";
-            });
             startTimer();
         } catch (error) {
             handleFetchError(error);

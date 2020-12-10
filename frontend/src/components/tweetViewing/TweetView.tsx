@@ -27,6 +27,7 @@ export const TweetView = React.memo(function TweetView(props: Props) {
     );
     useScrollLogging(log);
 
+    const threadElements = threads.map(branch => <TweetBranchDisplay key={branch[0].id_str} branch={branch} />)
     return <div className="container-fluid">
         <div className="row justify-content-center">
             <div className="TweetView-tweets-wrapper col">
@@ -38,9 +39,7 @@ export const TweetView = React.memo(function TweetView(props: Props) {
                         style={{ top: props.settingsYOffset }}
                     />
                 }
-                <FlipMove enterAnimation={false} disableAllAnimations={!shouldAnimateChanges}>
-                    {threads.map(branch => <TweetBranchDisplay key={branch[0].id_str} branch={branch} />)}
-                </FlipMove>
+                {shouldAnimateChanges ? <FlipMove>{threadElements}</FlipMove> : threadElements}
             </div>
             {settingElement && <SettingsPanel top={settingsYOffset}>{settingElement}</SettingsPanel>}
         </div>
