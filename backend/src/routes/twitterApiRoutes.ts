@@ -5,7 +5,7 @@ import * as RequestTokenApi from "../common/requestTokenApi";
 import * as GetTweetsApi from "../common/getTweetsApi";
 import { TwitterClient, TwitterError } from "../TwitterClient";
 
-const NUM_TWEETS_TO_GET = 600;
+const NUM_TWEETS_TO_GET = 400;
 
 /**
  * Registers APIs that relate to authenticating and fetching data from Twitter.

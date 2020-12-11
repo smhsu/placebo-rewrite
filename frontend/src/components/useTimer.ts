@@ -3,31 +3,54 @@ import React from "react";
 export function useTimer(durationSeconds: number) {
     const [timeLeftSeconds, setTimeLeft] = React.useState(durationSeconds);
     const timerID = React.useRef<number | undefined>(undefined);
+    const startTimerFlag = React.useRef(false);
+    const isTimerRunning = timerID.current !== undefined;
 
+    React.useEffect(() => {
+        if (startTimerFlag.current) {
+            startTimerFlag.current = false;
+            startTimer();
+        }
+    });
+
+    /**
+     * Starts the timer.  Does nothing if the timer is already running.
+     */
     function startTimer() {
-        stopTimer(); // Ensure only one setInterval runs at a time.
+        if (isTimerRunning) {
+            return;
+        }
+
         timerID.current = window.setInterval(() => {
             setTimeLeft(currentTimeLeft => {
                 const nextTimeLeft = currentTimeLeft - 1;
                 if (nextTimeLeft <= 0) {
-                    stopTimer();
+                    pauseTimer();
                 }
                 return nextTimeLeft;
             });
         }, 1000);
     }
 
-    function stopTimer() {
+    function startTimerAfterNextUpdate() {
+        startTimerFlag.current = true;
+    }
+
+    /**
+     * Pauses the timer.  Does nothing if the timer is already paused.
+     */
+    function pauseTimer() {
         window.clearInterval(timerID.current);
         timerID.current = undefined;
     }
 
-    React.useEffect(() => stopTimer, []); // Stop timer on unmount
+    React.useEffect(() => pauseTimer, []); // Stop timer on unmount
 
     return {
         timeLeftSeconds,
         startTimer,
-        stopTimer,
-        isTimerRunning: timerID !== undefined
+        startTimerAfterNextUpdate,
+        pauseTimer,
+        isTimerRunning
     };
 }

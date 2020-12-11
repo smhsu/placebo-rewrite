@@ -4,7 +4,7 @@ import * as GetTweetsApi from "../common/getTweetsApi";
 import querystring from "querystring";
 
 const TWITTER_AUTH_URL = "https://api.twitter.com/oauth/authenticate";
-const POLLING_INTERVAL_MS = 500;
+const POLLING_INTERVAL_MS = 250;
 
 export class TwitterAuthPopup {
     private _popup: Window | null = null;

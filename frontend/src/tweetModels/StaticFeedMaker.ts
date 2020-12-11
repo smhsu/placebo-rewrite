@@ -4,7 +4,7 @@ import { sampleSize, range, difference, zip } from "lodash";
 import { Tweet } from "./Tweet";
 
 const DEFAULT_UNTHEMATIC_TWEETS_PROPORTION = 0.15;
-const DEFAULT_FEED_SIZE = 800;
+const DEFAULT_FEED_SIZE = 400;
 
 const STATIC_TWEET_BASE_URL = "https://smhsu.github.io/twitter-feed-construction/downloaded_tweets/";
 const UNTHEMATIC_TWEETS_URL = STATIC_TWEET_BASE_URL + "random.json";

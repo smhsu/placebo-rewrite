@@ -42,7 +42,7 @@ export function App() {
         ExperimentalCondition.UNKNOWN
     );
     const [errorInfo, setErrorInfo] = React.useState<ErrorInfo | undefined>(undefined);
-    const {timeLeftSeconds, startTimer} = useTimer(TWEET_VIEW_DURATION_SECONDS);
+    const {timeLeftSeconds, startTimerAfterNextUpdate} = useTimer(TWEET_VIEW_DURATION_SECONDS);
     const [topBarHeight, setTopBarHeight] = React.useState(0);
 
     function makeErrorHandler(failedAction: FailedAction) {
@@ -64,7 +64,7 @@ export function App() {
             setTweets(tweets);
             setExperimentCondition(fetchedCondition);
             setAppState(AppState.LOADED);
-            startTimer();
+            startTimerAfterNextUpdate();
         } catch (error) {
             handleFetchError(error);
         }
