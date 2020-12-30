@@ -22,6 +22,9 @@ export function useTimer(durationSeconds: number) {
         }
 
         timerID.current = window.setInterval(() => {
+            if (document.visibilityState === "hidden") { // Only count down when the window is visible.
+                return;
+            }
             setTimeLeft(currentTimeLeft => {
                 const nextTimeLeft = currentTimeLeft - 1;
                 if (nextTimeLeft <= 0) {
