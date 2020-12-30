@@ -1,7 +1,9 @@
 import axios from "axios";
+import querystring from "querystring";
+
 import * as RequestTokenApi from "../common/requestTokenApi";
 import * as GetTweetsApi from "../common/getTweetsApi";
-import querystring from "querystring";
+import { extractTokenFromQueryParams } from "../common/UserAuthToken";
 
 const TWITTER_AUTH_URL = "https://api.twitter.com/oauth/authenticate";
 const POLLING_INTERVAL_MS = 250;
@@ -53,7 +55,7 @@ export class TwitterAuthPopup {
                 if (hostname.includes(window.location.hostname)) { // Twitter auth window navigated us back
                     // substring(1) cuts off the "?" in the URL query string
                     const queryParams = querystring.parse(this._popup.location.search.substring(1));
-                    const fetchParams = GetTweetsApi.extractQueryParams(queryParams);
+                    const fetchParams = extractTokenFromQueryParams(queryParams);
                     if (fetchParams) {
                         resolve(fetchParams);
                     } else {

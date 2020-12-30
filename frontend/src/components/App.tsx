@@ -1,5 +1,6 @@
 import React from "react";
 import querystring from "querystring";
+import axios from "axios";
 
 import { AppState, ErrorInfo, FailedAction } from "./AppState";
 import { useTimer } from "./useTimer";
@@ -8,6 +9,8 @@ import { StaticTweetFlow } from "./StaticTweetFlow";
 import { TweetView } from "./tweetViewing/TweetView";
 
 import { ExperimentalCondition } from "../common/ExperimentalCondition";
+import { UserAuthToken } from "../common/UserAuthToken";
+import * as InvalidateTokenApi from "../common/invalidateTokenApi";
 import { fetchExperimentalCondition } from "../fetchExperimentalCondition";
 import { ApiErrorHandler } from "../ApiErrorHandler";
 import { ParticipantLog } from "../ParticipantLog";
@@ -31,6 +34,7 @@ const parsedQueryParams = querystring.parse(window.location.search.substring(1))
 export function App() {
     const log = React.useRef(new ParticipantLog());
     const topBar = React.useRef<HTMLDivElement>(null);
+    const userAuthToken = React.useRef<UserAuthToken | null>(null);
     const isUsingStaticTweets = parsedQueryParams["use_static_tweets"] === "true";
 
     ////////////////////////
@@ -75,8 +79,14 @@ export function App() {
     /////////////
     React.useEffect(() => { // Upload participant log when time is up
         if (timeLeftSeconds <= 0) {
-            log.current.uploadEnsuringOnce()
-                .catch(console.error);
+            log.current.uploadEnsuringOnce().catch(console.error);
+            if (userAuthToken.current) {
+                axios.request({
+                    method: InvalidateTokenApi.METHOD,
+                    baseURL: InvalidateTokenApi.PATH,
+                    params: userAuthToken.current
+                }).catch(console.error);
+            }
         }
     }, [timeLeftSeconds]);
     React.useEffect(() => { // Keep track of top bar's height
@@ -100,6 +110,7 @@ export function App() {
             appState={appState}
             errorInfo={errorInfo}
             onTweetPromise={handleTweetPromise}
+            onUserAuthToken={token => userAuthToken.current = token}
             onLoginError={handleLoginError}
         />;
     }

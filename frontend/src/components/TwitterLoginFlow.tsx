@@ -6,6 +6,7 @@ import { InstructionsAndButton } from "./InstructionsAndButton";
 import { TwitterLoginButton } from "./TwitterLoginButton";
 
 import * as GetTweetsApi from "../common/getTweetsApi";
+import { UserAuthToken } from "../common/UserAuthToken";
 import { Tweet } from "../tweetModels/Tweet";
 
 interface Props {
@@ -18,6 +19,8 @@ interface Props {
     /** Callback for when an attempt to fetch tweets starts. */
     onTweetPromise: (tweetPromise: Promise<Tweet[]>) => void;
 
+    onUserAuthToken: (token: UserAuthToken) => void;
+
     /** Callback for errors that happen when trying to log in. */
     onLoginError: (error: unknown) => void;
 }
@@ -29,7 +32,7 @@ interface Props {
  * @author Silas Hsu
  */
 export function TwitterLoginFlow(props: Props) {
-    const {appState, errorInfo, onTweetPromise, onLoginError} = props;
+    const {appState, errorInfo, onTweetPromise, onUserAuthToken, onLoginError} = props;
     const handleAuthToken = (token: GetTweetsApi.RequestQueryParams) => {
         const tweetPromise = axios.request<GetTweetsApi.ResponsePayload>({
             method: GetTweetsApi.METHOD,
@@ -37,6 +40,7 @@ export function TwitterLoginFlow(props: Props) {
             params: token
         }).then(response => Tweet.fromStatuses(response.data.tweets))
         onTweetPromise(tweetPromise);
+        onUserAuthToken(token);
     }
 
     const loginButton = <TwitterLoginButton onAuthToken={handleAuthToken} onError={onLoginError} />;

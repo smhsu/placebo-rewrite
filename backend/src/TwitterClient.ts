@@ -4,10 +4,11 @@ import axios, { AxiosError, AxiosResponse } from "axios";
 import querystring from "querystring";
 import { Status } from "twitter-d";
 import { minBy, uniqBy } from "lodash";
+import { UserAuthToken } from "./common/UserAuthToken";
 
 const AUTH_BASE_URL = "https://api.twitter.com/oauth";
 const API_BASE_URL = "https://api.twitter.com/1.1";
-const MAX_HOME_TIMELINE_SIZE = 800;
+const MAX_HOME_TIMELINE_SIZE = 800; // The maximum number of tweets Twitter's API allows us to fetch.
 const MAX_HOME_TIMELINE_BATCH_SIZE = 200;
 
 /**
@@ -28,14 +29,14 @@ interface TwitterClientConfig {
 }
 
 /** Token that can be used to request an access token from a Twitter user. */
-export interface RequestToken {
+interface AppRequestToken {
     oauth_token: string;
     oauth_token_secret: string;
     oauth_callback_confirmed: true;
 }
 
 /** Access token data for one Twitter user. */
-export interface AccessToken {
+interface AccessToken {
     oauth_token: string;
     oauth_token_secret: string;
     user_id: string;
@@ -138,7 +139,7 @@ export class TwitterClient {
      * @param callbackUrl - URL from your Twitter Developers account.  See the README for more information.
      * @return promise for the OAuth request token
      */
-    async getRequestToken(callbackUrl: string): Promise<RequestToken> {
+    async getRequestToken(callbackUrl: string): Promise<AppRequestToken> {
         const url = `${AUTH_BASE_URL}/request_token?${querystring.stringify({ oauth_callback: callbackUrl })}`;
 
         let response: AxiosResponse<string>;
@@ -151,7 +152,7 @@ export class TwitterClient {
             this._reformatAndThrowError(error);
         }
 
-        return querystring.parse(response.data) as unknown as RequestToken;
+        return querystring.parse(response.data) as unknown as AppRequestToken;
     }
 
     /**
@@ -160,7 +161,7 @@ export class TwitterClient {
      * @param token - user's request token, i.e. permission to access their data
      * @return promise for the user's access token
      */
-    async getAccessToken(token: { oauth_token: string, oauth_verifier: string }): Promise<AccessToken> {
+    async getAccessToken(token: Readonly<UserAuthToken>): Promise<AccessToken> {
         const url = `${AUTH_BASE_URL}/access_token?${querystring.stringify(token)}`;
 
         let response: AxiosResponse<string>;
@@ -231,6 +232,17 @@ export class TwitterClient {
         }
 
         return uniqBy(tweets, "id");
+    }
+
+    async invalidateToken(): Promise<void> {
+        const url = "https://api.twitter.com/1.1/oauth/invalidate_token";
+        try {
+            await axios.post<string>(url, undefined, {
+                headers: this._makeOAuthHeaders(url, "POST"),
+            });
+        } catch (error) {
+            this._reformatAndThrowError(error);
+        }
     }
 }
 

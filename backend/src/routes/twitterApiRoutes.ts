@@ -1,8 +1,11 @@
 import querystring from "querystring";
-import { Server } from "@hapi/hapi";
+import { Server, Lifecycle, Request } from "@hapi/hapi";
 import Boom from "@hapi/boom";
+
+import { extractTokenFromQueryParams } from "../common/UserAuthToken";
 import * as RequestTokenApi from "../common/requestTokenApi";
 import * as GetTweetsApi from "../common/getTweetsApi";
+import * as InvalidateTokenApi from "../common/invalidateTokenApi";
 import { TwitterClient, TwitterError } from "../TwitterClient";
 
 const NUM_TWEETS_TO_GET = 400;
@@ -27,6 +30,37 @@ export default function registerRoutes(
     const twitterClient = makeTwitterClient({ consumer_key, consumer_secret });
 
     /**
+     * Makes a request handler out of a function that uses a TwitterClient preconfigured with user access.  The
+     * resulting handler will first check for a UserAuthToken in the request's query parameters and respond with
+     * Bad Request if there isn't one.
+     */
+    function makeUserAuthTokenHandler(
+        useTwitterClient: (client: TwitterClient) => Lifecycle.ReturnValue
+    ): Lifecycle.Method {
+        return async function handler(request: Request) {
+            const token = extractTokenFromQueryParams(request.query);
+            if (!token) {
+                return Boom.badRequest("Missing required query parameters.");
+            }
+
+            let authedTwitterClient;
+            try {
+                const accessToken = await twitterClient.getAccessToken(token);
+                authedTwitterClient = makeTwitterClient({
+                    consumer_key,
+                    consumer_secret,
+                    access_token_key: accessToken.oauth_token,
+                    access_token_secret: accessToken.oauth_token_secret
+                });
+                return await useTwitterClient(authedTwitterClient);
+            } catch (error) {
+                return handleTwitterError(error);
+            }
+        };
+    }
+
+
+    /**
      * The Request Token API gets a request token that can be used to ask for a user's access token on behalf of this
      * app.  Any query parameters passed to this function will be added to the URL that the client will be redirected
      * to in step 2 of the OAuth flow.
@@ -39,8 +73,7 @@ export default function registerRoutes(
             const callbackPlusQuery = extraQueryParams ? callbackUrl + "?" + extraQueryParams : callbackUrl;
             try {
                 const tokenData = await twitterClient.getRequestToken(callbackPlusQuery);
-                const response: RequestTokenApi.ResponsePayload = { oauth_token: tokenData.oauth_token };
-                return response;
+                return { oauth_token: tokenData.oauth_token } as RequestTokenApi.ResponsePayload;
             } catch (error) {
                 return handleTwitterError(error);
             }
@@ -48,34 +81,27 @@ export default function registerRoutes(
     });
 
     /**
-     * The Get Tweets API gets a user's home timeline Tweets.  It requires the user's access tokens in the query
-     * parameters.
+     * The Get Tweets API gets a user's home timeline Tweets.
      */
     server.route({
         method: GetTweetsApi.METHOD,
         path: GetTweetsApi.PATH,
-        handler: async function(request) {
-            const token = GetTweetsApi.extractQueryParams(request.query);
-            if (!token) {
-                return Boom.badRequest("Missing required query parameters.");
-            }
+        handler: makeUserAuthTokenHandler(async (authedTwitterClient) => {
+            const tweets = await authedTwitterClient.getTweets(NUM_TWEETS_TO_GET);
+            return { tweets } as GetTweetsApi.ResponsePayload;
+        })
+    });
 
-            try {
-                const accessToken = await twitterClient.getAccessToken(token);
-                const authedTwitterClient = makeTwitterClient({
-                    consumer_key,
-                    consumer_secret,
-                    access_token_key: accessToken.oauth_token,
-                    access_token_secret: accessToken.oauth_token_secret
-                });
-
-                const tweets = await authedTwitterClient.getTweets(NUM_TWEETS_TO_GET);
-                const response: GetTweetsApi.ResponsePayload = { tweets };
-                return response;
-            } catch (error) {
-                return handleTwitterError(error);
-            }
-        }
+    /**
+     * Used to allow a user to revoke their permission to have our app access their data.
+     */
+    server.route({
+        method: InvalidateTokenApi.METHOD,
+        path: InvalidateTokenApi.PATH,
+        handler: makeUserAuthTokenHandler(async (authedTwitterClient) => {
+            await authedTwitterClient.invalidateToken();
+            return null;
+        })
     });
 }
 

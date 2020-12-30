@@ -36,7 +36,7 @@ export async function setUpServer(mongoClient: MongoClient, options: ServerOptio
             const theError = event.error as Error;
             if (Boom.isBoom(theError)) {
                 if (theError.output.statusCode >= 500) {
-                    const reason = typeof theError.data.toString === "function" ?
+                    const reason = typeof theError.data?.toString === "function" ?
                         theError.data.toString() : "(unknown)";
                     console.error(`HTTP ${theError.output.statusCode} from ${request.path} caused by ${reason}`);
                 }
