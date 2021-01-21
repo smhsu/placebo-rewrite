@@ -20,6 +20,7 @@
     "@types/react-dom": "^16.9.6",
     "@types/seedrandom": "^2.4.28",
     "axios": "^0.19.2",
+    "css-vars-ponyfill": "^2.4.2",
     "he": "^1.2.0",
     "lodash": "^4.17.20",
     "memoize-one": "^5.1.1",
@@ -52,7 +53,8 @@
     "development": [
       "last 1 chrome version",
       "last 1 firefox version",
-      "last 1 safari version"
+      "last 1 safari version",
+      "IE 11"
     ]
   },
   "proxy": "http://localhost:3001"

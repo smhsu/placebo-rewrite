@@ -123,7 +123,7 @@ export function App() {
             mainContent = null;
     }
 
-    return <div>
+    return <>
         <div className="sticky-top" ref={topBar} >
             <nav className="navbar">
                 <span className="navbar-brand">Custom Twitter Viewer</span>
@@ -134,7 +134,7 @@ export function App() {
         {tweetFetchFlow}
         {mainContent}
         {timeLeftSeconds <= 0 && <EndScreen />}
-    </div>;
+    </>;
 }
 
 function LowTimeWarning(props: {timeLeftSeconds: number}) {

@@ -1,5 +1,9 @@
+.TweetView-intermediate-wrapper {
+    display: flex;
+}
+
 .TweetView-tweets-wrapper {
-    max-width: 600px;
+    min-width: 50vw;
     padding: 0;
     border-left: 1px solid var(--Tweet-border-color);
     border-right: 1px solid var(--Tweet-border-color);
@@ -8,13 +12,13 @@
 .TweetView-settings-wrapper {
     position: sticky;
     background-color: white;
+    min-width: 30vw;
 }
 
 .TweetView-settings {
     position: sticky;
     border: 1px solid var(--Tweet-border-color);
     padding: 5px 15px;
-    max-width: 300px;
 }
 
 .TweetView-manual-condition-chooser {
@@ -28,19 +32,26 @@
 }
 
 @media (max-width: 642px) {
+    .TweetView-intermediate-wrapper {
+        flex-direction: column-reverse;
+    }
+
     .TweetView-tweets-wrapper {
-        order: 2;
+        /* order: 2; */
         border: 0;
+        width: 100vw;
+        flex-basis: auto;
     }
 
     .TweetView-settings-wrapper {
-        order: 1;
+        /* order: 1; */
         padding: 0;
+        top: 0 !important;
 
         /* The next three values override Bootstrap's .col-sm-5 values which restrict the element's size. */
         flex-grow: 1;
-        flex-basis: 100%;
-        max-width: 100%;
+        flex-basis: auto;
+        width: 100vw;
     }
 
     .TweetView-settings {

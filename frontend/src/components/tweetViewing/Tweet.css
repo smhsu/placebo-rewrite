@@ -51,12 +51,17 @@
     margin-left: calc(var(--Tweet-profile-width) / 8);
 }
 
+.Tweet-content {
+    width: 100%;
+}
+
 .Tweet-thread-indicator {
     width: calc(var(--Tweet-profile-width) * 0.5 + 1px);
     height: calc(100% - var(--Tweet-profile-height) + var(--Tweet-margin-top) - 5px);
     border-right: 2px solid var(--Tweet-border-color);
     position: absolute;
     top: calc(var(--Tweet-profile-height) + 5px);
+    left: 0;
     z-index: -1;
 }
 

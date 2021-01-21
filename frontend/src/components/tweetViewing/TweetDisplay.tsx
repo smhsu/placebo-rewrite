@@ -38,7 +38,7 @@ export const TweetDisplay = React.memo(function TweetDisplay(props: TweetDisplay
                 />
             </div>
             {hasRepliesUnder && <div className="Tweet-thread-indicator" />}
-            <div>
+            <div className="Tweet-content">
                 <TweetHeading tweet={tweet}/>
                 <TweetText tweet={tweet}/>
                 <div className="Tweet-vertical-spaced-children">

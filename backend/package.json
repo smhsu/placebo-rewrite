@@ -19,9 +19,9 @@
     "node": ">=12.x"
   },
   "scripts": {
-    "start-prod": "NODE_ENV=production node ./dist/main.js",
+    "start-prod": "cross-env NODE_ENV=production node ./dist/main.js",
     "start": "npx nodemon --watch src -e ts,js --exec \"npm run compile-and-run-dev\"",
-    "compile-and-run-dev": "tsc && npm run lint && NODE_ENV=development node ./dist/main.js",
+    "compile-and-run-dev": "tsc && npm run lint && cross-env NODE_ENV=development node ./dist/main.js",
     "lint": "npx eslint \"**/*.ts\" --ignore-pattern node_modules/",
     "lint-fix": "npx eslint --fix \"**/*.ts\" --ignore-pattern node_modules/",
     "test": "npx lab --sourcemaps --transform node_modules/lab-transform-typescript --verbose **/*.spec.ts"
@@ -37,6 +37,7 @@
     "@types/sinon": "^9.0.8",
     "@typescript-eslint/eslint-plugin": "^4.4.0",
     "@typescript-eslint/parser": "^4.4.0",
+    "cross-env": "^7.0.3",
     "eslint": "^7.1.0",
     "lab-transform-typescript": "^3.0.1",
     "nodemon": "^2.0.3",

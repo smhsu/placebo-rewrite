@@ -29,7 +29,8 @@ export const TweetView = React.memo(function TweetView(props: Props) {
 
     const threadElements = threads.map(branch => <TweetBranchDisplay key={branch[0].id_str} branch={branch} />)
     return <div className="container-fluid">
-        <div className="row justify-content-center">
+        <div className="col justify-content-center">
+            <div className="TweetView-intermediate-wrapper">
             <div className="TweetView-tweets-wrapper col">
                 {isShowingConditionChooser &&
                     <ManualConditionChooser
@@ -42,6 +43,8 @@ export const TweetView = React.memo(function TweetView(props: Props) {
                 {shouldAnimateChanges ? <FlipMove>{threadElements}</FlipMove> : threadElements}
             </div>
             {settingElement && <SettingsPanel top={settingsYOffset}>{settingElement}</SettingsPanel>}
+            </div>
+
         </div>
     </div>;
 });
