@@ -24,14 +24,14 @@ export class TwitterAuthPopup {
 
     async openAndWaitForAuthToken(width=500, height=400): Promise<GetTweetsApi.RequestQueryParams> {
         this._open(width, height);
-        try {
-            await this._setLocationToTwitter();
-        } catch (error) {
-            this.close();
-            throw error;
-        }
 
         return new Promise<GetTweetsApi.RequestQueryParams>((resolve, reject) => {
+            this._setLocationToTwitter()
+                .catch(error => {
+                    this.close();
+                    reject(error);
+                });
+
             // We have to constantly poll the window for changes in its state.
             this._pollingID = window.setInterval(() => {
                 if (!this.isOpen || !this._popup) {
@@ -85,6 +85,8 @@ export class TwitterAuthPopup {
         if (!this._popup) {
             return;
         }
+        const loadingMessage = this._popup.document.body.appendChild(this._popup.document.createElement("p"));
+        loadingMessage.innerText = "Awaiting response from Twitter API...";
         const response = await axios.request<RequestTokenApi.ResponsePayload>({
             method: RequestTokenApi.METHOD,
             url: RequestTokenApi.PATH,
