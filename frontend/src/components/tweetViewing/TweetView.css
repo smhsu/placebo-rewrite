@@ -8,13 +8,18 @@
 .TweetView-settings-wrapper {
     position: sticky;
     background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
 }
 
 .TweetView-settings {
     position: sticky;
     border: 1px solid var(--Tweet-border-color);
-    padding: 5px 15px;
-    max-width: 300px;
+    padding: 15px;
+    padding-top: 10px;
+    flex-grow: 1;
+    background-color: azure;
 }
 
 .TweetView-manual-condition-chooser {
