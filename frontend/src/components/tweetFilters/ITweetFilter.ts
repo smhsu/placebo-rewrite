@@ -24,4 +24,6 @@ export interface SettingComponentProps<S> {
 
     /** Callback for updating the setting's state. */
     onStateUpdated(newState: S): void;
+
+    onClick(): void;
 }

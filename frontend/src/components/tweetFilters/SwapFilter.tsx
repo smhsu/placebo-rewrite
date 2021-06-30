@@ -9,10 +9,11 @@ export const swapFilter: ITweetFilter<boolean> = {
     /** Whether we are swapping the first two threads. */
     initialState: false,
 
-    SettingComponent({currentState, onStateUpdated}: SettingComponentProps<boolean>) {
+    SettingComponent({currentState, onStateUpdated, onClick}: SettingComponentProps<boolean>) {
         const handleClick = () => {
             window.scrollTo({top: 0, behavior: "smooth"});
             onStateUpdated(!currentState);
+            onClick();
         };
         return <button className="btn btn-primary" onClick={handleClick}>Swap first two threads</button>;
     },

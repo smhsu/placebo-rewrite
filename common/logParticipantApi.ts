@@ -14,7 +14,7 @@ export interface IParticipantLog {
         createdAtRange: [number, number]
     }
     experimentalCondition: ExperimentalCondition;
-    didInteractWithSetting: boolean;
+    numSettingInteractions: number;
     pixelsScrolledDown: number;
     pixelsScrolledUp: number;
     maxScrollY: number;

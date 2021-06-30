@@ -30,7 +30,7 @@ export class ParticipantLog implements IParticipantLog {
         createdAtRange: [0, 0] as [number, number]
     };
     experimentalCondition = ExperimentalCondition.UNKNOWN;
-    didInteractWithSetting = false;
+    numSettingInteractions = 0;
     pixelsScrolledDown = 0;
     pixelsScrolledUp = 0;
     maxScrollY = 0;

@@ -26,7 +26,7 @@ export class RangePopularityFilter implements ITweetFilter<Interval> {
     }
 
     SettingComponent(props: SettingComponentProps<Interval>) {
-        const {currentState, onStateUpdated} = props;
+        const {currentState, onStateUpdated, onClick} = props;
         const handleChange = (_event: React.ChangeEvent<{}>, value: number | number[]) => {
             if (typeof value === "number") {
                 onStateUpdated([value, value]);
@@ -47,6 +47,7 @@ export class RangePopularityFilter implements ITweetFilter<Interval> {
                 step={1}
                 value={currentState}
                 onChange={handleChange}
+                onClick={onClick}
             />
         </SliderContainer>;
     }

@@ -25,7 +25,7 @@ export class BucketPopularityFilter implements ITweetFilter<number> {
     }
 
     SettingComponent(props: SettingComponentProps<number>) {
-        const {currentState, onStateUpdated} = props;
+        const {currentState, onStateUpdated, onClick} = props;
         const handleChange = (_event: React.ChangeEvent<{}>, value: number | number[]) => {
             onStateUpdated(typeof value === "number" ? value : value[0]);
             window.scrollTo({top: 0, behavior: "smooth"});
@@ -43,7 +43,9 @@ export class BucketPopularityFilter implements ITweetFilter<number> {
                 step={1}
                 marks={true}
                 value={currentState}
+                track={false}
                 onChange={handleChange}
+                onClick={onClick}
             />
         </SliderContainer>;
     }

@@ -23,7 +23,7 @@ export const TweetView = React.memo(function TweetView(props: Props) {
     const {tweets, experimentCondition, log, settingsYOffset} = props;
     const [manualCondition, setManualCondition] = React.useState<ExperimentalCondition | "">("");
     const {threads, shouldAnimateChanges, settingElement} = useTweetFilter(
-        tweets, manualCondition || experimentCondition, () => log.didInteractWithSetting = true
+        tweets, manualCondition || experimentCondition, () => log.numSettingInteractions++
     );
     useScrollLogging(log);
 

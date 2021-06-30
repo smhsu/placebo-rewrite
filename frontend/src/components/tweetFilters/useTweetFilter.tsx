@@ -1,4 +1,5 @@
 import React from "react";
+import _ from "lodash";
 
 import { Tweet } from "../../tweetModels/Tweet";
 import { organizeIntoThreads, TweetThread } from "../../tweetModels/TweetThread";
@@ -33,7 +34,7 @@ interface TweetsRenderConfig {
 export function useTweetFilter(
     tweets: Tweet[],
     condition: ExperimentalCondition,
-    onChange?: () => void
+    onClick=_.noop
 ): TweetsRenderConfig {
     const filterObj = TWEET_FILTER_FOR_CONDITION[condition];
     const [settingState, setSettingState] = React.useState(filterObj.initialState);
@@ -48,14 +49,14 @@ export function useTweetFilter(
     }
 
     const Setting = filterObj.SettingComponent;
-    const handleSettingChanged = (newState: unknown) => {
-        setSettingState(newState);
-        onChange && onChange();
-    };
-
     const threads = React.useMemo(() => organizeIntoThreads(tweets), [tweets]);
+    const settingElement = Setting ? <Setting
+        currentState={stateToUse}
+        onStateUpdated={setSettingState}
+        onClick={onClick}
+    /> : null;
     return {
-        settingElement: Setting ? <Setting currentState={stateToUse} onStateUpdated={handleSettingChanged} /> : null,
+        settingElement,
         threads: filterObj.doFilter(threads, stateToUse),
         shouldAnimateChanges: filterObj.shouldAnimateChanges,
     };
