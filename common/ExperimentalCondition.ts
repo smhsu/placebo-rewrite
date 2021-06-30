@@ -9,11 +9,11 @@ export enum ExperimentalCondition {
 }
 
 export const DesiredProportions: Record<ExperimentalCondition, number> = {
-    [ExperimentalCondition.POPULARITY_SLIDER]: 0.5,
-    [ExperimentalCondition.NOT_WORKING_POPULARITY_SLIDER]: 0,
-    [ExperimentalCondition.SWAP_SETTING]: 0.5,
-    [ExperimentalCondition.NO_SETTING]: 0,
-    [ExperimentalCondition.NO_SETTING_RANDOM]: 0,
+    [ExperimentalCondition.POPULARITY_SLIDER]: 0.3,
+    [ExperimentalCondition.NOT_WORKING_POPULARITY_SLIDER]: 0.3,
+    [ExperimentalCondition.SWAP_SETTING]: 0.2,
+    [ExperimentalCondition.NO_SETTING]: 0.1,
+    [ExperimentalCondition.NO_SETTING_RANDOM]: 0.1,
     [ExperimentalCondition.UNKNOWN]: 0
 };
 
