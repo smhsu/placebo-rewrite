@@ -91,10 +91,10 @@ function handleTwitterError(error: unknown) {
     let statusCode: number;
     let messageToUser: string;
     if (error instanceof TwitterError) {
-        if (error.statusFromTwitter >= 500 || error.statusFromTwitter < 0) {
+        if (error.httpStatus >= 500 || error.httpStatus < 0) {
             statusCode = 502;
             messageToUser = "Twitter is either down, overloaded, or otherwise having issues -- try again later.";
-        } else if (error.statusFromTwitter === 420 || error.statusFromTwitter === 429) {
+        } else if (error.httpStatus === 420 || error.httpStatus === 429) {
             statusCode = 502;
             messageToUser = "Twitter request limit exceeded -- try again later.";
         } else {

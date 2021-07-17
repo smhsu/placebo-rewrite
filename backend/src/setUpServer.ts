@@ -42,7 +42,7 @@ export async function setUpServer(mongoClient: MongoClient, options: ServerOptio
                 }
             } else {
                 console.error(`Error from ${request.path}`);
-                console.error(event.error);
+                console.error(event.error || event.data);
             }
         }
     });

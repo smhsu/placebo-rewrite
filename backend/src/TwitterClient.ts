@@ -108,24 +108,21 @@ export class TwitterClient {
      *
      * @param error - an Axios error to reformat and throw
      */
-    _reformatAndThrowError(error: AxiosError): never {
+    _reformatAndThrowError(error: AxiosError<unknown>): never {
         if (error.response) { // Response from server available
-            const data = error.response.data;
-            const messagePrefix = `${error.request.path} HTTP ${error.response.status}: `;
-            let reason: string;
-            if (Array.isArray(data.errors) && data.errors.length > 0) {
-                // Handle standard Twitter error response format.
-                // (see https://developer.twitter.com/en/docs/ads/general/guides/response-codes)
-                // Just use the first error's message.
-                reason = data.errors[0].message;
-            } else {
-                // Some other error response from Twitter?
-                reason = typeof data.toString === "function" ? data.toString() : "unknown";
+            const payload = error.response.data;
+            if (isStandardTwitterErrorPayload(payload)) {
+                throw new TwitterError(error.request.path, error.response.status, payload);
             }
-
-            throw new TwitterError(messagePrefix + reason, error.response.status);
+            
+            // Some other error response from Twitter?
+            let payloadAsString = "";
+            if (typeof payload === "string" || (typeof payload === "object" && payload !== null)) {
+                payloadAsString = payload.toString();
+            }
+            throw new TwitterError(error.request.path, error.response.status, payloadAsString);
         } else if (error.request) { // Request sent but no response from server
-            throw new TwitterError("No response from Twitter endpoint.");
+            throw new TwitterError(error.request.path);
         } else { // Something else triggered an error
             throw error;
         }
@@ -235,15 +232,38 @@ export class TwitterClient {
 }
 
 /**
+ * Standard Twitter error response format.
+ * See https://developer.twitter.com/en/support/twitter-api/error-troubleshooting
+ */
+interface ITwitterErrorPayload {
+    type: string; // URL pointing to details on the type of error
+    title: string; // Very short description
+    detail: string; // Longer description
+}
+
+function isStandardTwitterErrorPayload(toCheck: unknown): toCheck is ITwitterErrorPayload {
+    return typeof(toCheck) === "object" &&
+        toCheck !== null &&
+        typeof(toCheck["type"]) === "string";
+}
+
+/**
  * An error during an API call to Twitter.
  */
 export class TwitterError extends Error {
     /** HTTP status returned from Twitter's API.  If negative, Twitter didn't respond at all. */
-    statusFromTwitter: number;
+    httpStatus: number;
 
-    constructor(message: string, statusFromTwitter = -1) {
-        super(message);
+    constructor(requestPath: string, httpStatus=-1, errorPayload: ITwitterErrorPayload | string="") {
+        if (httpStatus < 0) {
+            super(`${requestPath} -- no response from Twitter endpoint.`);
+        } else if (typeof errorPayload === "string") {
+            super(`${requestPath} HTTP ${httpStatus} -- ${errorPayload || "no additional details available"}`);
+        } else {
+            super(`${requestPath} HTTP ${httpStatus} ${errorPayload.title} -- ${errorPayload.detail}`);
+        }
+
         this.name = TwitterError.name;
-        this.statusFromTwitter = statusFromTwitter;
+        this.httpStatus = httpStatus;
     }
 }
