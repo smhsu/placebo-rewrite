@@ -4,6 +4,8 @@
 * The frontend, in the `frontend` folder, uses React.
 * The backend, in the `backend` folder, uses Hapi.js and MongoDB.
 * Shared dependencies are in the `common` folder.
+* Viewing a static set of tweets for debugging: modify or replace `frontend/src/tweetModels/debugTweets.json`.
+* Don't forget to read the READMEs in the frontend and backend folders!
 
 ## Setting up a development environment
 
