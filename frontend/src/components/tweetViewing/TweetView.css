@@ -11,6 +11,7 @@
     display: flex;
     justify-content: center;
     align-items: flex-start;
+    z-index: 1;
 }
 
 .TweetView-settings {

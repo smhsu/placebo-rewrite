@@ -48,7 +48,7 @@ export const TweetView = React.memo(function TweetView(props: Props) {
 
 function SettingsPanel(props: React.PropsWithChildren<{top?: number}>): JSX.Element {
     const style = props.top ? { top: props.top } : undefined;
-    return <div className="TweetView-settings-wrapper col col-sm-5 col-md-4 col-xl-3" style={style}>
+    return <div className="TweetView-settings-wrapper col col-sm-12 col-md-4 col-xl-3" style={style}>
         <div className="TweetView-settings" style={style}>
             <h4 className="TweetView-settings-header">Settings</h4>
             <div className="TweetView-settings-content">
