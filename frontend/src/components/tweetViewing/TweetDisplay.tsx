@@ -46,6 +46,8 @@ export const TweetDisplay = React.memo(function TweetDisplay(props: TweetDisplay
                     {retweetedStatus && <InnerTweet tweet={retweetedStatus} />}
                     <TweetStatistics tweet={tweet}/>
                 </div>
+                {process.env.REACT_APP_DEBUG_MODE === "true" &&
+                    <div>[Debug] tweet ID: <code>{tweet.id_str}</code></div>}
             </div>
         </div>
 

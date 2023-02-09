@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import memoizeOne from "memoize-one";
 import { Slider } from "@material-ui/core";
 
@@ -9,10 +9,17 @@ import { ITweetPopularityCalculator } from "../../tweetModels/TweetPopularityCal
 import { IThreadSorter } from "../../tweetModels/ThreadSorter";
 import { Tweet } from "../../tweetModels/Tweet";
 
+interface BucketPopularityFilterState {
+    isFiltering: boolean,
+    value: number
+}
 const NUM_SLIDER_STOPS = 7;
 
-export class BucketPopularityFilter implements ITweetFilter<number> {
-    initialState = Math.ceil(NUM_SLIDER_STOPS * 0.5);
+export class BucketPopularityFilter implements ITweetFilter<BucketPopularityFilterState> {
+    initialState = {
+        isFiltering: false,
+        value: Math.ceil(NUM_SLIDER_STOPS * 0.5)
+    };
     shouldAnimateChanges = false;
 
     constructor(private _popularityCalculator: ITweetPopularityCalculator, private _threadSorter: IThreadSorter) {
@@ -24,33 +31,58 @@ export class BucketPopularityFilter implements ITweetFilter<number> {
         return this._popularityCalculator.partitionByPopularity(threadStarts, NUM_SLIDER_STOPS);
     }
 
-    SettingComponent(props: SettingComponentProps<number>) {
+    SettingComponent(props: SettingComponentProps<BucketPopularityFilterState>) {
         const {currentState, onStateUpdated, onClick} = props;
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        const checkboxId = useRef((Math.random() + 1).toString(36).substring(2));
+        const handleCheckboxToggle = () => {
+            onStateUpdated({
+                isFiltering: !currentState.isFiltering,
+                value: currentState.value
+            });
+            window.scrollTo({top: 0, behavior: "smooth"});
+        }
         const handleChange = (_event: React.ChangeEvent<{}>, value: number | number[]) => {
-            onStateUpdated(typeof value === "number" ? value : value[0]);
+            onStateUpdated({
+                isFiltering: true,
+                value: typeof value === "number" ? value : value[0]
+            });
             window.scrollTo({top: 0, behavior: "smooth"});
         }
 
-        return <SliderContainer
-            mainLabel="Popularity"
-            instructions="Display tweets of a certain popularity level first"
-            lowLabel="Least popular"
-            highLabel="Most popular"
-        >
-            <Slider
-                min={1}
-                max={NUM_SLIDER_STOPS}
-                step={1}
-                marks={true}
-                value={currentState}
-                track={false}
-                onChange={handleChange}
-                onClick={onClick}
-            />
-        </SliderContainer>;
+        return <div>
+            <input
+                type="checkbox"
+                id={checkboxId.current}
+                checked={currentState.isFiltering}
+                onChange={handleCheckboxToggle}
+            /> <label htmlFor={checkboxId.current}>Filter by popularity</label>
+
+            {currentState.isFiltering && <SliderContainer
+                mainLabel=" "
+                instructions=" "
+                lowLabel="Least popular"
+                highLabel="Most popular"
+            >
+                <Slider
+                    min={1}
+                    max={NUM_SLIDER_STOPS}
+                    step={1}
+                    marks={true}
+                    value={currentState.value}
+                    track={false}
+                    onChange={handleChange}
+                    onClick={onClick}
+                />
+            </SliderContainer>}
+        </div>
     }
 
-    doFilter(threads: TweetThread[], currentState: number): TweetThread[] {
+    doFilter(threads: TweetThread[], currentState: BucketPopularityFilterState): TweetThread[] {
+        if (!currentState.isFiltering) {
+            return threads;
+        }
+
         const threadForThreadStart = new Map<Tweet, TweetThread>();
         for (const thread of threads) {
             threadForThreadStart.set(thread[0], thread);
@@ -58,10 +90,11 @@ export class BucketPopularityFilter implements ITweetFilter<number> {
 
         const partitions = this._partitionThreadStartsByPopularity(threads);
         // Minus 1 because the slider starts at 1, but the partition indexing starts at 0.
-        const priorityIndex = currentState - 1;
+        const priorityIndex = currentState.value - 1;
         const priorityThreads = toThreads(partitions[priorityIndex] || []);
-        const otherThreads = toThreads(partitions.filter((_tweets, i) => i !== priorityIndex).flat(1));
-        return [...this._threadSorter.sort(priorityThreads), ...this._threadSorter.sort(otherThreads)];
+        return this._threadSorter.sort(priorityThreads);
+        //const otherThreads = toThreads(partitions.filter((_tweets, i) => i !== priorityIndex).flat(1));
+        //return [...this._threadSorter.sort(priorityThreads), ...this._threadSorter.sort(otherThreads)];
 
         function toThreads(tweets: Tweet[]): TweetThread[] {
             // threadForThreadStart.get is marked as possibly returning undefined, but it never will because every
@@ -70,3 +103,24 @@ export class BucketPopularityFilter implements ITweetFilter<number> {
         }
     }
 }
+
+
+/*
+If you want a dropdown:
+
+<select
+    value={currentState.isFiltering.toString()}
+    onChange={e => onStateUpdated({isFiltering: strToBool(e.currentTarget.value), value: currentState.value})}
+    style={{
+        backgroundColor: "white",
+        border: "1px solid #ced4da",
+        borderRadius: "0.25rem",
+        padding: ".375rem 2rem .375rem .5rem",
+        margin: "0.25rem 0rem"
+    }}
+>
+    <option value="false">Default order</option>
+    <option value="true">Sort by popularity</option>
+</select>
+
+ */
