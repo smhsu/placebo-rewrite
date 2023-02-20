@@ -22,9 +22,6 @@ if (!isFinite(TWEET_VIEW_DURATION_SECONDS)) {
     throw new Error("Invalid value for REACT_APP_FEED_VIEWING_SECONDS environment variable.");
 }
 
-/** How long of a warning users will get that their Tweets will be disappearing. */
-const TWEET_DISAPPEAR_WARNING_SECONDS = 10;
-
 // substring(1) cuts off the "?" in the URL query string
 const parsedQueryParams = querystring.parse(window.location.search.substring(1));
 
@@ -87,7 +84,7 @@ export function App() {
     ///////////////////////////
     // The actual rendering! //
     ///////////////////////////
-    let tweetFetchFlow = null;
+    let tweetFetchFlow;
     if (isUsingStaticTweets) {
         tweetFetchFlow = <StaticTweetFlow
             appState={appState}
@@ -104,7 +101,7 @@ export function App() {
         />;
     }
 
-    let mainContent = null;
+    let mainContent;
     switch (appState) {
         case AppState.LOADING:
             mainContent = <div className="vertical-and-horiz-center">
@@ -127,20 +124,13 @@ export function App() {
         <div className="sticky-top" ref={topBar} >
             <nav className="navbar">
                 <span className="navbar-brand">Custom Twitter Viewer</span>
+                <span className="navbar-scroll-instructions">Scroll INSIDE this window to see more of the feed.</span>
             </nav>
-            {timeLeftSeconds <= TWEET_DISAPPEAR_WARNING_SECONDS && <LowTimeWarning timeLeftSeconds={timeLeftSeconds} />}
         </div>
 
         {tweetFetchFlow}
         {mainContent}
         {timeLeftSeconds <= 0 && <EndScreen />}
-    </div>;
-}
-
-function LowTimeWarning(props: {timeLeftSeconds: number}) {
-    return <div className="alert alert-warning App-tweet-disappear-warning">
-        <span role="img" aria-label="warning">⚠️</span> Tweets will disappear
-        in {Math.max(0, props.timeLeftSeconds)} seconds.
     </div>;
 }
 
