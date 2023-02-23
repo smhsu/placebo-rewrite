@@ -5,6 +5,7 @@ import { AppState, ErrorInfo, FailedAction } from "./AppState";
 import { useTimer } from "./useTimer";
 import { TwitterLoginFlow } from "./TwitterLoginFlow";
 import { StaticTweetFlow } from "./StaticTweetFlow";
+import { EndScreen } from "./EndScreen";
 import { TweetView } from "./tweetViewing/TweetView";
 
 import { ExperimentalCondition } from "../common/ExperimentalCondition";
@@ -34,6 +35,7 @@ export function App() {
     // State and handlers //
     ////////////////////////
     const [appState, setAppState] = React.useState<AppState>(AppState.START);
+    const [isEnded, setIsEnded] = React.useState(() => sessionStorage.getItem("done") === "true");
     const [tweets, setTweets] = React.useState<Tweet[]>([]);
     const [experimentCondition, setExperimentCondition] = React.useState<ExperimentalCondition>(
         ExperimentalCondition.UNKNOWN
@@ -72,6 +74,8 @@ export function App() {
     /////////////
     React.useEffect(() => { // Upload participant log when time is up
         if (timeLeftSeconds <= 0) {
+            setIsEnded(true);
+            sessionStorage.setItem("done", "true");
             log.uploadEnsuringOnce()
                 .catch(console.error);
         }
@@ -124,23 +128,11 @@ export function App() {
         <div className="sticky-top" ref={topBar} >
             <nav className="navbar">
                 <span className="navbar-brand">Custom Twitter Viewer</span>
-                <span className="navbar-scroll-instructions">Scroll INSIDE this window to see more of the feed.</span>
             </nav>
         </div>
 
         {tweetFetchFlow}
         {mainContent}
-        {timeLeftSeconds <= 0 && <EndScreen />}
-    </div>;
-}
-
-function EndScreen() {
-    return <div className="App-hide-tweet-overlay vertical-center">
-        <div className="container">
-            <h1>Thanks for browsing!</h1>
-            <p>
-                Please enter this code to continue inside Qualtrics: <code>{process.env.REACT_APP_CONTINUE_CODE}</code>
-            </p>
-        </div>
+        {isEnded && <EndScreen />}
     </div>;
 }
