@@ -12,6 +12,7 @@ import { fetchExperimentalCondition } from "../fetchExperimentalCondition";
 import { ApiErrorHandler } from "../ApiErrorHandler";
 import { ParticipantLog } from "../ParticipantLog";
 import { Tweet } from "../tweetModels/Tweet";
+import { getIsUsingStaticTweets } from "../staticTweetsSwitch";
 
 import spinner from "../loading-small.gif";
 import "./App.css";
@@ -28,7 +29,6 @@ const parsedQueryParams = querystring.parse(window.location.search.substring(1))
 export function App() {
     const log = React.useMemo(() => new ParticipantLog(), []);
     const topBar = React.useRef<HTMLDivElement>(null);
-    const isUsingStaticTweets = parsedQueryParams["use_static_tweets"] === "true";
 
     ////////////////////////
     // State and handlers //
@@ -85,7 +85,7 @@ export function App() {
     // The actual rendering! //
     ///////////////////////////
     let tweetFetchFlow;
-    if (isUsingStaticTweets) {
+    if (getIsUsingStaticTweets(parsedQueryParams)) {
         tweetFetchFlow = <StaticTweetFlow
             appState={appState}
             errorInfo={errorInfo}

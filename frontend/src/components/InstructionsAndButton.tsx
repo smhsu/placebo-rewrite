@@ -1,5 +1,6 @@
 import React from "react";
 import { ErrorInfo } from "./AppState";
+import { getUrlWithStaticTweets } from "../staticTweetsSwitch";
 
 interface Props {
     errorInfo?: ErrorInfo
@@ -9,7 +10,7 @@ interface Props {
 export function InstructionsAndButton(props: Props): JSX.Element {
     const {errorInfo, buttonElement} = props;
 
-    let instructions = null;
+    let instructions;
     if (errorInfo) {
         instructions = <div className="alert alert-danger" role="alert">
             <h4>Error</h4>
@@ -30,5 +31,9 @@ export function InstructionsAndButton(props: Props): JSX.Element {
     return <div className="container vertical-center">
         {instructions}
         <div>{buttonElement}</div>
+        <div style={{ marginTop: "3em", fontSize: "smaller", fontStyle: "italic" }}>
+            If you've changed your mind about using your Twitter account, you may use
+            a <a href={getUrlWithStaticTweets()}>feed viewer that doesn't require login</a>.
+        </div>
     </div>;
 }
