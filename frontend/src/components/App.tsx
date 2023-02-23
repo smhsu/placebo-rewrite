@@ -26,7 +26,7 @@ if (!isFinite(TWEET_VIEW_DURATION_SECONDS)) {
 const parsedQueryParams = querystring.parse(window.location.search.substring(1));
 
 export function App() {
-    const log = React.useRef(new ParticipantLog());
+    const log = React.useMemo(() => new ParticipantLog(), []);
     const topBar = React.useRef<HTMLDivElement>(null);
     const isUsingStaticTweets = parsedQueryParams["use_static_tweets"] === "true";
 
@@ -56,8 +56,8 @@ export function App() {
         try {
             const tweets = await tweetPromise;
             const fetchedCondition = await fetchExperimentalCondition();
-            log.current.logTweetStatistics(tweets);
-            log.current.experimentalCondition = fetchedCondition;
+            log.logTweetStatistics(tweets);
+            log.experimentalCondition = fetchedCondition;
             setTweets(tweets);
             setExperimentCondition(fetchedCondition);
             setAppState(AppState.LOADED);
@@ -72,10 +72,10 @@ export function App() {
     /////////////
     React.useEffect(() => { // Upload participant log when time is up
         if (timeLeftSeconds <= 0) {
-            log.current.uploadEnsuringOnce()
+            log.uploadEnsuringOnce()
                 .catch(console.error);
         }
-    }, [timeLeftSeconds]);
+    }, [timeLeftSeconds, log]);
     React.useEffect(() => { // Keep track of top bar's height
         setTopBarHeight(topBar.current !== null ? topBar.current.offsetHeight : 0);
     }, [timeLeftSeconds]);
@@ -89,7 +89,7 @@ export function App() {
         tweetFetchFlow = <StaticTweetFlow
             appState={appState}
             errorInfo={errorInfo}
-            log={log.current}
+            log={log}
             onTweetPromise={handleTweetPromise}
         />;
     } else {
@@ -113,7 +113,7 @@ export function App() {
                 tweets={tweets}
                 experimentCondition={experimentCondition}
                 settingsYOffset={topBarHeight}
-                log={log.current}
+                log={log}
             />;
             break;
         default:

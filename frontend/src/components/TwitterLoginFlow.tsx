@@ -1,5 +1,6 @@
 import React from "react";
 import axios from "axios";
+import querystring from "querystring";
 
 import { AppState, ErrorInfo } from "./AppState";
 import { InstructionsAndButton } from "./InstructionsAndButton";
@@ -30,16 +31,27 @@ interface Props {
  */
 export function TwitterLoginFlow(props: Props) {
     const {appState, errorInfo, onTweetPromise, onLoginError} = props;
-    const handleAuthToken = (token: GetTweetsApi.RequestQueryParams) => {
-        const tweetPromise = axios.request<GetTweetsApi.ResponsePayload>({
-            method: GetTweetsApi.METHOD,
-            baseURL: GetTweetsApi.PATH,
-            params: token
-        }).then(response => Tweet.fromStatuses(response.data.tweets))
-        onTweetPromise(tweetPromise);
-    }
 
-    const loginButton = <TwitterLoginButton onAuthToken={handleAuthToken} onError={onLoginError} />;
+    const hasTriedFetching = React.useRef(false);
+    React.useEffect(() => {
+        if (hasTriedFetching.current) {
+            return;
+        }
+
+        const queryParams = querystring.parse(window.location.search.substring(1));
+        const getTweetsParams = GetTweetsApi.extractQueryParams(queryParams);
+        if (getTweetsParams) {
+            hasTriedFetching.current = true;
+            const tweetPromise = axios.request<GetTweetsApi.ResponsePayload>({
+                method: GetTweetsApi.METHOD,
+                baseURL: GetTweetsApi.PATH,
+                params: getTweetsParams
+            }).then(response => Tweet.fromStatuses(response.data.tweets))
+            onTweetPromise(tweetPromise);
+        }
+    }, [onTweetPromise]);
+
+    const loginButton = <TwitterLoginButton onError={onLoginError} />;
     switch (appState) {
         case AppState.START:
             return <InstructionsAndButton buttonElement={loginButton} />;

@@ -1,69 +1,43 @@
 import React from "react";
+import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTwitter } from "@fortawesome/free-brands-svg-icons";
-import { PermissionDeniedError, PopupBlockedError, TwitterAuthPopup } from "./TwitterAuthPopup";
-import * as GetTweetsApi from "../common/getTweetsApi";
+import * as RequestTokenApi from "../common/requestTokenApi";
+
+const TWITTER_AUTH_URL = "https://api.twitter.com/oauth/authenticate";
 
 interface Props {
-    onAuthToken: (token: GetTweetsApi.RequestQueryParams) => void;
-
     /** Callback for errors that happen when trying to get a request token from the backend. */
     onError: (error: unknown) => void;
 }
 
-enum ButtonState {
-    NORMAL,
-    WAITING,
-    POPUP_BLOCKED
-}
-const TEXT_FOR_BUTTON_STATE: Record<ButtonState, string> = {
-    [ButtonState.NORMAL]: "Log in with Twitter",
-    [ButtonState.WAITING]: "Awaiting action inside popup...",
-    [ButtonState.POPUP_BLOCKED]: "Login popup blocked"
-}
-
 export function TwitterLoginButton(props: Props) {
-    const [buttonState, setButtonState] = React.useState(ButtonState.NORMAL);
-    let iconColor = "";
-    let buttonClassName = "btn ";
-    if (buttonState === ButtonState.POPUP_BLOCKED) {
-        iconColor = "white";
-        buttonClassName += "btn-danger";
-    } else {
-        iconColor = "#00aced"
-        buttonClassName += "btn-light";
-    }
+    const [isWorking, setIsWorking] = React.useState(false);
 
     const handleClick = async () => {
-        setButtonState(ButtonState.WAITING);
+        setIsWorking(true);
         try {
-            const token = await new TwitterAuthPopup().openAndWaitForAuthToken();
-            setButtonState(ButtonState.NORMAL);
-            props.onAuthToken(token);
+            const oauthTokenResponse = await axios.request<RequestTokenApi.ResponsePayload>({
+                method: RequestTokenApi.METHOD,
+                url: RequestTokenApi.PATH,
+            });
+            const oauthToken = oauthTokenResponse.data.oauth_token;
+            window.location.href = `${TWITTER_AUTH_URL}?oauth_token=${oauthToken}`;
         } catch (error) {
-            if (error instanceof PopupBlockedError) {
-                setButtonState(ButtonState.POPUP_BLOCKED);
-            } else if (error instanceof PermissionDeniedError) {
-                setButtonState(ButtonState.NORMAL);
-            } else {
-                setButtonState(ButtonState.NORMAL);
-                props.onError(error);
-            }
+            props.onError(error);
         }
+        setIsWorking(false);
     }
 
     return <div style={{display: "flex", alignItems: "center"}}>
         <button
-            className={buttonClassName}
+            className="btn btn-light"
             style={{border: "1px solid lightgrey"}}
             onClick={handleClick}
-            disabled={buttonState === ButtonState.WAITING}
+            disabled={isWorking}
         >
-            <FontAwesomeIcon icon={faTwitter} color={iconColor} size="lg" style={{marginRight: "5px"}} />
-            {TEXT_FOR_BUTTON_STATE[buttonState]}
+            <FontAwesomeIcon icon={faTwitter} color="#00aced" size="lg" style={{marginRight: "5px"}} />
+            {isWorking ? "Working..." : "Log in with Twitter"}
         </button>
-        {buttonState === ButtonState.POPUP_BLOCKED && <div style={{color: "red", marginLeft: "10px"}}>
-            Disable your popup blocker and click the button to try again.
-        </div>}
     </div>;
 }

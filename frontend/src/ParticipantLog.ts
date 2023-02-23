@@ -10,13 +10,14 @@ const QUALTRICS_QUERY_PARAM_NAME = "qualtricsID";
 
 function getAndStoreQualtricsID(): string {
     const params = new URLSearchParams(window.location.search);
-    const qualtricsID = params.get(QUALTRICS_QUERY_PARAM_NAME);
-    if (qualtricsID) { // Guarantees not empty string too.
-        window.sessionStorage.setItem(QUALTRICS_QUERY_PARAM_NAME, qualtricsID);
-        return qualtricsID;
-    } else {
-        return window.sessionStorage.getItem(QUALTRICS_QUERY_PARAM_NAME) || "";
+    const storedQualtricsId = window.localStorage.getItem(QUALTRICS_QUERY_PARAM_NAME) || "";
+    const paramsQualtricsId = params.get(QUALTRICS_QUERY_PARAM_NAME);
+    if (!paramsQualtricsId) {
+        return storedQualtricsId;
     }
+
+    window.localStorage.setItem(QUALTRICS_QUERY_PARAM_NAME, paramsQualtricsId);
+    return paramsQualtricsId;
 }
 
 export class ParticipantLog implements IParticipantLog {
@@ -39,6 +40,7 @@ export class ParticipantLog implements IParticipantLog {
 
     constructor() {
         this.qualtricsID = getAndStoreQualtricsID();
+        console.log("Using Qualtrics ID of: " + this.qualtricsID);
     }
 
     logTweetStatistics(tweets: Tweet[]) {
