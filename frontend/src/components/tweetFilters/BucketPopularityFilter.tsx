@@ -32,7 +32,7 @@ export class BucketPopularityFilter implements ITweetFilter<BucketPopularityFilt
     }
 
     SettingComponent(props: SettingComponentProps<BucketPopularityFilterState>) {
-        const {currentState, onStateUpdated, onClick} = props;
+        const {currentState, onStateUpdated, onClick, onResetFeedSize} = props;
         // eslint-disable-next-line react-hooks/rules-of-hooks
         const checkboxId = useRef((Math.random() + 1).toString(36).substring(2));
         const handleCheckboxToggle = () => {
@@ -40,14 +40,16 @@ export class BucketPopularityFilter implements ITweetFilter<BucketPopularityFilt
                 isFiltering: !currentState.isFiltering,
                 value: currentState.value
             });
-            window.scrollTo({top: 0, behavior: "smooth"});
+            onResetFeedSize();
+            window.setTimeout(() => window.scrollTo({top: 0, behavior: "smooth"}));
         }
         const handleChange = (_event: React.ChangeEvent<{}>, value: number | number[]) => {
             onStateUpdated({
                 isFiltering: true,
                 value: typeof value === "number" ? value : value[0]
             });
-            window.scrollTo({top: 0, behavior: "smooth"});
+            onResetFeedSize();
+            window.setTimeout(() => window.scrollTo({top: 0, behavior: "smooth"}));
         }
 
         return <div>

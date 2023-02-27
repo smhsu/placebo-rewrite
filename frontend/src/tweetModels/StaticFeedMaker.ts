@@ -1,13 +1,11 @@
 import axios from "axios";
 import { Status } from "twitter-d";
-import { sampleSize, range, difference, zip } from "lodash";
+import { groupBy, shuffle } from "lodash";
 import { Tweet } from "./Tweet";
 
-const DEFAULT_UNTHEMATIC_TWEETS_PROPORTION = 0.15;
 const DEFAULT_FEED_SIZE = 400;
 
 const STATIC_TWEET_BASE_URL = "https://smhsu.github.io/twitter-feed-construction/downloaded_tweets/";
-const UNTHEMATIC_TWEETS_URL = STATIC_TWEET_BASE_URL + "random.json";
 
 const FILE_NAME_FOR_TOPIC: Record<string, string> = {
     "Entertainment/Celebrities": "entertainment.json",
@@ -24,12 +22,9 @@ if (process.env.REACT_APP_DEBUG_MODE === "true") {
 
 export class StaticFeedMaker {
     static AVAILABLE_TOPICS = Object.keys(FILE_NAME_FOR_TOPIC);
-
-    private readonly _unthematicTweetsProportion: number;
     private readonly _feedSize: number;
 
-    constructor(unthematicTweetsProportion=DEFAULT_UNTHEMATIC_TWEETS_PROPORTION, feedSize=DEFAULT_FEED_SIZE) {
-        this._unthematicTweetsProportion = unthematicTweetsProportion;
+    constructor(feedSize=DEFAULT_FEED_SIZE) {
         this._feedSize = feedSize;
     }
 
@@ -39,29 +34,18 @@ export class StaticFeedMaker {
             return Tweet.fromStatuses(debugTweetImport.default as unknown as Status[]);
         }
 
-        // Download all the tweets we need.
-        const [tweetsByTopic, unthematicTweets] = await Promise.all([
-            this._downloadTopics(topics), this._downloadUnthematicTweets()
-        ]);
+        const tweetsByTopic = await this._downloadTopics(topics);
 
-        // Select the thematic tweets to use.
-        // Equally divide the part of the feed dedicated to thematic tweets among the topics.
-        const singleTopicProportion = (1 - this._unthematicTweetsProportion) / tweetsByTopic.length;
-        const topicalTweetsToUse = tweetsByTopic.map(tweetsInTopic =>
+        // Equally divide the feed among the topics.
+        const singleTopicProportion = 1 / topics.length;
+        const tweetsToUse = tweetsByTopic.map(tweetsInTopic =>
             this._sampleToFulfillProportion(tweetsInTopic, singleTopicProportion)
         ).flat(1);
 
-        // Select the unthematic tweets to use.
-        const unthematicTweetsToUse = this._sampleToFulfillProportion(
-            unthematicTweets, this._unthematicTweetsProportion
-        );
-
         // Sort the thematic tweets by time.
-        let feed = Tweet.fromStatuses(topicalTweetsToUse);
+        let feed = Tweet.fromStatuses(tweetsToUse);
         feed = Tweet.sortNewestToOldest(feed);
 
-        // Randomly insert the unthematic tweets.
-        feed = this._insertRandomly(feed, Tweet.fromStatuses(unthematicTweetsToUse));
         for (let i = 0; i < feed.length; i++) { // Reindex
             feed[i].originalIndex = i;
         }
@@ -79,36 +63,28 @@ export class StaticFeedMaker {
         return Promise.all(promises);
     }
 
-    private _downloadUnthematicTweets(): Promise<Status[]> {
-        return axios.get<Status[]>(UNTHEMATIC_TWEETS_URL).then(response => response.data);
-    }
+    private _sampleToFulfillProportion(tweets: Status[], feedProportion: number): Status[] {
+        const numToSample = Math.min(this._feedSize * feedProportion, tweets.length);
+        const shuffled = shuffle(tweets);
 
-    private _sampleToFulfillProportion<T>(items: T[], feedProportion: number): T[] {
-        const numToSample = Math.min(this._feedSize * feedProportion, items.length);
-        return sampleSize(items, numToSample);
-    }
+        // Ragged array of tweets, each row contains tweets by one account
+        const raggedTweets = Object.values(groupBy(shuffled, tweet => tweet.user.id_str));
 
-    /**
-     * Makes a new array made by randomly inserting elements from the second array into the first.  More formally,
-     * if element X would appear before element Y in the first array, then indexOf(X) < indexOf(Y) in the merged array.
-     *
-     * @param a - first array
-     * @param b - second array whose elements to randomly insert into the first
-     * @return a new array containing the elements of the original arrays interspersed in a random order
-     */
-    private _insertRandomly<T>(a: T[], b: T[]): T[] {
-        const possibleIndices = range(a.length + b.length);
-        const indicesToPutA = sampleSize(possibleIndices, a.length).sort((a, b) => a - b);
-        const indicesToPutB = difference(possibleIndices, indicesToPutA).sort((a, b) => a - b);
-        const merged = new Array(possibleIndices.length);
-
-        for (const [element, index] of zip(a, indicesToPutA)) {
-            merged[index as number] = element;
+        // Repeatedly iterate through the accounts, selecting a tweet from each account.
+        // Compared to completely random sampling, accounts that don't tweet a lot will also get representation.
+        let colIndex = 0;
+        const sample = [];
+        while (sample.length < numToSample) {
+            for (const tweetsFromAccount of raggedTweets) { // For each row of raggedTweets (tweets from one account)
+                if (colIndex < tweetsFromAccount.length) {
+                    sample.push(tweetsFromAccount[colIndex]);
+                    if (sample.length >= numToSample) {
+                        break;
+                    }
+                }
+            }
+            colIndex++;
         }
-        for (const [element, index] of zip(b, indicesToPutB)) {
-            merged[index as number] = element;
-        }
-
-        return merged;
+        return sample;
     }
 }

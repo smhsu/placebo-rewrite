@@ -26,4 +26,7 @@ export interface SettingComponentProps<S> {
     onStateUpdated(newState: S): void;
 
     onClick(): void;
+
+    /** Called when the setting requests the number of displayed threads to be reset. */
+    onResetFeedSize(): void;
 }

@@ -34,6 +34,7 @@ interface TweetsRenderConfig {
 export function useTweetFilter(
     tweets: Tweet[],
     condition: ExperimentalCondition,
+    onResetFeedSize: () => void,
     onClick=_.noop
 ): TweetsRenderConfig {
     const filterObj = TWEET_FILTER_FOR_CONDITION[condition];
@@ -54,6 +55,7 @@ export function useTweetFilter(
         currentState={stateToUse}
         onStateUpdated={setSettingState}
         onClick={onClick}
+        onResetFeedSize={onResetFeedSize}
     /> : null;
     return {
         settingElement,

@@ -3,6 +3,7 @@ import FlipMove from "react-flip-move";
 import { useScrollLogging } from "./useScrollLogging";
 import { TweetBranchDisplay } from "./TweetBranchDisplay";
 import { useTweetFilter } from "../tweetFilters/useTweetFilter";
+import { useInfiniteScroll } from "./useInfiniteScroll";
 
 import { Tweet } from "../../tweetModels/Tweet";
 import { ParticipantLog } from "../../ParticipantLog";
@@ -22,12 +23,18 @@ interface Props {
 export const TweetView = React.memo(function TweetView(props: Props) {
     const {tweets, experimentCondition, log, settingsYOffset} = props;
     const [manualCondition, setManualCondition] = React.useState<ExperimentalCondition | "">("");
+    const { feedSize, resetFeedSize } = useInfiniteScroll();
     const {threads, shouldAnimateChanges, settingElement} = useTweetFilter(
-        tweets, manualCondition || experimentCondition, () => log.numSettingInteractions++
+        tweets,
+        manualCondition || experimentCondition,
+        resetFeedSize,
+        () => log.numSettingInteractions++
     );
     useScrollLogging(log);
 
-    const threadElements = threads.map(branch => <TweetBranchDisplay key={branch[0].id_str} branch={branch} />)
+    const threadElements = threads
+        .slice(0, feedSize)
+        .map(branch => <TweetBranchDisplay key={branch[0].id_str} branch={branch} />)
     return <div className="container-fluid">
         <div className="row justify-content-center">
             {settingElement && <SettingsPanel top={settingsYOffset}>{settingElement}</SettingsPanel>}
