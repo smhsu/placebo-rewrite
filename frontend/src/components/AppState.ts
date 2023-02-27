@@ -2,6 +2,7 @@ export enum AppState {
     START,
     LOADING,
     LOADED,
+    ENDED,
     ERROR
 }
 

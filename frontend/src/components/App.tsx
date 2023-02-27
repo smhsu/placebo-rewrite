@@ -34,8 +34,10 @@ export function App() {
     ////////////////////////
     // State and handlers //
     ////////////////////////
-    const [appState, setAppState] = React.useState<AppState>(AppState.START);
-    const [isEnded, setIsEnded] = React.useState(() => sessionStorage.getItem("done") === "true");
+    const [appState, setAppState] = React.useState<AppState>(() =>
+        localStorage.getItem(log.qualtricsID) === "done" ? AppState.ENDED : AppState.START
+    );
+    const [isEnding, setIsEnding] = React.useState(false);
     const [tweets, setTweets] = React.useState<Tweet[]>([]);
     const [experimentCondition, setExperimentCondition] = React.useState<ExperimentalCondition>(
         ExperimentalCondition.UNKNOWN
@@ -74,8 +76,10 @@ export function App() {
     /////////////
     React.useEffect(() => { // Upload participant log when time is up
         if (timeLeftSeconds <= 0) {
-            setIsEnded(true);
-            sessionStorage.setItem("done", "true");
+            setIsEnding(true);
+            // FIXME the actual transition duration is specified in EndScreen.css right now.
+            window.setTimeout(() => setAppState(AppState.ENDED), 2000);
+            localStorage.setItem(log.qualtricsID, "done");
             log.uploadEnsuringOnce()
                 .catch(console.error);
         }
@@ -133,6 +137,6 @@ export function App() {
 
         {tweetFetchFlow}
         {mainContent}
-        {isEnded && <EndScreen />}
+        {(isEnding || appState === AppState.ENDED) && <EndScreen />}
     </div>;
 }

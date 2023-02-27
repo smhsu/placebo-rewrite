@@ -9,6 +9,9 @@ We've included some helpful ways to control the frontend even if the backend isn
 frontend components independent of the backend.  This feature is only enabled with the environment variable
 `REACT_APP_DEBUG_MODE=true` (it's set by default in development mode, but not in production).
 
+## How to stop it from saying I'm done immediately?
+In the web browser's developer's console, type `localStorage.clear()`.
+
 ## Other configuration
 Other important, Qualtrics-related configuration can be found in the `.env` file.  Please note that changes to the
 environment variables won't take effect until the app is restarted.
