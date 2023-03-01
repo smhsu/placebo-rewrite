@@ -37,7 +37,7 @@ export function InstructionsAndButton(props: Props): JSX.Element {
         <div>{buttonElement}</div>
         <div style={{ marginTop: "3em", fontSize: "smaller", fontStyle: "italic" }}>
             If you've changed your mind about using your Twitter account, you may use
-            a <a href={getUrlWithStaticTweets()}>feed viewer that doesn't require login</a>.
+            an <a href={getUrlWithStaticTweets()}>alternative app that doesn't require login</a>.
         </div>
     </div>;
 }

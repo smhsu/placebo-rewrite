@@ -1,0 +1,15 @@
+.InstructionsModal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.InstructionsModal-inner {
+    background-color: white;
+    padding: 1.5em;
+}
+
+.InstructionsModal-heading {
+    font-weight: bold;
+    margin-bottom: 0.5em;
+}

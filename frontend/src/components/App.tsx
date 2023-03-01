@@ -6,6 +6,7 @@ import { useTimer } from "./useTimer";
 import { TwitterLoginFlow } from "./TwitterLoginFlow";
 import { StaticTweetFlow } from "./StaticTweetFlow";
 import { EndScreen } from "./EndScreen";
+import { InstructionsModal } from "./InstructionsModal";
 import { TweetView } from "./tweetViewing/TweetView";
 
 import { ExperimentalCondition } from "../common/ExperimentalCondition";
@@ -17,6 +18,7 @@ import { getIsUsingStaticTweets } from "../staticTweetsSwitch";
 
 import spinner from "../loading-small.gif";
 import "./App.css";
+
 
 /** How much time users have to view their Tweets before they disappear. */
 const TWEET_VIEW_DURATION_SECONDS = Number.parseInt(process.env.REACT_APP_FEED_VIEWING_SECONDS || "", 10);
@@ -38,12 +40,13 @@ export function App() {
         localStorage.getItem(log.qualtricsID) === "done" ? AppState.ENDED : AppState.START
     );
     const [isEnding, setIsEnding] = React.useState(false);
+    const [isShowingInstructions, setIsShowingInstructions] = React.useState(false);
     const [tweets, setTweets] = React.useState<Tweet[]>([]);
     const [experimentCondition, setExperimentCondition] = React.useState<ExperimentalCondition>(
         ExperimentalCondition.UNKNOWN
     );
     const [errorInfo, setErrorInfo] = React.useState<ErrorInfo | undefined>(undefined);
-    const {timeLeftSeconds, startTimerAfterNextUpdate} = useTimer(TWEET_VIEW_DURATION_SECONDS);
+    const {timeLeftSeconds, startTimerAfterNextUpdate, pauseTimer} = useTimer(TWEET_VIEW_DURATION_SECONDS);
     const [topBarHeight, setTopBarHeight] = React.useState(0);
 
     function makeErrorHandler(failedAction: FailedAction) {
@@ -64,7 +67,7 @@ export function App() {
             setTweets(tweets);
             setExperimentCondition(fetchedCondition);
             setAppState(AppState.LOADED);
-            startTimerAfterNextUpdate();
+            setIsShowingInstructions(true);
         } catch (error) {
             handleFetchError(error);
         }
@@ -131,11 +134,24 @@ export function App() {
         <div className="sticky-top" ref={topBar} >
             <nav className="navbar">
                 <span className="navbar-brand">Custom Twitter Viewer</span>
+                {appState === AppState.LOADED &&
+                    <button
+                        className="btn btn-sm btn-light"
+                        onClick={() => { setIsShowingInstructions(true); pauseTimer(); }}
+                    >
+                        Help
+                    </button>
+                }
             </nav>
         </div>
 
         {tweetFetchFlow}
         {mainContent}
+        <InstructionsModal
+            viewingDuration={TWEET_VIEW_DURATION_SECONDS}
+            open={isShowingInstructions}
+            onClose={() => { setIsShowingInstructions(false); startTimerAfterNextUpdate(); }}
+        />
         {(isEnding || appState === AppState.ENDED) && <EndScreen />}
     </div>;
 }
