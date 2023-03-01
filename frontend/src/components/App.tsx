@@ -60,7 +60,6 @@ export function App() {
         try {
             const tweets = await tweetPromise;
             const fetchedCondition = await fetchExperimentalCondition();
-            log.logTweetStatistics(tweets);
             log.experimentalCondition = fetchedCondition;
             setTweets(tweets);
             setExperimentCondition(fetchedCondition);

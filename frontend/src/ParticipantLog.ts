@@ -20,32 +20,28 @@ function getAndStoreQualtricsID(): string {
     return paramsQualtricsId;
 }
 
-export class ParticipantLog implements IParticipantLog {
-    qualtricsID: string;
-    chosenTopics: string[] = [];
-    tweetStats = {
-        count: 0,
-        uniqueAccounts: 0,
-        createdAtMean: 0,
-        createdAtVariance: 0,
-        createdAtRange: [0, 0] as [number, number]
-    };
-    experimentalCondition = ExperimentalCondition.UNKNOWN;
-    numSettingInteractions = 0;
-    pixelsScrolledDown = 0;
-    pixelsScrolledUp = 0;
-    maxScrollY = 0;
+export class ParticipantLog {
+    public qualtricsID: string;
+    public chosenTopics: string[] = [];
+    public experimentalCondition = ExperimentalCondition.UNKNOWN;
+    public numSettingInteractions = 0;
+    public pixelsScrolledDown = 0;
+    public pixelsScrolledUp = 0;
+    public maxScrollY = 0;
 
+    /** Or, to be more precise, is uploading or has been uploaded */
     private _hasBeenUploaded = false;
+    private _seenTweets = new Set<Tweet>();
 
     constructor() {
         this.qualtricsID = getAndStoreQualtricsID();
         console.log("Using Qualtrics ID of: " + this.qualtricsID);
     }
 
-    logTweetStatistics(tweets: Tweet[]) {
+    private _calculateTweetStatistics() {
+        const tweets = Array.from(this._seenTweets);
         const createdAtMean = meanBy(tweets, "createdAtUnix") || 0;
-        this.tweetStats = {
+        return {
             count: tweets.length,
             uniqueAccounts: new Set(tweets.map(tweet => tweet.raw.user.id_str)).size,
             createdAtMean: createdAtMean,
@@ -53,8 +49,14 @@ export class ParticipantLog implements IParticipantLog {
             createdAtRange: [
                 minBy(tweets, "createdAtUnix")?.createdAtUnix || 0,
                 maxBy(tweets, "createdAtUnix")?.createdAtUnix || 0
-            ]
+            ] as [number, number]
         };
+    }
+
+    logTweets(tweets: Tweet[]) {
+        for (const tweet of tweets) {
+            this._seenTweets.add(tweet);
+        }
     }
 
     async uploadEnsuringOnce(): Promise<void> {
@@ -62,9 +64,20 @@ export class ParticipantLog implements IParticipantLog {
             return;
         }
 
+        const serialized: IParticipantLog = {
+            qualtricsID: this.qualtricsID,
+            chosenTopics: this.chosenTopics,
+            experimentalCondition: this.experimentalCondition,
+            numSettingInteractions: this.numSettingInteractions,
+            pixelsScrolledDown: this.pixelsScrolledDown,
+            pixelsScrolledUp: this.pixelsScrolledUp,
+            maxScrollY: this.maxScrollY,
+            tweetStats: this._calculateTweetStatistics()
+        };
+
         this._hasBeenUploaded = true;
         try {
-            const requestPayload: LogParticipantApi.RequestPayload = { data: this };
+            const requestPayload: LogParticipantApi.RequestPayload = { data: serialized };
             await axios.request({
                 method: LogParticipantApi.METHOD,
                 url: LogParticipantApi.PATH,

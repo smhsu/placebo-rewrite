@@ -1,4 +1,5 @@
 import React from "react";
+import { flatten } from "lodash";
 import FlipMove from "react-flip-move";
 import { useScrollLogging } from "./useScrollLogging";
 import { TweetBranchDisplay } from "./TweetBranchDisplay";
@@ -32,9 +33,11 @@ export const TweetView = React.memo(function TweetView(props: Props) {
     );
     useScrollLogging(log);
 
-    const threadElements = threads
-        .slice(0, feedSize)
-        .map(branch => <TweetBranchDisplay key={branch[0].id_str} branch={branch} />)
+
+    const visibleThreads = threads.slice(0, feedSize);
+    log.logTweets(flatten(visibleThreads));
+    const threadElements = visibleThreads.map(branch => <TweetBranchDisplay key={branch[0].id_str} branch={branch} />);
+
     return <div className="container-fluid">
         <div className="row justify-content-center">
             {settingElement && <SettingsPanel top={settingsYOffset}>{settingElement}</SettingsPanel>}

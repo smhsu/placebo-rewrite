@@ -1,5 +1,6 @@
 import React from "react";
 import { ErrorInfo } from "./AppState";
+import { CopyButton } from "./CopyButton";
 import { getUrlWithStaticTweets } from "../staticTweetsSwitch";
 
 interface Props {
@@ -20,7 +21,10 @@ export function InstructionsAndButton(props: Props): JSX.Element {
                 Click the below button to try again, or if the problem persists, enter the following code to continue in
                 Qualtrics:
             </p>
-            <code>{process.env.REACT_APP_ERROR_CONTINUE_CODE}</code>
+            <div style={{ display: "flex", gap: "1em", alignItems: "center" }}>
+                <code>{process.env.REACT_APP_ERROR_CONTINUE_CODE || ""}</code>
+                <CopyButton copyString={process.env.REACT_APP_ERROR_CONTINUE_CODE || ""} />
+            </div>
         </div>
     } else {
         instructions = <p style={{fontSize: "x-large"}}>

@@ -42,6 +42,12 @@ export function TwitterLoginFlow(props: Props) {
         const getTweetsParams = GetTweetsApi.extractQueryParams(queryParams);
         if (getTweetsParams) {
             hasTriedFetching.current = true;
+            const paramsAsString = JSON.stringify(getTweetsParams);
+            if (window.localStorage.getItem("expiredOAuthToken") === paramsAsString) {
+                return; // This is expired, we can't use it.
+            }
+            window.localStorage.setItem("expiredOAuthToken", paramsAsString);
+
             const tweetPromise = axios.request<GetTweetsApi.ResponsePayload>({
                 method: GetTweetsApi.METHOD,
                 baseURL: GetTweetsApi.PATH,
