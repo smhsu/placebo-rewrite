@@ -14,7 +14,6 @@ import { fetchExperimentalCondition } from "../fetchExperimentalCondition";
 import { ApiErrorHandler } from "../ApiErrorHandler";
 import { ParticipantLog } from "../ParticipantLog";
 import { Tweet } from "../tweetModels/Tweet";
-import { getIsUsingStaticTweets } from "../staticTweetsSwitch";
 
 import spinner from "../loading-small.gif";
 import "./App.css";
@@ -38,6 +37,9 @@ export function App() {
     ////////////////////////
     const [appState, setAppState] = React.useState<AppState>(() =>
         localStorage.getItem(log.qualtricsID) === "done" ? AppState.ENDED : AppState.START
+    );
+    const [isUsingStaticTweets, setIsUsingStaticTweets] = React.useState(
+        () => parsedQueryParams["use_static_tweets"] === "true"
     );
     const [isEnding, setIsEnding] = React.useState(false);
     const [isShowingInstructions, setIsShowingInstructions] = React.useState(false);
@@ -95,7 +97,7 @@ export function App() {
     // The actual rendering! //
     ///////////////////////////
     let tweetFetchFlow;
-    if (getIsUsingStaticTweets(parsedQueryParams)) {
+    if (isUsingStaticTweets) {
         tweetFetchFlow = <StaticTweetFlow
             appState={appState}
             errorInfo={errorInfo}
@@ -108,6 +110,7 @@ export function App() {
             errorInfo={errorInfo}
             onTweetPromise={handleTweetPromise}
             onLoginError={handleLoginError}
+            onAlternativeRequested={() => setIsUsingStaticTweets(true)}
         />;
     }
 

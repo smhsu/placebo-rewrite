@@ -8,7 +8,6 @@ import { ErrorDisplay } from "./ErrorDisplay";
 
 import * as GetTweetsApi from "../../common/getTweetsApi";
 import { Tweet } from "../../tweetModels/Tweet";
-import { getUrlWithStaticTweets } from "../../staticTweetsSwitch";
 
 import "./TwitterLoginFlow.css";
 
@@ -24,6 +23,7 @@ interface Props {
 
     /** Callback for errors that happen when trying to log in. */
     onLoginError: (error: unknown) => void;
+    onAlternativeRequested: () => void;
 }
 
 /**
@@ -33,7 +33,8 @@ interface Props {
  * @author Silas Hsu
  */
 export function TwitterLoginFlow(props: Props) {
-    const {appState, errorInfo, onTweetPromise, onLoginError} = props;
+    const {appState, errorInfo, onTweetPromise, onLoginError, onAlternativeRequested} = props;
+    const [isWorking, setIsWorking] = React.useState(false);
 
     const hasTriedFetching = React.useRef(false);
     React.useEffect(() => {
@@ -62,13 +63,18 @@ export function TwitterLoginFlow(props: Props) {
 
 
     const optionsGrid = <div className="TwitterLoginFlow-options-grid">
-        <TwitterLoginButton className="TwitterLoginFlow-button" onError={onLoginError} />
+        <TwitterLoginButton
+            className="TwitterLoginFlow-button"
+            isWorking={isWorking}
+            onSetWorking={setIsWorking}
+            onError={onLoginError}
+        />
         <div>
-            This will take you to Twitter's website.  To cancel log in, use your web browser's BACK feature.
+            This will take you to Twitter's website.  To cancel log in, use your web browser's BACK button or feature.
         </div>
-        <a className="btn btn-light TwitterLoginFlow-button" href={getUrlWithStaticTweets()}>
+        <button className="btn btn-light TwitterLoginFlow-button" disabled={isWorking} onClick={onAlternativeRequested}>
             Alternative app...
-        </a>
+        </button>
         <div>Use this option if you've changed your mind about logging in.</div>
     </div>;
 

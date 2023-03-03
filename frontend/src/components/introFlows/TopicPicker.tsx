@@ -1,6 +1,5 @@
 import React from "react";
 import { shuffle } from "lodash";
-import { getUrlWithoutStaticTweets } from "../../staticTweetsSwitch";
 
 import "./TopicPicker.css";
 
@@ -27,7 +26,6 @@ export function TopicPicker(props: TopicPickerProps): React.ReactElement {
         <p className="TopicPicker-instructions">
             Please pick one or more topics of tweets you would be interested in.  Each topic contains tweets written by
             Twitter accounts relevant to that topic.  We hand-picked the accounts in each topic.
-            You may also <a href={getUrlWithoutStaticTweets()}>click here to use your personal Twitter account's feed</a>.
         </p>
         {
             shuffledTopics.current.map(topic => {

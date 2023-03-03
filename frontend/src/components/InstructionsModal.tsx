@@ -12,7 +12,7 @@ export function InstructionsModal(props: InstructionsModalProps) {
     const { viewingDuration, open, onClose } = props;
     return <Modal className="InstructionsModal" open={open} onClose={onClose}>
         <div className="InstructionsModal-inner">
-            <p className="InstructionsModal-heading">Welcome!</p>
+            <p className="InstructionsModal-heading">Here's some tweets for you.</p>
             <p>Simply browse the feed at your leisure.  We'll stop you
                 automatically after {viewingDuration} seconds.</p>
             <button className="btn btn-primary" onClick={onClose}>OK</button>
