@@ -1,10 +1,10 @@
 import React from "react";
-import { AppState, ErrorInfo } from "./AppState";
-import { InstructionsAndButton } from "./InstructionsAndButton";
+import { AppState, ErrorInfo } from "../AppState";
+import { ErrorDisplay } from "./ErrorDisplay";
 import { TopicPicker, TopicSelectionStatuses } from "./TopicPicker";
-import { StaticFeedMaker } from "../tweetModels/StaticFeedMaker";
-import { Tweet } from "../tweetModels/Tweet";
-import { ParticipantLog } from "../ParticipantLog";
+import { StaticFeedMaker } from "../../tweetModels/StaticFeedMaker";
+import { Tweet } from "../../tweetModels/Tweet";
+import { ParticipantLog } from "../../ParticipantLog";
 
 interface Props {
     appState: AppState;
@@ -40,10 +40,10 @@ export function StaticTweetFlow(props: Props) {
                 onTopicsConfirmed={handleTopicsConfirmed}
             />;
         case AppState.ERROR:
-            return <InstructionsAndButton
-                errorInfo={errorInfo}
-                buttonElement={<button className="btn btn-primary" onClick={handleTopicsConfirmed}>Retry</button>}
-            />;
+            return <div className="container vertical-center">
+                {errorInfo && <ErrorDisplay errorInfo={errorInfo} />}
+                <button className="btn btn-primary" onClick={handleTopicsConfirmed}>Retry</button>
+            </div>;
         default:
             return null;
     }

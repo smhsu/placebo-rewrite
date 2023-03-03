@@ -3,8 +3,8 @@ import querystring from "querystring";
 
 import { AppState, ErrorInfo, FailedAction } from "./AppState";
 import { useTimer } from "./useTimer";
-import { TwitterLoginFlow } from "./TwitterLoginFlow";
-import { StaticTweetFlow } from "./StaticTweetFlow";
+import { TwitterLoginFlow } from "./introFlows/TwitterLoginFlow";
+import { StaticTweetFlow } from "./introFlows/StaticTweetFlow";
 import { EndScreen } from "./EndScreen";
 import { InstructionsModal } from "./InstructionsModal";
 import { TweetView } from "./tweetViewing/TweetView";

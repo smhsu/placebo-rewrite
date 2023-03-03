@@ -1,6 +1,6 @@
 import React from "react";
 import { shuffle } from "lodash";
-import { getUrlWithoutStaticTweets } from "../staticTweetsSwitch";
+import { getUrlWithoutStaticTweets } from "../../staticTweetsSwitch";
 
 import "./TopicPicker.css";
 

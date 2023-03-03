@@ -2,12 +2,15 @@ import React from "react";
 import axios from "axios";
 import querystring from "querystring";
 
-import { AppState, ErrorInfo } from "./AppState";
-import { InstructionsAndButton } from "./InstructionsAndButton";
+import { AppState, ErrorInfo } from "../AppState";
 import { TwitterLoginButton } from "./TwitterLoginButton";
+import { ErrorDisplay } from "./ErrorDisplay";
 
-import * as GetTweetsApi from "../common/getTweetsApi";
-import { Tweet } from "../tweetModels/Tweet";
+import * as GetTweetsApi from "../../common/getTweetsApi";
+import { Tweet } from "../../tweetModels/Tweet";
+import { getUrlWithStaticTweets } from "../../staticTweetsSwitch";
+
+import "./TwitterLoginFlow.css";
 
 interface Props {
     /** Current state of the app. */
@@ -57,12 +60,29 @@ export function TwitterLoginFlow(props: Props) {
         }
     }, [onTweetPromise]);
 
-    const loginButton = <TwitterLoginButton onError={onLoginError} />;
+
+    const optionsGrid = <div className="TwitterLoginFlow-options-grid">
+        <TwitterLoginButton className="TwitterLoginFlow-button" onError={onLoginError} />
+        <div>
+            This will take you to Twitter's website.  To cancel log in, use your web browser's BACK feature.
+        </div>
+        <a className="btn btn-light TwitterLoginFlow-button" href={getUrlWithStaticTweets()}>
+            Alternative app...
+        </a>
+        <div>Use this option if you've changed your mind about logging in.</div>
+    </div>;
+
     switch (appState) {
         case AppState.START:
-            return <InstructionsAndButton buttonElement={loginButton} />;
+            return <div className="container vertical-center">
+                <p className="TwitterLoginFlow-heading"><b>Welcome!</b> Click below to get started.</p>
+                {optionsGrid}
+            </div>;
         case AppState.ERROR:
-            return <InstructionsAndButton errorInfo={errorInfo} buttonElement={loginButton} />;
+            return <div className="container vertical-center">
+                {errorInfo && <ErrorDisplay errorInfo={errorInfo} />}
+                {optionsGrid}
+            </div>
         default:
             return null;
     }

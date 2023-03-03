@@ -1,0 +1,16 @@
+.TwitterLoginFlow-heading {
+    font-size: x-large;
+    margin-bottom: 2em;
+}
+
+.TwitterLoginFlow-button {
+    border: 1px solid lightgrey;
+}
+
+.TwitterLoginFlow-options-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    row-gap: 1.5em;
+    column-gap: 1em;
+    align-items: center;
+}
