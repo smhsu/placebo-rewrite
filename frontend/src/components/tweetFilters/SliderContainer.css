@@ -19,11 +19,15 @@
 .SliderContainer-low-label {
     text-align: start;
     margin-inline-end: 5px;
-    font-size: x-small;
+    font-size: small;
 }
 
 .SliderContainer-high-label {
     text-align: end;
     margin-inline-start: 5px;
-    font-size: x-small;
+    font-size: small;
+}
+
+.SliderContainer-disabled {
+    color: rgba(0, 0, 0, 0.5);
 }
