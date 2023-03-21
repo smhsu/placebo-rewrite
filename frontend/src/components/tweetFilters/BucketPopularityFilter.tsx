@@ -78,7 +78,6 @@ export class BucketPopularityFilter implements ITweetFilter<BucketPopularityFilt
                     track={false}
                     disabled={!currentState.isFiltering}
                     onChange={handleChange}
-                    onClick={onClick}
                 />
             </SliderContainer>
         </div>
