@@ -41,6 +41,7 @@ export class BucketPopularityFilter implements ITweetFilter<BucketPopularityFilt
                 value: currentState.value
             });
             onResetFeedSize();
+            onClick();
             window.setTimeout(() => window.scrollTo({top: 0, behavior: "smooth"}));
         }
         const handleChange = (_event: React.ChangeEvent<{}>, value: number | number[]) => {
@@ -49,6 +50,7 @@ export class BucketPopularityFilter implements ITweetFilter<BucketPopularityFilt
                 value: typeof value === "number" ? value : value[0]
             });
             onResetFeedSize();
+            onClick();
             window.setTimeout(() => window.scrollTo({top: 0, behavior: "smooth"}));
         }
 
@@ -74,7 +76,6 @@ export class BucketPopularityFilter implements ITweetFilter<BucketPopularityFilt
                     value={currentState.value}
                     track={false}
                     onChange={handleChange}
-                    onClick={onClick}
                 />
             </SliderContainer>}
         </div>
