@@ -1,6 +1,6 @@
-import React, { useRef } from "react";
+import React from "react";
 import memoizeOne from "memoize-one";
-import { Slider } from "@material-ui/core";
+import { Switch, Slider, FormControlLabel } from "@material-ui/core";
 
 import { ITweetFilter, SettingComponentProps } from "./ITweetFilter";
 import { SliderContainer } from "./SliderContainer";
@@ -33,8 +33,6 @@ export class BucketPopularityFilter implements ITweetFilter<BucketPopularityFilt
 
     SettingComponent(props: SettingComponentProps<BucketPopularityFilterState>) {
         const {currentState, onStateUpdated, onClick, onResetFeedSize} = props;
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        const checkboxId = useRef((Math.random() + 1).toString(36).substring(2));
         const handleCheckboxToggle = () => {
             onStateUpdated({
                 isFiltering: !currentState.isFiltering,
@@ -55,19 +53,22 @@ export class BucketPopularityFilter implements ITweetFilter<BucketPopularityFilt
         }
 
         return <div>
-            <input
-                type="checkbox"
-                id={checkboxId.current}
-                checked={currentState.isFiltering}
-                onChange={handleCheckboxToggle}
-            /> <label htmlFor={checkboxId.current}>Filter by popularity</label>
+            <FormControlLabel
+                control={<Switch
+                    checked={currentState.isFiltering}
+                    onChange={handleCheckboxToggle}
+                    color="primary"
+                />}
+                label="Filter by popularity"
+            />
 
             <SliderContainer
                 mainLabel=" "
-                instructions=" "
+                instructions="Move the slider to customize the popularity filter"
                 lowLabel="Least popular"
                 highLabel="Most popular"
                 disabled={!currentState.isFiltering}
+                onClick={() => { if (!currentState.isFiltering) { handleCheckboxToggle(); } } }
             >
                 <Slider
                     min={1}

@@ -21,8 +21,9 @@ export default function registerRoutes(
         throw new Error("COUNT_COLLECTION_NAME and RANDOMIZER_SETTING_PROPORTION must be specified in the " +
             "environment variables.");
     }
-    if (sum(Object.values(desiredConditionProportions)) != 1) {
-        throw new Error("Desired experiment condition proportions must sum to 1.");
+    const proportionSum = sum(Object.values(desiredConditionProportions));
+    if (Math.abs(proportionSum - 1) > 0.001) { // If significantly different than 1
+        throw new Error(`Desired experiment condition proportions must sum to 1 (got ${proportionSum} instead).`);
     }
 
     const conditionCountsProvider = makeConditionCountsProvider({
@@ -65,6 +66,7 @@ function assignLeastSatisfiedCondition(
 ): ExperimentalCondition {
     const totalAssignments = sum(Object.values(counts));
     const differencesFromDesired: [ExperimentalCondition, number][] = Object.entries(counts).map(([condition, count]) =>
+        // Division by 0 is OK because we'll get Infinity, which is a fine number to do comparisons with.
         [condition as ExperimentalCondition, desiredProportions[condition] - (count / totalAssignments)]
     );
     const largestDifferencePair = maxBy(differencesFromDesired, 1);
