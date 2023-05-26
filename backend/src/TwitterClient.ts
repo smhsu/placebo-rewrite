@@ -1,56 +1,36 @@
-import crypto from "crypto";
-import OAuth from "oauth-1.0a";
-import axios, { AxiosError, AxiosResponse } from "axios";
-import querystring from "querystring";
+import axios, { AxiosError } from "axios";
 import { Status } from "twitter-d";
-import { minBy, uniqBy } from "lodash";
+import { uniqBy } from "lodash";
 
-const AUTH_BASE_URL = "https://api.twitter.com/oauth";
-const API_BASE_URL = "https://api.twitter.com/1.1";
 const MAX_HOME_TIMELINE_SIZE = 800;
-const MAX_HOME_TIMELINE_BATCH_SIZE = 200;
+const MAX_HOME_TIMELINE_BATCH_SIZE = 100;
 
-/**
- * OAuth tokens config.
- */
-interface TwitterClientConfig {
-    /** App key from your Twitter Developers account. */
-    consumer_key: string;
+export interface TwitterClientConfig {
+    /** From Twitter Developers account. */
+    clientId: string;
+    /** From Twitter Developers account. */
+    clientSecret: string;
 
-    /** App secret from your Twitter Developers account. */
-    consumer_secret: string;
-
-    /** Access token key associated with one user's account. */
-    access_token_key?: string;
-
-    /** Access token secret associated with one user's account. */
-    access_token_secret?: string;
-}
-
-/** Token that can be used to request an access token from a Twitter user. */
-export interface RequestToken {
-    oauth_token: string;
-    oauth_token_secret: string;
-    oauth_callback_confirmed: true;
-}
-
-/** Access token data for one Twitter user. */
-export interface AccessToken {
-    oauth_token: string;
-    oauth_token_secret: string;
-    user_id: string;
-    screen_name: string;
+    /** Should be one of the URLs configured in Twitter Developers account. */
+    callbackUrl: string;
 }
 
 /**
- * Twitter client that handles OAuth flow and fetching data from Twitter.  This class partially implements the flow
- * described in https://developer.twitter.com/en/docs/basics/authentication/oauth-1-0a/obtaining-user-access-tokens
+ * Twitter client that handles authentication and fetching data from Twitter.
  *
  * @author Silas Hsu
  */
 export class TwitterClient {
     private _config: TwitterClientConfig;
-    private _oauthClient: OAuth;
+
+    /** The "username" and "password" of our Twitter app encoded as a Base64 string. */
+    private _encodedAppAuth: string;
+
+    /** Access token for an authenticated user. */
+    private _accessToken: string;
+
+    /** User ID of the currently authenticated user. */
+    private _userId: string;
 
     static defaultFactory(...args: ConstructorParameters<typeof TwitterClient>): TwitterClient {
         return new TwitterClient(...args);
@@ -58,48 +38,21 @@ export class TwitterClient {
 
     constructor(config: TwitterClientConfig) {
         this._config = config;
-        this._oauthClient = this._createOAuthClient();
+        this._encodedAppAuth = btoa(`${config.clientId}:${config.clientSecret}`);
     }
 
     /**
-     * @return whether this instance was configued with an access token.
+     * @return whether this instance is ready to access a user's data.
      */
-    get hasAccessToken(): boolean {
-        return this._config.access_token_key !== undefined && this._config.access_token_secret !== undefined;
-    }
-
-    _createOAuthClient(): OAuth {
-        return new OAuth({
-            consumer: {
-                key: this._config.consumer_key,
-                secret: this._config.consumer_secret
-            },
-            signature_method: "HMAC-SHA1",
-            hash_function: (baseString: string, key: string) =>
-                crypto
-                    .createHmac("sha1", key)
-                    .update(baseString)
-                    .digest("base64")
-        });
+    get isAuthed(): boolean {
+        return this._accessToken !== undefined && this._userId !== undefined;
     }
 
     /**
-     * Makes HTTP headers that contain a OAuth signature.
-     *
-     * @param url - the URL that the HTTP request will be made to.  Should include query parameters, if any.
-     * @param method - HTTP request method
-     * @return headers contained in an object
+     * Generates the header for authorizing Twitter requests on behalf of a user.
      */
-    _makeOAuthHeaders(url: string, method: "GET" | "POST"): OAuth.Header {
-        let token: OAuth.Token | undefined;
-        if (this.hasAccessToken) {
-            token = { // this.hasAccessToken ensures these are strings and not undefined.
-                key: this._config.access_token_key as string,
-                secret: this._config.access_token_secret as string
-            };
-        }
-        const signature = this._oauthClient.authorize({url, method}, token);
-        return this._oauthClient.toHeader(signature);
+    _getUserAuthHeader(): { Authorization: string } {
+        return { Authorization: `Bearer ${this._accessToken}` };
     }
 
     /**
@@ -110,17 +63,7 @@ export class TwitterClient {
      */
     _reformatAndThrowError(error: AxiosError<unknown>): never {
         if (error.response) { // Response from server available
-            const payload = error.response.data;
-            if (isStandardTwitterErrorPayload(payload)) {
-                throw new TwitterError(error.request.path, error.response.status, payload);
-            }
-            
-            // Some other error response from Twitter?
-            let payloadAsString = "";
-            if (typeof payload === "string" || (typeof payload === "object" && payload !== null)) {
-                payloadAsString = payload.toString();
-            }
-            throw new TwitterError(error.request.path, error.response.status, payloadAsString);
+            throw new TwitterError(error.request.path, error.response.status, error.response.data);
         } else if (error.request) { // Request sent but no response from server
             throw new TwitterError(error.request.path);
         } else { // Something else triggered an error
@@ -129,91 +72,95 @@ export class TwitterClient {
     }
 
     /**
-     * Gets an OAuth token that can be used to ask for a user's access token.  This is step 1 of the 3-Legged OAuth
-     * process.
+     * Using a user's authorization code and code verifier string, authenticates this client to access data on behalf
+     * of that specific user.  Authorization codes can only be retrieved by directing an end user to
+     * https://twitter.com/i/oauth2/authorize.  Thus the code will come from the frontend.
      *
-     * @param callbackUrl - URL from your Twitter Developers account.  See the README for more information.
-     * @return promise for the OAuth request token
+     * @param code user's authorization code
+     * @param code_verifier original unhashed code verifier string as specified by PKCE
+     * @return promise that resolves upon successful access to the user's data
      */
-    async getRequestToken(callbackUrl: string): Promise<RequestToken> {
-        const url = `${AUTH_BASE_URL}/request_token?${querystring.stringify({ oauth_callback: callbackUrl })}`;
-
-        let response: AxiosResponse<string>;
+    async authUser(code: string, code_verifier: string): Promise<void> {
+        // Implementation notes: this effectively satisfies Step 3 in
+        // https://developer.twitter.com/en/docs/authentication/oauth-2-0/user-access-token
         try {
-            response = await axios.post<string>(url, undefined, {
-                headers: this._makeOAuthHeaders(url, "POST"),
-                responseType: "text"
+            // Convert the authorization token into an access token
+            const accessTokenResponse = await axios.request<OAuthTokenResponse>({
+                url: OAUTH_TOKEN_ENDPOINT,
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    Authorization: `Basic ${this._encodedAppAuth}`
+                },
+                data: new URLSearchParams({
+                    client_id: this._config.clientId,
+                    grant_type: "authorization_code",
+                    redirect_uri: this._config.callbackUrl,
+                    code_verifier,
+                    code
+                }),
+                responseType: "json"
             });
+            this._accessToken = accessTokenResponse.data.access_token;
+
+            const userIdResponse = await axios.get<CurrentUserInfo>(CURRENT_USER_ENDPOINT, {
+                headers: this._getUserAuthHeader(),
+                responseType: "json"
+            });
+            this._userId = userIdResponse.data.data.id;
         } catch (error) {
             this._reformatAndThrowError(error);
         }
-
-        return querystring.parse(response.data) as unknown as RequestToken;
     }
 
     /**
-     * Given a user's request token (i.e. permission to access their data), requests their access token from Twitter.
-     *
-     * @param token - user's request token, i.e. permission to access their data
-     * @return promise for the user's access token
-     */
-    async getAccessToken(token: { oauth_token: string, oauth_verifier: string }): Promise<AccessToken> {
-        const url = `${AUTH_BASE_URL}/access_token?${querystring.stringify(token)}`;
-
-        let response: AxiosResponse<string>;
-        try {
-            response = await axios.post<string>(url, undefined, {
-                headers: this._makeOAuthHeaders(url, "POST"),
-                responseType: "text"
-            });
-        } catch (error) {
-            this._reformatAndThrowError(error);
-        }
-
-        return querystring.parse(response.data) as unknown as AccessToken;
-    }
-
-    /**
-     * Gets a user's home timeline tweets.  An access token must have been configured in the constructor, i.e. a user
-     * must be authenticated, otherwise this method will not work.
+     * Gets home timeline tweets from the currently authenticated user.  Fails if no user is authenticated.
      *
      * @param howMany - the number of tweets to get.
-     * @return promise for a list of Tweets on the authenticated user's home timeline.
+     * @return promise for a list of Tweets on the user's home timeline.
      */
     async getTweets(howMany: number): Promise<Status[]> {
-        if (!this.hasAccessToken) {
-            throw new Error("No access token configured -- cannot use this API without one.");
+        if (!this.isAuthed) {
+            throw new Error("No user authenticated");
         }
         howMany = Math.min(howMany, MAX_HOME_TIMELINE_SIZE);
 
         // We have to keep track of tweet ids due to the reasons described here:
         // https://developer.twitter.com/en/docs/twitter-api/v1/tweets/timelines/guides/working-with-timelines
-        let maxIdToFetch = -1;
+        let paginationToken = "";
         const tweets: Status[] = [];
         let tweetsRemaining = howMany;
         while (tweetsRemaining > 0) {
             const batchSize = Math.min(tweetsRemaining, MAX_HOME_TIMELINE_BATCH_SIZE);
             // Docs for valid API options:
             // eslint-disable-next-line max-len
-            // https://developer.twitter.com/en/docs/twitter-api/v1/tweets/timelines/api-reference/get-statuses-home_timeline
-            const apiOptions = { count: batchSize, tweet_mode: "extended" };
-            if (maxIdToFetch > 0) {
-                apiOptions["max_id"] = maxIdToFetch;
+            // https://developer.twitter.com/en/docs/twitter-api/tweets/timelines/api-reference/get-users-id-reverse-chronological
+            const apiOptions = {
+                max_results: batchSize,
+                expansions: "author_id,referenced_tweets.id",
+                "tweet.fields": "author_id,created_at,entities"
+            };
+            if (paginationToken) {
+                apiOptions["pagination_token"] = paginationToken;
             }
 
-            const url = `${API_BASE_URL}/statuses/home_timeline.json?${querystring.stringify(apiOptions)}`;
-            let response: AxiosResponse<Status[]>;
+            let result: any;
             try {
-                response = await axios.get<Status[]>(url, {
-                    headers: this._makeOAuthHeaders(url, "GET"),
+                const url = `https://api.twitter.com/2/users/${this._userId}/timelines/reverse_chronological`;
+                const response = await axios.get(url, {
+                    params: apiOptions,
+                    headers: this._getUserAuthHeader(),
                     responseType: "json"
                 });
+                result = response.data;
             } catch (error) {
                 this._reformatAndThrowError(error);
             }
 
-            tweets.push(...response.data);
-            if (response.data.length <= 1) {  // Stop if there are no more results.
+            paginationToken = result.meta["next_token"];
+
+            tweets.push(...result.data);
+            if (result.data.length <= 1) {  // Stop if there are no more results.
                 break;
             }
 
@@ -222,9 +169,6 @@ export class TwitterClient {
              * fewer tweets than requested, or even none at all, and we want to ensure the loop terminates.
              */
             tweetsRemaining -= MAX_HOME_TIMELINE_BATCH_SIZE;
-            if (tweetsRemaining > 0) {
-                maxIdToFetch = minBy(response.data, "id")?.id || -1;
-            }
         }
 
         return uniqBy(tweets, "id");
@@ -232,38 +176,51 @@ export class TwitterClient {
 }
 
 /**
- * Standard Twitter error response format.
- * See https://developer.twitter.com/en/support/twitter-api/error-troubleshooting
- */
-interface ITwitterErrorPayload {
-    type: string; // URL pointing to details on the type of error
-    title: string; // Very short description
-    detail: string; // Longer description
-}
-
-function isStandardTwitterErrorPayload(toCheck: unknown): toCheck is ITwitterErrorPayload {
-    return typeof(toCheck) === "object" &&
-        toCheck !== null &&
-        typeof(toCheck["type"]) === "string";
-}
-
-/**
  * An error during an API call to Twitter.
+ *
+ * See https://developer.twitter.com/en/support/twitter-api/error-troubleshooting for standard error payloads.
  */
 export class TwitterError extends Error {
     /** HTTP status returned from Twitter's API.  If negative, Twitter didn't respond at all. */
     httpStatus: number;
 
-    constructor(requestPath: string, httpStatus=-1, errorPayload: ITwitterErrorPayload | string="") {
+    constructor(requestPath: string, httpStatus=-1, errorPayload?: unknown) {
         if (httpStatus < 0) {
             super(`${requestPath} -- no response from Twitter endpoint.`);
         } else if (typeof errorPayload === "string") {
-            super(`${requestPath} HTTP ${httpStatus} -- ${errorPayload || "no additional details available"}`);
+            super(`${requestPath} HTTP ${httpStatus} -- ${errorPayload}`);
+        } else if (typeof errorPayload === "object" && errorPayload !== null) {
+            super(`${requestPath} HTTP ${httpStatus}\n${JSON.stringify(errorPayload)}`);
         } else {
-            super(`${requestPath} HTTP ${httpStatus} ${errorPayload.title} -- ${errorPayload.detail}`);
+            super(`${requestPath} HTTP ${httpStatus} -- no additional details.`);
         }
 
         this.name = TwitterError.name;
         this.httpStatus = httpStatus;
+    }
+}
+
+
+/** Twitter endpoint for getting an OAuth2 access token, which enables us to make requests on behalf of a user. */
+const OAUTH_TOKEN_ENDPOINT = "https://api.twitter.com/2/oauth2/token";
+interface OAuthTokenResponse {
+    token_type: "bearer",
+    expires_in: number;
+    access_token: string;
+    scope: string;
+}
+
+/** Twitter endpoint for getting information on the currently authenticated user. */
+const CURRENT_USER_ENDPOINT = "https://api.twitter.com/2/users/me";
+/**
+ * Response object from GET /2/users/me; contains information on the currently authenticated user.
+ *
+ * https://developer.twitter.com/en/docs/twitter-api/users/lookup/api-reference/get-users-me
+ */
+interface CurrentUserInfo {
+    data: {
+        id: string;
+        name: string;
+        username: string;
     }
 }

@@ -1,5 +1,6 @@
 import React from "react";
 import querystring from "querystring";
+import randomstring from "randomstring";
 
 import { AppState, ErrorInfo, FailedAction } from "./AppState";
 import { useTimer } from "./useTimer";
@@ -18,6 +19,8 @@ import { Tweet } from "../tweetModels/Tweet";
 import spinner from "../loading-small.gif";
 import "./App.css";
 
+import * as GetTweetsApi from "../common/getTweetsApi";
+
 
 /** How much time users have to view their Tweets before they disappear. */
 const TWEET_VIEW_DURATION_SECONDS = Number.parseInt(process.env.REACT_APP_FEED_VIEWING_SECONDS || "", 10);
@@ -27,6 +30,34 @@ if (!isFinite(TWEET_VIEW_DURATION_SECONDS)) {
 
 // substring(1) cuts off the "?" in the URL query string
 const parsedQueryParams = querystring.parse(window.location.search.substring(1));
+
+async function generateCodeChallenge(codeVerifier: string) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(codeVerifier);
+    const digest = await window.crypto.subtle.digest("SHA-256", data);
+    const base64Digest = window.btoa(String.fromCharCode(...new Uint8Array(digest)));
+    // you can extract this replacing code to a function
+    return base64Digest
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=/g, "");
+}
+
+async function constructAuthUrl() {
+    const authUrl = new URL("https://twitter.com/i/oauth2/authorize");
+    authUrl.searchParams.set("response_type", "code");
+    authUrl.searchParams.set("client_id", "am9hR3Exdms1V2xkTFoxaFZwams6MTpjaQ");
+    authUrl.searchParams.set("redirect_uri", "http://127.0.0.1:3000");
+    authUrl.searchParams.set("state", "mytest");
+    const codeVerifier = randomstring.generate(128);
+    window.sessionStorage.setItem("code_verifier", codeVerifier);
+    const code_challenge = await generateCodeChallenge(codeVerifier);
+    authUrl.searchParams.set("code_challenge", code_challenge);
+    authUrl.searchParams.set("code_challenge_method", "S256");
+    authUrl.searchParams.set("scope", "tweet.read users.read");
+    return authUrl.toString();
+}
+
 
 export function App() {
     const log = React.useMemo(() => new ParticipantLog(), []);
@@ -92,6 +123,32 @@ export function App() {
         setTopBarHeight(topBar.current !== null ? topBar.current.offsetHeight : 0);
     }, [timeLeftSeconds]);
     // Run it when timeLeftSeconds changes, because that's when we might add the notification that resizes the top bar.
+
+    const [redirectUrl, setRedirectUrl] = React.useState("");
+    React.useEffect(() => {
+        if (typeof parsedQueryParams["code"] == "string") {
+            const code_verifier = window.sessionStorage.getItem("code_verifier");
+            if (!code_verifier) {
+                console.error("No Code Verifier!");
+                return;
+            }
+            const body: GetTweetsApi.RequestBody = {
+                code: parsedQueryParams["code"],
+                code_verifier
+            };
+            fetch(GetTweetsApi.PATH, {
+                method: GetTweetsApi.METHOD,
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(body)
+            }).then(result => result.json()).then(console.log).catch(console.error);
+        } else {
+            constructAuthUrl().then(setRedirectUrl);
+        }
+
+    }, [])
+    return <a href={redirectUrl}>GO!</a>;
 
     ///////////////////////////
     // The actual rendering! //

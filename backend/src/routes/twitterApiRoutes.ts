@@ -1,9 +1,7 @@
-import querystring from "querystring";
 import { Server } from "@hapi/hapi";
 import Boom from "@hapi/boom";
-import * as RequestTokenApi from "../common/requestTokenApi";
 import * as GetTweetsApi from "../common/getTweetsApi";
-import { TwitterClient, TwitterError } from "../TwitterClient";
+import { TwitterClient, TwitterClientConfig, TwitterError } from "../TwitterClient";
 
 const NUM_TWEETS_TO_GET = 400;
 
@@ -17,35 +15,15 @@ const NUM_TWEETS_TO_GET = 400;
 export default function registerRoutes(
     server: Server, makeTwitterClient = TwitterClient.defaultFactory
 ): void {
-    if (!process.env.CONSUMER_KEY || !process.env.CONSUMER_SECRET || !process.env.CALLBACK_URL) {
-        throw new Error("Needed Twitter app keys unset in environment variables!");
+    if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET || !process.env.CALLBACK_URL) {
+        throw new Error("Could not find required Twitter app config environment variables");
     }
 
-    const consumer_key = process.env.CONSUMER_KEY;
-    const consumer_secret = process.env.CONSUMER_SECRET;
-    const callbackUrl = process.env.CALLBACK_URL;
-    const twitterClient = makeTwitterClient({ consumer_key, consumer_secret });
-
-    /**
-     * The Request Token API gets a request token that can be used to ask for a user's access token on behalf of this
-     * app.  Any query parameters passed to this function will be added to the URL that the client will be redirected
-     * to in step 2 of the OAuth flow.
-     */
-    server.route({
-        method: RequestTokenApi.METHOD,
-        path: RequestTokenApi.PATH,
-        handler: async function(request) {
-            const extraQueryParams = querystring.stringify(request.query);
-            const callbackPlusQuery = extraQueryParams ? callbackUrl + "?" + extraQueryParams : callbackUrl;
-            try {
-                const tokenData = await twitterClient.getRequestToken(callbackPlusQuery);
-                const response: RequestTokenApi.ResponsePayload = { oauth_token: tokenData.oauth_token };
-                return response;
-            } catch (error) {
-                return handleTwitterError(error);
-            }
-        }
-    });
+    const twitterClientConfig: TwitterClientConfig = {
+        clientId: process.env.CLIENT_ID,
+        clientSecret: process.env.CLIENT_SECRET,
+        callbackUrl: process.env.CALLBACK_URL
+    };
 
     /**
      * The Get Tweets API gets a user's home timeline Tweets.  It requires the user's access tokens in the query
@@ -55,21 +33,14 @@ export default function registerRoutes(
         method: GetTweetsApi.METHOD,
         path: GetTweetsApi.PATH,
         handler: async function(request) {
-            const token = GetTweetsApi.extractQueryParams(request.query);
-            if (!token) {
-                return Boom.badRequest("Missing required query parameters.");
+            if (!GetTweetsApi.verifyRequestBody(request.payload)) {
+                return Boom.badRequest("Request body not properly formed");
             }
-
+            const { code, code_verifier } = request.payload;
+            const twitterClient = makeTwitterClient(twitterClientConfig);
             try {
-                const accessToken = await twitterClient.getAccessToken(token);
-                const authedTwitterClient = makeTwitterClient({
-                    consumer_key,
-                    consumer_secret,
-                    access_token_key: accessToken.oauth_token,
-                    access_token_secret: accessToken.oauth_token_secret
-                });
-
-                const tweets = await authedTwitterClient.getTweets(NUM_TWEETS_TO_GET);
+                await twitterClient.authUser(code, code_verifier);
+                const tweets = await twitterClient.getTweets(NUM_TWEETS_TO_GET);
                 const response: GetTweetsApi.ResponsePayload = { tweets };
                 return response;
             } catch (error) {

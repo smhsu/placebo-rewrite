@@ -43,7 +43,7 @@ export function TwitterLoginFlow(props: Props) {
         }
 
         const queryParams = querystring.parse(window.location.search.substring(1));
-        const getTweetsParams = GetTweetsApi.extractQueryParams(queryParams);
+        const getTweetsParams = false;
         if (getTweetsParams) {
             hasTriedFetching.current = true;
             const paramsAsString = JSON.stringify(getTweetsParams);
