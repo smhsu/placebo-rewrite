@@ -1,9 +1,10 @@
 import { Server } from "@hapi/hapi";
 import Boom from "@hapi/boom";
 import * as GetTweetsApi from "../common/getTweetsApi";
-import { TwitterClient, TwitterClientConfig, TwitterError } from "../TwitterClient";
+import { TwitterClient } from "../TwitterClient";
+import { ApiRequestError, ApiResponseError } from "twitter-api-v2";
 
-const NUM_TWEETS_TO_GET = 400;
+const NUM_TWEETS_TO_GET = 399;
 
 /**
  * Registers APIs that relate to authenticating and fetching data from Twitter.
@@ -19,11 +20,11 @@ export default function registerRoutes(
         throw new Error("Could not find required Twitter app config environment variables");
     }
 
-    const twitterClientConfig: TwitterClientConfig = {
+    const twitterClient = makeTwitterClient({
         clientId: process.env.CLIENT_ID,
         clientSecret: process.env.CLIENT_SECRET,
         callbackUrl: process.env.CALLBACK_URL
-    };
+    });
 
     /**
      * The Get Tweets API gets a user's home timeline Tweets.  It requires the user's access tokens in the query
@@ -37,12 +38,8 @@ export default function registerRoutes(
                 return Boom.badRequest("Request body not properly formed");
             }
             const { code, code_verifier } = request.payload;
-            const twitterClient = makeTwitterClient(twitterClientConfig);
             try {
-                await twitterClient.authUser(code, code_verifier);
-                const tweets = await twitterClient.getTweets(NUM_TWEETS_TO_GET);
-                const response: GetTweetsApi.ResponsePayload = { tweets };
-                return response;
+                return await twitterClient.getHomeTimeline(code, code_verifier, NUM_TWEETS_TO_GET);
             } catch (error) {
                 return handleTwitterError(error);
             }
@@ -58,29 +55,37 @@ export default function registerRoutes(
  * @param error - error thrown while calling the Twitter API
  * @return appropriate Boom error to return to caller of the API
  */
-function handleTwitterError(error: unknown) {
-    let statusCode: number;
-    let messageToUser: string;
-    if (error instanceof TwitterError) {
-        if (error.httpStatus >= 500 || error.httpStatus < 0) {
-            statusCode = 502;
+function handleTwitterError(error: unknown): Boom.Boom<unknown> {
+    let statusCodeToUser = 500;
+    let messageToUser = "Internal server error";
+    let data = error;
+
+    if (error instanceof ApiRequestError) {
+        statusCodeToUser = 502;
+        messageToUser = "Twitter is either down, overloaded, or otherwise having issues -- try again later.";
+        data = {
+            path: error.request.path,
+            details: error.requestError
+        };
+    } else if (error instanceof ApiResponseError) {
+        data = {
+            path: error.request.path,
+            details: error.data
+        };
+
+        if (error.code > 500) {
+            statusCodeToUser = 502;
             messageToUser = "Twitter is either down, overloaded, or otherwise having issues -- try again later.";
-        } else if (error.httpStatus === 420 || error.httpStatus === 429) {
-            statusCode = 502;
+        } else if (error.code === 420 || error.code === 429) {
+            statusCodeToUser = 502;
             messageToUser = "Twitter request limit exceeded -- try again later.";
-        } else {
-            // Probably a problem with the way our server is sending requests to Twitter.
-            // In any case, the user probably can't do anything about it, so just send a generic message.
-            statusCode = 500;
-            messageToUser = "Internal server error";
         }
-    } else {
-        statusCode = 500;
-        messageToUser = "Internal server error";
+        // If we're down here, probably a problem with the way our server is sending requests to Twitter.
+        // In any case, the user probably can't do anything about it, so just send a generic message.
     }
 
     return new Boom.Boom(messageToUser, {
-        statusCode: statusCode,
-        data: error // The logger should probably take advantage of this
+        statusCode: statusCodeToUser,
+        data // The Hapi logger can take advantage of this
     });
 }

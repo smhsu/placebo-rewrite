@@ -20,6 +20,7 @@ import spinner from "../loading-small.gif";
 import "./App.css";
 
 import * as GetTweetsApi from "../common/getTweetsApi";
+import axios from "axios";
 
 
 /** How much time users have to view their Tweets before they disappear. */
@@ -136,13 +137,17 @@ export function App() {
                 code: parsedQueryParams["code"],
                 code_verifier
             };
-            fetch(GetTweetsApi.PATH, {
+
+            axios.request({
+                url: GetTweetsApi.PATH,
                 method: GetTweetsApi.METHOD,
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "Accept-Encoding": "gzip"
                 },
-                body: JSON.stringify(body)
-            }).then(result => result.json()).then(console.log).catch(console.error);
+                data: JSON.stringify(body),
+                responseType: "json"
+            }).then(console.log).catch(console.error);
         } else {
             constructAuthUrl().then(setRedirectUrl);
         }

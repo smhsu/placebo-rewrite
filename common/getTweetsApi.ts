@@ -1,4 +1,4 @@
-import { Status } from "twitter-d";
+import { MediaObjectV2, TweetV2, UserV2 } from "twitter-api-v2";
 
 export const METHOD = "POST";
 export const PATH = "/api/tweets";
@@ -24,6 +24,17 @@ export function verifyRequestBody(toVerify: unknown): toVerify is RequestBody {
         typeof (toVerify as Record<string, unknown>)["code_verifier"] === "string";
 }
 
+/**
+ * Same structure as what is returned from the Twitter API.
+ * https://developer.twitter.com/en/docs/twitter-api/tweets/timelines/api-reference/get-users-id-reverse-chronological
+ *
+ * Also see https://developer.twitter.com/en/docs/twitter-api/data-dictionary/introduction for types in this payload.
+ */
 export interface ResponsePayload {
-    tweets: Status[];
+    data: TweetV2[];
+    includes: {
+        tweets: TweetV2[];
+        users: UserV2[];
+        media: MediaObjectV2[];
+    }
 }

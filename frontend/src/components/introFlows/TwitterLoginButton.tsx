@@ -2,7 +2,6 @@ import React from "react";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTwitter } from "@fortawesome/free-brands-svg-icons";
-import * as RequestTokenApi from "../../common/requestTokenApi";
 
 const TWITTER_AUTH_URL = "https://api.twitter.com/oauth/authenticate";
 
@@ -20,11 +19,7 @@ export function TwitterLoginButton(props: TwitterLoginButtonProps) {
     const handleClick = async () => {
         onSetWorking(true);
         try {
-            const oauthTokenResponse = await axios.request<RequestTokenApi.ResponsePayload>({
-                method: RequestTokenApi.METHOD,
-                url: RequestTokenApi.PATH,
-            });
-            const oauthToken = oauthTokenResponse.data.oauth_token;
+            const oauthToken = ""
             window.location.href = `${TWITTER_AUTH_URL}?oauth_token=${oauthToken}`;
         } catch (error) {
             onError(error);

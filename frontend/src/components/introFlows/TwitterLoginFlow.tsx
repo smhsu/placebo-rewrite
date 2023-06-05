@@ -56,7 +56,7 @@ export function TwitterLoginFlow(props: Props) {
                 method: GetTweetsApi.METHOD,
                 baseURL: GetTweetsApi.PATH,
                 params: getTweetsParams
-            }).then(response => Tweet.fromStatuses(response.data.tweets))
+            }).then(response => [])
             onTweetPromise(tweetPromise);
         }
     }, [onTweetPromise]);

@@ -36,12 +36,11 @@ export async function setUpServer(mongoClient: MongoClient, options: ServerOptio
             const theError = event.error as Error;
             if (Boom.isBoom(theError)) {
                 if (theError.output.statusCode >= 500) {
-                    const reason = typeof theError.data.toString === "function" ?
-                        theError.data.toString() : "(unknown)";
-                    console.error(`HTTP ${theError.output.statusCode} from ${request.path} caused by ${reason}`);
+                    console.error(`${request.path}: returned HTTP ${theError.output.statusCode}`);
+                    console.error(JSON.stringify(theError.data));
                 }
             } else {
-                console.error(`Error from ${request.path}`);
+                console.error(`${request.path}: uncaught error`);
                 console.error(event.error || event.data);
             }
         }
