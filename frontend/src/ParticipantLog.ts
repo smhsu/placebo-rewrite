@@ -8,10 +8,9 @@ import { Tweet } from "./tweetModels/Tweet";
 
 const QUALTRICS_QUERY_PARAM_NAME = "qualtricsID";
 
-function getAndStoreQualtricsID(): string {
-    const params = new URLSearchParams(window.location.search);
+function getAndStoreQualtricsID(urlParams: URLSearchParams): string {
     const storedQualtricsId = window.localStorage.getItem(QUALTRICS_QUERY_PARAM_NAME) || "";
-    const paramsQualtricsId = params.get(QUALTRICS_QUERY_PARAM_NAME);
+    const paramsQualtricsId = urlParams.get(QUALTRICS_QUERY_PARAM_NAME);
     if (!paramsQualtricsId) {
         return storedQualtricsId;
     }
@@ -33,8 +32,8 @@ export class ParticipantLog {
     private _hasBeenUploaded = false;
     private _seenTweets = new Set<Tweet>();
 
-    constructor() {
-        this.qualtricsID = getAndStoreQualtricsID();
+    constructor(urlParams: URLSearchParams) {
+        this.qualtricsID = getAndStoreQualtricsID(urlParams);
         console.log("Using Qualtrics ID of: " + this.qualtricsID);
     }
 

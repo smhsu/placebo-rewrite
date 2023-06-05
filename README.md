@@ -23,13 +23,10 @@ use them for unauthorized API calls.  **Never** commit any file containing API k
 source files!  Instead, put the keys in the .env files, which are set to be ignored by git already and described in
 the next step.
 
-When choosing a callback URL for development, <http://127.0.0.1:3000> is recommended.  For more details about callback
-URLs, [click here](https://developer.twitter.com/en/docs/basics/apps/guides/callback-urls).
-
 ### 2. Configure environment variables
 
-Once you have your API keys, go into the `backend` folder and create `.env.development.local` using `.env.example.local`
-as a template.  You may also set environment variables as needed or desired in the other .env files.
+Once you have your API keys, go into the `backend` follow the directions in `.env.example.local`.  Then do the same for
+the `frontend` folder.
 
 ### 3. Install required software
 
