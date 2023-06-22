@@ -80,8 +80,7 @@ function TweetHeading(props: TweetHeadingProps): JSX.Element {
 }
 
 function TweetText({ tweet }: TweetSubComponentProps): JSX.Element {
-    const [lo, hi] = tweet.display_text_range;
-    return <div>{he.decode(tweet.text.substring(lo, hi))}</div>;
+    return <div>{he.decode(tweet.text)}</div>;
 }
 
 function TweetMedia({ tweet }: TweetSubComponentProps): JSX.Element | null {

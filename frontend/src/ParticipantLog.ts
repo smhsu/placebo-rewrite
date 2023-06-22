@@ -42,7 +42,7 @@ export class ParticipantLog {
         const createdAtMean = meanBy(tweets, "createdAtUnix") || 0;
         return {
             count: tweets.length,
-            uniqueAccounts: new Set(tweets.map(tweet => tweet.raw.user.id_str)).size,
+            uniqueAccounts: new Set(tweets.map(tweet => tweet.raw.author_id)).size,
             createdAtMean: createdAtMean,
             createdAtVariance: mean(tweets.map(tweet => Math.pow(tweet.createdAtUnix - createdAtMean, 2))) || 0,
             createdAtRange: [

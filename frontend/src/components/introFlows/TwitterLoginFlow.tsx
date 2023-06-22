@@ -55,12 +55,12 @@ export function TwitterLoginFlow(props: Props) {
                 // This will prevent us from trying to use the verifiers more than once, as they only work once.
                 deleteAuthVerifiers();
 
-                onTweetPromise(axios.request({
+                onTweetPromise(axios.request<GetTweetsApi.ResponsePayload>({
                     url: GetTweetsApi.PATH,
                     method: GetTweetsApi.METHOD,
                     data: body,
                     responseType: "json"
-                }).then(response => response.data));
+                }).then(response => Tweet.fromApiData(response.data)));
             }
         }
     }, [urlParams, onTweetPromise]);

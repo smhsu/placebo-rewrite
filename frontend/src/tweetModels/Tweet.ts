@@ -1,9 +1,11 @@
-import moment from "moment";
-import { FullUser, Status } from "twitter-d";
+import { DateTime } from "luxon";
+import { ApiV2Includes, TweetV2, TwitterV2IncludesHelper } from "twitter-api-v2";
 
-const TIME_PARSE_STRING = "ddd MMM DD HH:mm:ss ZZ YYYY";
-
-type PartialUser = Pick<FullUser, "name" | "screen_name" | "profile_image_url_https">
+interface UserInfo {
+    name: string;
+    screen_name: string;
+    profile_image_url_https: string;
+}
 
 export enum MediaType {
     PHOTO,
@@ -13,7 +15,7 @@ export enum MediaType {
 export class Tweet {
     static DEFAULT_PROFILE_PICTURE_URL =
         "https://abs.twimg.com/sticky/default_profile_images/default_profile_reasonably_small.png";
-    static DEFAULT_USER: PartialUser = {
+    static DEFAULT_USER: UserInfo = {
         name: "(Unknown user)",
         screen_name: "",
         profile_image_url_https: Tweet.DEFAULT_PROFILE_PICTURE_URL,
@@ -21,97 +23,105 @@ export class Tweet {
 
     public createdAtUnix: number;
     public createdAtDescription: string;
+    /** Retweeted OR quoted tweet */
     public retweeted_status: Tweet | null = null;
     public originalIndex: number;
+    private _includes: TwitterV2IncludesHelper;
 
-    constructor(public raw: Status, index: number) {
-        const parsed = moment(raw.created_at, TIME_PARSE_STRING);
-        this.createdAtUnix = parsed.unix();
-        this.createdAtDescription = parsed.fromNow();
-        if (raw.retweeted_status) {
-            this.retweeted_status = new Tweet(raw.retweeted_status, -1);
+    constructor(public raw: TweetV2, includes: TwitterV2IncludesHelper, index: number) {
+        this._includes = includes;
+        if (raw.created_at) {
+            const parsed = DateTime.fromRFC2822(raw.created_at);
+            this.createdAtUnix = parsed.toUnixInteger();
+            this.createdAtDescription = parsed.toRelative() || "";
+        } else {
+            this.createdAtUnix = 0;
+            this.createdAtDescription = "";
         }
+
+        const retweet = includes.retweet(raw) || includes.quote(raw);
+        if (retweet) {
+            this.retweeted_status = new Tweet(retweet, includes, -1);
+        }
+
         this.originalIndex = index;
     }
 
-    static fromStatuses(statuses: Status[]) {
-        return statuses.map((status, i) => new Tweet(status, i));
+    static fromApiData(twitterApiResult: { data: TweetV2[], includes: ApiV2Includes }) {
+        const includes = new TwitterV2IncludesHelper(twitterApiResult);
+        return twitterApiResult.data.map((status, i) => new Tweet(status, includes, i));
     }
 
     static sortNewestToOldest(tweets: Tweet[]) {
         return tweets.sort((tweet1, tweet2) => tweet2.createdAtUnix - tweet1.createdAtUnix);
     }
 
-    get author() {
-        const user = this.raw.user;
-        return Object.prototype.hasOwnProperty.call(user, "name") ?
-            (user as FullUser) : Tweet.DEFAULT_USER;
+    get author(): UserInfo {
+        const user = this._includes.userById(this.raw.author_id || "")
+        if (!user) {
+            return Tweet.DEFAULT_USER;
+        }
+
+        return {
+            name: user.name,
+            screen_name: user.username,
+            profile_image_url_https: user.profile_image_url || ""
+        }
     }
 
     get isPureRetweet(): boolean {
-        if (this.raw.retweeted_status) {
-            let retweetText = (this.raw.full_text || "").trim();
-            if (retweetText.length <= 0) { // Retweet with no additional comments
+        if (this.retweeted_status) {
+            let processedText = (this.text).trim();
+            if (processedText.length <= 0) {
                 return true
             }
 
-            if (retweetText.endsWith("…")) { // Remove the "..."
-                retweetText = retweetText.substring(0, retweetText.length - 1);
+            if (processedText.endsWith("…")) { // Remove the "..."
+                processedText = processedText.substring(0, processedText.length - 1);
             }
             // Delete any "RT @someTwitterUser:" that might appear at the start
-            retweetText = retweetText.replace(/^RT @\w+:/, "").trim();
+            processedText = processedText.replace(/^RT @\w+:/, "").trim();
 
             // Whether the tweet's text is entirely contained in the retweeted status's text
-            return retweetText.indexOf(retweetText) >= 0;
+            return this.retweeted_status.text.indexOf(processedText) >= 0;
         }
 
         return false;
     }
 
-    get id_str() {
-        return this.raw.id_str;
+    get id_str(): string {
+        return this.raw.id;
     }
 
-    get parent_id_str() {
-        return this.raw.in_reply_to_status_id_str;
+    get parent_id_str(): string {
+        return this._includes.repliedTo(this.raw)?.id || "";
     }
 
-    get favorite_count() {
-        return this.raw.favorite_count;
+    get favorite_count(): number {
+        return this.raw.public_metrics?.like_count || 0;
     }
 
-    get retweet_count() {
-        return this.raw.retweet_count;
+    get retweet_count(): number {
+        return this.raw.public_metrics?.retweet_count || 0;
     }
 
-    get text() {
-        return this.raw.full_text || "";
+    get text(): string {
+        return this.raw.text;
     }
 
-    get display_text_range() {
-        return this.raw.display_text_range || [0, undefined];
-    }
-
-    findFirstMedia(): {type: MediaType, url: string} | null {
-        const media = this.raw.extended_entities?.media || this.raw.entities.media;
-        if (!media) {
-            return null;
-        }
-
-        const firstMedia = media[0];
-        if (!firstMedia || firstMedia.source_status_id_str) { // No first media or the media is from another status
+    findFirstMedia(): { type: MediaType, url: string } | null {
+        const medias = this._includes.medias(this.raw);
+        const firstMedia = medias[0];
+        if (!firstMedia || !firstMedia.url) {
             return null;
         }
 
         if (firstMedia.type === "video") {
-            const firstVariant = firstMedia.video_info?.variants?.find(
-                variant => variant.content_type.startsWith("video/")
-            );
-            return firstVariant ? {type: MediaType.VIDEO, url: firstVariant.url} : null;
+            return { type: MediaType.VIDEO, url: firstMedia.url };
         } else if (firstMedia.type === "photo") {
-            return {type: MediaType.PHOTO, url: firstMedia.media_url_https};
-        } else {
-            return null;
+            return { type: MediaType.PHOTO, url: firstMedia.url };
         }
+
+        return null;
     }
 }
