@@ -80,7 +80,31 @@ function TweetHeading(props: TweetHeadingProps): JSX.Element {
 }
 
 function TweetText({ tweet }: TweetSubComponentProps): JSX.Element {
-    return <div>{he.decode(tweet.text)}</div>;
+    // Why a char array?  Because UTF-16.  The Twitter API counts Unicode code points, not bytes.
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/@@iterator
+    const textAsCharArray = [...tweet.text];
+    function getTweetSubstring(start: number, end?: number) {
+        return textAsCharArray.slice(start, end).join("");
+    }
+
+    const htmlElements = [];
+    let fragmentStartIndex = 0;
+    for (const urlEntity of tweet.urlEntities) {
+        const textFragment = getTweetSubstring(fragmentStartIndex, urlEntity.start);
+        htmlElements.push(he.decode(textFragment));
+        if (!urlEntity.expanded_url.startsWith("https://twitter.com")) {
+            // Only display links going to non-Twitter sites.
+            htmlElements.push(<a href={urlEntity.expanded_url}>{urlEntity.display_url}</a>);
+        }
+        fragmentStartIndex = urlEntity.end;
+    }
+
+    if (fragmentStartIndex < tweet.text.length) {
+        const textFragment = getTweetSubstring(fragmentStartIndex);
+        htmlElements.push(he.decode(textFragment));
+    }
+
+    return <div style={{whiteSpace: "pre-wrap"}}>{htmlElements}</div>;
 }
 
 function TweetMedia({ tweet }: TweetSubComponentProps): JSX.Element | null {

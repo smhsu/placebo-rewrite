@@ -1,5 +1,5 @@
 import { DateTime } from "luxon";
-import { ApiV2Includes, TweetV2, TwitterV2IncludesHelper } from "twitter-api-v2";
+import {ApiV2Includes, TweetEntityUrlV2, TweetV2, TwitterV2IncludesHelper} from "twitter-api-v2";
 
 interface UserInfo {
     name: string;
@@ -31,7 +31,7 @@ export class Tweet {
     constructor(public raw: TweetV2, includes: TwitterV2IncludesHelper, index: number) {
         this._includes = includes;
         if (raw.created_at) {
-            const parsed = DateTime.fromRFC2822(raw.created_at);
+            const parsed = DateTime.fromISO(raw.created_at);
             this.createdAtUnix = parsed.toUnixInteger();
             this.createdAtDescription = parsed.toRelative() || "";
         } else {
@@ -67,6 +67,10 @@ export class Tweet {
             screen_name: user.username,
             profile_image_url_https: user.profile_image_url || ""
         }
+    }
+
+    get urlEntities(): TweetEntityUrlV2[] {
+        return this.raw.entities?.urls || [];
     }
 
     get isPureRetweet(): boolean {

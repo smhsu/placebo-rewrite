@@ -54,9 +54,12 @@ export class TwitterClient {
         const authedApi = await api.loginWithOAuth2({code, codeVerifier, redirectUri: this._config.callbackUrl});
         const paginator = await authedApi.client.v2.homeTimeline({
             max_results: batchSize,
-            expansions: ["attachments.media_keys", "author_id", "referenced_tweets.id",
-                "referenced_tweets.id.author_id"],
-            "tweet.fields": ["author_id", "created_at", "public_metrics", "referenced_tweets", "text", "entities"],
+            expansions: [
+                "attachments.media_keys", "author_id", "referenced_tweets.id", "referenced_tweets.id.author_id"
+            ],
+            "tweet.fields": [
+                "author_id", "created_at", "public_metrics", "referenced_tweets", "text", "entities"
+            ],
             "user.fields": ["name", "username", "profile_image_url"],
             "media.fields": "url",
         });
