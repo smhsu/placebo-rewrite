@@ -1,9 +1,9 @@
 import { AxiosError } from "axios";
-import { isApiErrorPayload } from "./common/apiErrorPayload";
+import { isApiErrorPayload } from "../common/apiErrorPayload";
 
 /**
  * Helper for parsing and handling errors from our API.
- * 
+ *
  * @author Silas Hsu
  */
 export class ApiErrorHandler {
@@ -16,7 +16,7 @@ export class ApiErrorHandler {
     /**
      * To the best of our ability, gets a user-friendly reason for any error that happens when using Axios, especially
      * those that made a Twitter-related API call to the backend.
-     * 
+     *
      * @param error - error from Axios
      * @return user-friendly reason for the error
      */

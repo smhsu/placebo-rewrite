@@ -7,7 +7,7 @@ export function getStoredAuthVerifiers() {
     return {
         code_verifier: window.sessionStorage.getItem(CODE_VERIFIER_STORAGE_KEY),
         state: window.sessionStorage.getItem(STATE_STORAGE_KEY)
-    }
+    };
 }
 
 export function deleteAuthVerifiers() {

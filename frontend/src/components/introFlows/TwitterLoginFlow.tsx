@@ -1,13 +1,10 @@
 import React from "react";
-import axios from "axios";
 
 import { AppState, ErrorInfo } from "../AppState";
 import { TwitterLoginButton } from "./TwitterLoginButton";
 import { ErrorDisplay } from "./ErrorDisplay";
-import { deleteAuthVerifiers, getStoredAuthVerifiers } from "./OAuth2Utils";
-
-import * as GetTweetsApi from "../../common/getTweetsApi";
 import { Tweet } from "../../tweetModels/Tweet";
+import { callTweetsApi, getCachedApiResponse } from "../../apiLogic/callTweetsApi";
 
 import "./TwitterLoginFlow.css";
 
@@ -38,30 +35,25 @@ interface Props {
 export function TwitterLoginFlow(props: Props) {
     const {appState, urlParams, errorInfo, onTweetPromise, onAlternativeRequested} = props;
 
+    const hasEffectRun = React.useRef(false);
     /**
      * Detects if the user has authorized our app, and if so, fetches their tweets.
      */
     React.useEffect(() => {
-        // If the user has authorized our app, Twitter will redirect to our website with the code and state parameters
-        // in the URL.  See https://developer.twitter.com/en/docs/authentication/oauth-2-0/user-access-token
-        if (urlParams.has("code") && urlParams.has("state")) {
-            const verifiers = getStoredAuthVerifiers();
-            if (verifiers.state === urlParams.get("state")) {
-                const body: GetTweetsApi.RequestBody = {
-                    code: urlParams.get("code") || "",
-                    code_verifier: verifiers.code_verifier || ""
-                };
+        if (hasEffectRun.current) {
+            return;
+        }
+        hasEffectRun.current = true;
 
-                // This will prevent us from trying to use the verifiers more than once, as they only work once.
-                deleteAuthVerifiers();
+        const apiResponse = getCachedApiResponse();
+        if (apiResponse) {
+            onTweetPromise(Promise.resolve(Tweet.fromApiData(apiResponse)));
+            return;
+        }
 
-                onTweetPromise(axios.request<GetTweetsApi.ResponsePayload>({
-                    url: GetTweetsApi.PATH,
-                    method: GetTweetsApi.METHOD,
-                    data: body,
-                    responseType: "json"
-                }).then(response => Tweet.fromApiData(response.data)));
-            }
+        const apiPromise = callTweetsApi(urlParams);
+        if (apiPromise) {
+            onTweetPromise(apiPromise.then(Tweet.fromApiData));
         }
     }, [urlParams, onTweetPromise]);
 

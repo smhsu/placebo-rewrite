@@ -83,25 +83,29 @@ function TweetText({ tweet }: TweetSubComponentProps): JSX.Element {
     // Why a char array?  Because UTF-16.  The Twitter API counts Unicode code points, not bytes.
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/@@iterator
     const textAsCharArray = [...tweet.text];
-    function getTweetSubstring(start: number, end?: number) {
-        return textAsCharArray.slice(start, end).join("");
+    function makeTextFragment(key: number, start: number, end?: number) {
+        const text = textAsCharArray.slice(start, end).join("");
+        return <React.Fragment key={key}>{he.decode(text)}</React.Fragment>;
     }
 
     const htmlElements = [];
     let fragmentStartIndex = 0;
+    let key = 0;
     for (const urlEntity of tweet.urlEntities) {
-        const textFragment = getTweetSubstring(fragmentStartIndex, urlEntity.start);
-        htmlElements.push(he.decode(textFragment));
+        const textFragment = makeTextFragment(key, fragmentStartIndex, urlEntity.start);
+        key++;
+        htmlElements.push(textFragment);
         if (!urlEntity.expanded_url.startsWith("https://twitter.com")) {
             // Only display links going to non-Twitter sites.
-            htmlElements.push(<a href={urlEntity.expanded_url}>{urlEntity.display_url}</a>);
+            htmlElements.push(<a key={key} href={urlEntity.expanded_url}>{urlEntity.display_url}</a>);
+            key++;
         }
         fragmentStartIndex = urlEntity.end;
     }
 
     if (fragmentStartIndex < tweet.text.length) {
-        const textFragment = getTweetSubstring(fragmentStartIndex);
-        htmlElements.push(he.decode(textFragment));
+        const textFragment = makeTextFragment(key, fragmentStartIndex);
+        htmlElements.push(textFragment);
     }
 
     return <div style={{whiteSpace: "pre-wrap"}}>{htmlElements}</div>;

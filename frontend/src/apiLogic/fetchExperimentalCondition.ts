@@ -1,6 +1,6 @@
 import axios from "axios";
-import { ExperimentalCondition, getRandomCondition } from "./common/ExperimentalCondition";
-import * as GetExperimentalConditionApi from "./common/getExperimentalConditionApi";
+import { ExperimentalCondition, getRandomCondition } from "../common/ExperimentalCondition";
+import * as GetExperimentalConditionApi from "../common/getExperimentalConditionApi";
 
 export async function fetchExperimentalCondition(): Promise<ExperimentalCondition> {
     try {

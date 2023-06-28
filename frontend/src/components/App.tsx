@@ -8,9 +8,8 @@ import { EndScreen } from "./EndScreen";
 import { InstructionsModal } from "./InstructionsModal";
 import { TweetView } from "./tweetViewing/TweetView";
 
-import { ExperimentalCondition } from "../common/ExperimentalCondition";
-import { fetchExperimentalCondition } from "../fetchExperimentalCondition";
-import { ApiErrorHandler } from "../ApiErrorHandler";
+import { ExperimentalCondition, parseCondition } from "../common/ExperimentalCondition";
+import { ApiErrorHandler } from "../apiLogic/ApiErrorHandler";
 import { ParticipantLog } from "../ParticipantLog";
 import { Tweet } from "../tweetModels/Tweet";
 
@@ -36,17 +35,22 @@ export function App() {
         localStorage.getItem(log.qualtricsID) === "done" ? AppState.ENDED : AppState.START
     );
     const [isUsingStaticTweets, setIsUsingStaticTweets] = React.useState(
-        () => urlParams.get("use_static_tweets") === "true"
+        () => urlParams.get("use_static_tweets") === "true" && process.env.NODE_ENV === "development"
     );
     const [isEnding, setIsEnding] = React.useState(false);
     const [isShowingInstructions, setIsShowingInstructions] = React.useState(false);
     const [tweets, setTweets] = React.useState<Tweet[]>([]);
-    const [experimentCondition, setExperimentCondition] = React.useState<ExperimentalCondition>(
-        ExperimentalCondition.UNKNOWN
+    const experimentCondition = React.useMemo<ExperimentalCondition>(
+        () => parseCondition(urlParams.get("condition") || ""), []
     );
     const [errorInfo, setErrorInfo] = React.useState<ErrorInfo | undefined>(undefined);
     const {timeLeftSeconds, startTimerAfterNextUpdate, pauseTimer} = useTimer(TWEET_VIEW_DURATION_SECONDS);
     const [topBarHeight, setTopBarHeight] = React.useState(0);
+
+    function switchToStaticTweets() {
+        setAppState(AppState.START);
+        setIsUsingStaticTweets(true);
+    }
 
     function makeErrorHandler(failedAction: FailedAction) {
         return function(error: unknown) {
@@ -61,10 +65,8 @@ export function App() {
         setAppState(AppState.LOADING);
         try {
             const tweets = await tweetPromise;
-            const fetchedCondition = await fetchExperimentalCondition();
-            log.experimentalCondition = fetchedCondition;
+            log.experimentalCondition = experimentCondition;
             setTweets(tweets);
-            setExperimentCondition(fetchedCondition);
             setAppState(AppState.LOADED);
             setIsShowingInstructions(true);
         } catch (error) {
@@ -108,7 +110,7 @@ export function App() {
             errorInfo={errorInfo}
             onTweetPromise={handleTweetPromise}
             onLoginError={handleLoginError}
-            onAlternativeRequested={() => setIsUsingStaticTweets(true)}
+            onAlternativeRequested={switchToStaticTweets}
         />;
     }
 

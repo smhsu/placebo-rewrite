@@ -1,5 +1,5 @@
 import { DateTime } from "luxon";
-import {ApiV2Includes, TweetEntityUrlV2, TweetV2, TwitterV2IncludesHelper} from "twitter-api-v2";
+import { ApiV2Includes, TweetEntityUrlV2, TweetV2, TwitterV2IncludesHelper } from "twitter-api-v2";
 
 interface UserInfo {
     name: string;

@@ -8,6 +8,15 @@ export enum ExperimentalCondition {
     UNKNOWN = "unknown"
 }
 
+export function parseCondition(condition: string): ExperimentalCondition {
+    for (const value of Object.values(ExperimentalCondition)) {
+        if (condition === value) {
+            return value;
+        }
+    }
+    return ExperimentalCondition.UNKNOWN;
+}
+
 export const DesiredProportions: Record<ExperimentalCondition, number> = {
     [ExperimentalCondition.POPULARITY_SLIDER]: 0.345,
     [ExperimentalCondition.NOT_WORKING_POPULARITY_SLIDER]: 0.345,
