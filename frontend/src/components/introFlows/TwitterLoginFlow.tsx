@@ -33,7 +33,7 @@ interface Props {
  * @author Silas Hsu
  */
 export function TwitterLoginFlow(props: Props) {
-    const {appState, urlParams, errorInfo, onTweetPromise, onAlternativeRequested} = props;
+    const {appState, urlParams, errorInfo, onTweetPromise} = props;
 
     const hasEffectRun = React.useRef(false);
     /**
@@ -62,10 +62,6 @@ export function TwitterLoginFlow(props: Props) {
         <div>
             This will take you to Twitter's website.  To cancel log in, use your web browser's BACK button or feature.
         </div>
-        <button className="btn btn-light TwitterLoginFlow-button" onClick={onAlternativeRequested}>
-            Alternative app...
-        </button>
-        <div>Use this option if you've changed your mind about logging in.</div>
     </div>;
 
     switch (appState) {

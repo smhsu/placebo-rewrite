@@ -23,6 +23,12 @@ if (!isFinite(TWEET_VIEW_DURATION_SECONDS)) {
 }
 
 const urlParams = new URLSearchParams(window.location.search);
+let condition = urlParams.get("condition");
+if (condition) {
+    localStorage.setItem("condition", condition);
+} else {
+    condition = localStorage.getItem("condition");
+}
 
 export function App() {
     const log = React.useMemo(() => new ParticipantLog(urlParams), []);
@@ -31,9 +37,7 @@ export function App() {
     ////////////////////////
     // State and handlers //
     ////////////////////////
-    const [appState, setAppState] = React.useState<AppState>(() =>
-        localStorage.getItem(log.qualtricsID) === "done" ? AppState.ENDED : AppState.START
-    );
+    const [appState, setAppState] = React.useState<AppState>(AppState.START);
     const [isUsingStaticTweets, setIsUsingStaticTweets] = React.useState(
         () => urlParams.get("use_static_tweets") === "true" && process.env.NODE_ENV === "development"
     );
@@ -41,7 +45,7 @@ export function App() {
     const [isShowingInstructions, setIsShowingInstructions] = React.useState(false);
     const [tweets, setTweets] = React.useState<Tweet[]>([]);
     const experimentCondition = React.useMemo<ExperimentalCondition>(
-        () => parseCondition(urlParams.get("condition") || ""), []
+        () => parseCondition(condition || ""), []
     );
     const [errorInfo, setErrorInfo] = React.useState<ErrorInfo | undefined>(undefined);
     const {timeLeftSeconds, startTimerAfterNextUpdate, pauseTimer} = useTimer(TWEET_VIEW_DURATION_SECONDS);
@@ -82,7 +86,6 @@ export function App() {
             setIsEnding(true);
             // FIXME the actual transition duration is specified in EndScreen.css right now.
             window.setTimeout(() => setAppState(AppState.ENDED), 2000);
-            localStorage.setItem(log.qualtricsID, "done");
             log.uploadEnsuringOnce()
                 .catch(console.error);
         }
