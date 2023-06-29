@@ -22,16 +22,18 @@ if (!isFinite(TWEET_VIEW_DURATION_SECONDS)) {
     throw new Error("Invalid value for REACT_APP_FEED_VIEWING_SECONDS environment variable.");
 }
 
-const urlParams = new URLSearchParams(window.location.search);
-let condition = urlParams.get("condition");
+const url = new URL(window.location.href);
+let condition = url.searchParams.get("condition");
 if (condition) {
     localStorage.setItem("condition", condition);
+    url.searchParams.delete("condition");
+    window.history.replaceState(null, "", url.toString());
 } else {
     condition = localStorage.getItem("condition");
 }
 
 export function App() {
-    const log = React.useMemo(() => new ParticipantLog(urlParams), []);
+    const log = React.useMemo(() => new ParticipantLog(url.searchParams), []);
     const topBar = React.useRef<HTMLDivElement>(null);
 
     ////////////////////////
@@ -39,7 +41,7 @@ export function App() {
     ////////////////////////
     const [appState, setAppState] = React.useState<AppState>(AppState.START);
     const [isUsingStaticTweets, setIsUsingStaticTweets] = React.useState(
-        () => urlParams.get("use_static_tweets") === "true" && process.env.NODE_ENV === "development"
+        () => url.searchParams.get("use_static_tweets") === "true" && process.env.NODE_ENV === "development"
     );
     const [isEnding, setIsEnding] = React.useState(false);
     const [isShowingInstructions, setIsShowingInstructions] = React.useState(false);
@@ -109,7 +111,7 @@ export function App() {
     } else {
         tweetFetchFlow = <TwitterLoginFlow
             appState={appState}
-            urlParams={urlParams}
+            urlParams={url.searchParams}
             errorInfo={errorInfo}
             onTweetPromise={handleTweetPromise}
             onLoginError={handleLoginError}
