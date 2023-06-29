@@ -1,22 +1,24 @@
 import React from "react";
 import { CopyButton } from "./CopyButton";
+import { ExperimentalCondition, ContinuationCodeForCondition } from "../common/ExperimentalCondition";
 
 import "./EndScreen.css";
 
-export function EndScreen() {
+export function EndScreen(props: {condition: ExperimentalCondition}) {
     const [isHelpOpen, setIsHelpOpen] = React.useState(false);
     const userAgent = navigator.userAgent.toLowerCase();
     const isIOS = detectIOS(userAgent);
     const isAndroid = userAgent.includes("android");
     const isMobile = isIOS || isAndroid;
+    const code = ContinuationCodeForCondition[props.condition];
 
     return <div className="EndScreen EndScreen-fade-in vertical-center">
         <div className="container">
             <h1>Thanks for browsing!</h1>
             <p className="EndScreen-instructions">
                 Use this code to continue inside Qualtrics:
-                <code>{process.env.REACT_APP_CONTINUE_CODE || ""}</code>
-                <CopyButton copyString={process.env.REACT_APP_CONTINUE_CODE || ""} />
+                <code>{code}</code>
+                <CopyButton copyString={code} />
             </p>
             <p className="EndScreen-instructions">
                 You may now close the current tab and return to Qualtrics.

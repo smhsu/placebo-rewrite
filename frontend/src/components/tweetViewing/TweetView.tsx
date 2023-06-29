@@ -76,7 +76,7 @@ interface ManualConditionChooserProps {
 }
 
 function ManualConditionChooser(props: ManualConditionChooserProps): JSX.Element {
-    const options = [<option key="" value="">(server-chosen) {props.serverSelectedCondition}</option>];
+    const options = [<option key="" value="">(from URL params) {props.serverSelectedCondition}</option>];
     for (const condition of Object.values(ExperimentalCondition)) {
         options.push(<option key={condition} value={condition}>{condition}</option>);
     }

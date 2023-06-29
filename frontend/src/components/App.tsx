@@ -158,6 +158,6 @@ export function App() {
             open={isShowingInstructions}
             onClose={() => { setIsShowingInstructions(false); startTimerAfterNextUpdate(); }}
         />
-        {(isEnding || appState === AppState.ENDED) && <EndScreen />}
+        {(isEnding || appState === AppState.ENDED) && <EndScreen condition={experimentCondition} />}
     </div>;
 }
