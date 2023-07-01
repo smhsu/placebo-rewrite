@@ -5,7 +5,7 @@
     border-right: 1px solid var(--Tweet-border-color);
 }
 
-.TweetView-settings-wrapper {
+.TweetView-settings-col {
     position: sticky;
     background-color: white;
     display: flex;
@@ -14,7 +14,7 @@
     z-index: 1;
 }
 
-.TweetView-settings {
+.TweetView-settings-wrapper {
     position: sticky;
     border: 1px solid var(--Tweet-border-color);
     padding: 15px;
@@ -39,7 +39,7 @@
         border: 0;
     }
 
-    .TweetView-settings-wrapper {
+    .TweetView-settings-col {
         order: 1;
         padding: 0;
 
@@ -49,23 +49,11 @@
         max-width: 100%;
     }
 
-    .TweetView-settings {
+    .TweetView-settings-wrapper {
         border: 0; /* Overrides border, padding, max-width */
         border-bottom: 1px solid var(--Tweet-border-color);
         padding-top: 10px;
         padding-bottom: 10px;
         max-width: 100%;
-
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-    }
-
-    .TweetView-settings-header {
-        margin-right: 25px;
-    }
-
-    .TweetView-settings-content {
-        flex-grow: 1;
     }
 }

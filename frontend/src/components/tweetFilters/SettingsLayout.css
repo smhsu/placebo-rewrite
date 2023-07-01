@@ -1,0 +1,20 @@
+.SettingsLayout-header {
+    font-size: 1.5em;
+    font-weight: 500;
+}
+
+@media (max-width: 642px) {
+    .SettingsLayout {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .SettingsLayout-header {
+        margin-right: 25px;
+    }
+
+    .SettingsLayout-content {
+        flex-grow: 1;
+    }
+}

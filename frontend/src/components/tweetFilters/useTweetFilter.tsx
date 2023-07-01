@@ -9,11 +9,15 @@ import { OriginalOrderSorter, ConsistentShuffleSorter } from "../../tweetModels/
 
 import { ITweetFilter } from "./ITweetFilter";
 import { BucketPopularityFilter } from "./BucketPopularityFilter";
+import { VagueBucketPopularityFilter } from "./VagueBucketPopularityFilter";
 import { swapFilter } from "./SwapFilter";
 import { NoSettingFilter } from "./NoSettingFilter";
 
 const TWEET_FILTER_FOR_CONDITION: Record<ExperimentalCondition, ITweetFilter<any>> = {
     [ExperimentalCondition.POPULARITY_SLIDER]: new BucketPopularityFilter(
+        new TweetPopularityCalculator(), new OriginalOrderSorter()
+    ),
+    [ExperimentalCondition.VAGUE_SLIDER]: new VagueBucketPopularityFilter(
         new TweetPopularityCalculator(), new OriginalOrderSorter()
     ),
     [ExperimentalCondition.NOT_WORKING_POPULARITY_SLIDER]: new BucketPopularityFilter(

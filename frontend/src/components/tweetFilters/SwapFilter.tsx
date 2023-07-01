@@ -1,7 +1,9 @@
 import React from "react";
+import { SettingsLayout } from "./SettingsLayout";
 import { ITweetFilter, SettingComponentProps } from "./ITweetFilter";
 import { TweetThread } from "../../tweetModels/TweetThread";
 import { OriginalOrderSorter } from "../../tweetModels/ThreadSorter";
+
 
 const THREAD_SORTER = new OriginalOrderSorter();
 
@@ -15,7 +17,11 @@ export const swapFilter: ITweetFilter<boolean> = {
             onStateUpdated(!currentState);
             onClick();
         };
-        return <button className="btn btn-primary" onClick={handleClick}>Swap first two threads</button>;
+        return <SettingsLayout>
+            <button className="btn btn-primary" style={{ marginTop: 10 }} onClick={handleClick}>
+                Swap first two threads
+            </button>
+        </SettingsLayout>;
     },
 
     doFilter(threads: TweetThread[], isSwapping: boolean): TweetThread[] {

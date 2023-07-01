@@ -1,6 +1,7 @@
 export enum ExperimentalCondition {
     // Making these strings made Typescript happier because we have code that iterates through this enum.
     POPULARITY_SLIDER = "popularity_slider",
+    VAGUE_SLIDER = "vague_slider",
     NOT_WORKING_POPULARITY_SLIDER = "not_working_popularity_slider",
     SWAP_SETTING = "swap_setting",
     NO_SETTING = "no_setting",
@@ -10,12 +11,13 @@ export enum ExperimentalCondition {
 
 export const ContinuationCodeForCondition: Record<ExperimentalCondition, string> = {
     [ExperimentalCondition.POPULARITY_SLIDER]: "402d5ab282fe67",
+    [ExperimentalCondition.VAGUE_SLIDER]: "446e246e64d1",
     [ExperimentalCondition.NOT_WORKING_POPULARITY_SLIDER]: "b4eac21faba2",
     [ExperimentalCondition.SWAP_SETTING]: "184dd420dc252df",
     [ExperimentalCondition.NO_SETTING]: "57be72e7b1f8",
     [ExperimentalCondition.NO_SETTING_RANDOM]: "446e246e64d1",
     [ExperimentalCondition.UNKNOWN]: process.env.REACT_APP_ERROR_CONTINUE_CODE || "tweets_error_30bfa3e53"
-}
+};
 
 export function parseCondition(condition: string): ExperimentalCondition {
     for (const value of Object.values(ExperimentalCondition)) {
@@ -28,6 +30,7 @@ export function parseCondition(condition: string): ExperimentalCondition {
 
 export const DesiredProportions: Record<ExperimentalCondition, number> = {
     [ExperimentalCondition.POPULARITY_SLIDER]: 0.345,
+    [ExperimentalCondition.VAGUE_SLIDER]: 0,
     [ExperimentalCondition.NOT_WORKING_POPULARITY_SLIDER]: 0.345,
     [ExperimentalCondition.SWAP_SETTING]: 0.15,
     [ExperimentalCondition.NO_SETTING]: 0.08,

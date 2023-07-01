@@ -4,6 +4,7 @@ import { Switch, Slider, FormControlLabel } from "@material-ui/core";
 
 import { ITweetFilter, SettingComponentProps } from "./ITweetFilter";
 import { SliderContainer } from "./SliderContainer";
+import { SettingsLayout } from "./SettingsLayout";
 import { TweetThread } from "../../tweetModels/TweetThread";
 import { ITweetPopularityCalculator } from "../../tweetModels/TweetPopularityCalculator";
 import { IThreadSorter } from "../../tweetModels/ThreadSorter";
@@ -52,7 +53,7 @@ export class BucketPopularityFilter implements ITweetFilter<BucketPopularityFilt
             window.setTimeout(() => window.scrollTo({top: 0, behavior: "smooth"}));
         }
 
-        return <div>
+        return <SettingsLayout>
             <FormControlLabel
                 control={<Switch
                     checked={currentState.isFiltering}
@@ -81,7 +82,7 @@ export class BucketPopularityFilter implements ITweetFilter<BucketPopularityFilt
                     onChange={handleChange}
                 />
             </SliderContainer>
-        </div>
+        </SettingsLayout>
     }
 
     doFilter(threads: TweetThread[], currentState: BucketPopularityFilterState): TweetThread[] {
