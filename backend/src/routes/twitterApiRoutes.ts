@@ -4,8 +4,6 @@ import * as GetTweetsApi from "../common/getTweetsApi";
 import { TwitterClient } from "../TwitterClient";
 import { ApiRequestError, ApiResponseError } from "twitter-api-v2";
 
-const NUM_TWEETS_TO_GET = 80;
-
 /**
  * Registers APIs that relate to authenticating and fetching data from Twitter.
  *
@@ -19,6 +17,11 @@ export default function registerRoutes(
     if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET || !process.env.CALLBACK_URL) {
         throw new Error("Could not find required Twitter app config environment variables");
     }
+    const numTweetsToGet = Number.parseInt(process.env.NUM_TWEETS_TO_GET || "");
+    if (!Number.isFinite(numTweetsToGet) || numTweetsToGet <= 0) {
+        throw new Error(`Invalid number of tweets to get per user: '${process.env.NUM_TWEETS_TO_GET}'`);
+    }
+    console.log("Target number of tweets to get per user: " + numTweetsToGet);
 
     const twitterClient = makeTwitterClient({
         clientId: process.env.CLIENT_ID,
@@ -39,7 +42,7 @@ export default function registerRoutes(
             }
             const { code, code_verifier } = request.payload;
             try {
-                return await twitterClient.getHomeTimeline(code, code_verifier, NUM_TWEETS_TO_GET);
+                return await twitterClient.getHomeTimeline(code, code_verifier, numTweetsToGet);
             } catch (error) {
                 return handleTwitterError(error);
             }
